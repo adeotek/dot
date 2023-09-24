@@ -35,7 +35,7 @@ public class ShellCommand
         }
     }
 
-    public List<string> Arguments => _arguments;
+    public string[] Arguments => _arguments.ToArray();
 
     public bool IsScript
     {

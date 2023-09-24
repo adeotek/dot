@@ -18,4 +18,5 @@
       <ProjectReference Include="..\Adeotek.CommandLine.Helpers\Adeotek.CommandLine.Helpers.csproj" />
     </ItemGroup>
 
+
 </Project>

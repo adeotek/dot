@@ -1,0 +1,35 @@
+{
+  "Image": "nginx",
+  "ImageTag": "latest",
+  "BaseName": "nginx-proxy",
+  "NamePrefix": "sys--",
+  "PrimarySuffix": null,
+  "BackupSuffix": "-bak",
+  "Ports": [
+    {
+      "Host": 8080,
+      "Container": 80
+    },
+    {
+      "Host": 8443,
+      "Container": 443
+    }
+  ],
+  "Volumes": [
+    {
+      "Source": "/opt/nginx/data",
+      "Destination": "/data",
+      "IsMapping": true,
+      "AutoCreate": true
+    }
+  ],
+  "EnvVars": {
+    "TZ": "Europe/Bucharest"
+  },
+  "NetworkName": null,
+  "NetworkSubnet": null,
+  "NetworkIpRange": null,
+  "Hostname": null,
+  "NetworkAlias": null,
+  "Restart": null
+}
