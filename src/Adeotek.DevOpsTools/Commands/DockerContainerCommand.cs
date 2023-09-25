@@ -292,7 +292,7 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
     {
         AnsiConsole.Write(new CustomComposer()
             .Repeat('=', _separatorLength).LineBreak()
-            .Style("green", "ALL DONE!!!").LineBreak().LineBreak());
+            .Style("purple", "DONE.").LineBreak().LineBreak());
     }
 
     private ShellCommand GetShellCommand(string command, bool outputRedirect = true, 
