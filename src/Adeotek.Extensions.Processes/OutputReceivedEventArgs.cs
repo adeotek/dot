@@ -1,4 +1,4 @@
-﻿namespace Adeotek.CommandLine.Helpers;
+﻿namespace Adeotek.Extensions.Processes;
 
 public class OutputReceivedEventArgs : EventArgs
 {

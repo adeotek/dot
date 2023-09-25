@@ -1,4 +1,6 @@
-﻿namespace Adeotek.DevOpsTools.Models;
+﻿using System.Text;
+
+namespace Adeotek.DevOpsTools.Models;
 
 public class ContainerConfig
 {
@@ -25,4 +27,7 @@ public class ContainerConfig
     public string? NetworkAlias { get; set; }
     // Misc
     public string? Restart { get; set; }
+    // Computed
+    public string PrimaryName => $"{NamePrefix}{BaseName}{PrimarySuffix}";
+    public string BackupName => $"{NamePrefix}{BaseName}{BackupSuffix}";
 }

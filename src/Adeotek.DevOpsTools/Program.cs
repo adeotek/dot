@@ -9,9 +9,9 @@ app.Configure(config =>
 {
     config.SetApplicationName("act"); // ???
     config.SetHelpProvider(new DefaultHelpProvider(config.Settings));
-    config.SetExceptionHandler(ex =>
+    config.SetExceptionHandler(e =>
     {
-        AnsiConsole.WriteException(ex, ExceptionFormats.ShortenEverything);
+        AnsiConsole.WriteException(e, ExceptionFormats.ShortenEverything);
         return 1;
     });
     // Commands

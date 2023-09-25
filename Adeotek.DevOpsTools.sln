@@ -2,7 +2,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adeotek.DevOpsTools", "src\Adeotek.DevOpsTools\Adeotek.DevOpsTools.csproj", "{E89A3392-F860-44FD-A5DB-1C66E41E259F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adeotek.CommandLine.Helpers", "src\Adeotek.CommandLine.Helpers\Adeotek.CommandLine.Helpers.csproj", "{DDDC41E8-E206-4894-A737-7316A337F97B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adeotek.Extensions.Processes", "src\Adeotek.Extensions.Processes\Adeotek.Extensions.Processes.csproj", "{DDDC41E8-E206-4894-A737-7316A337F97B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3E60B3A3-598E-4093-9F13-BF67895AD637}"
 EndProject

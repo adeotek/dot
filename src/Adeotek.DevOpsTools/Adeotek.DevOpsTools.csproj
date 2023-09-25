@@ -15,8 +15,15 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Adeotek.CommandLine.Helpers\Adeotek.CommandLine.Helpers.csproj" />
+      <ProjectReference Include="..\Adeotek.Extensions.Processes\Adeotek.Extensions.Processes.csproj" />
     </ItemGroup>
 
+
+
+    <ItemGroup>
+      <None Update="test-config.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
 
 </Project>

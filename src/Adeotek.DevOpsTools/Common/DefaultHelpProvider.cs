@@ -25,7 +25,7 @@ internal sealed class DefaultHelpProvider : HelpProvider
     public override IEnumerable<IRenderable> GetHeader(ICommandModel model, ICommandInfo? command)
     {
         double spaces = (ApplicationTitle.Length - model.ApplicationName.Length - _applicationVersion.Length) / 2d;
-        CustomComposer composer = new CustomComposer()
+        var composer = new CustomComposer()
             // Top separator row
             .Repeat(HS, (2 * HTL) + 2 + ApplicationTitle.Length).LineBreak()
             // Application title row

@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace Adeotek.CommandLine.Helpers;
+namespace Adeotek.Extensions.Processes;
 
 public class ShellCommand
 {
@@ -62,46 +62,53 @@ public class ShellCommand
     private List<string> _arguments = new();
     private bool _isScript;
     
-    public void AddArgument(string value)
+    public ShellCommand AddArgument(string value)
     {
         _prepared = false;
         _arguments.Add(value);
+        return this;
     }
     
-    public void AddArguments(IEnumerable<string> range)
+    public ShellCommand AddArguments(IEnumerable<string> range)
     {
         _prepared = false;
         _arguments.AddRange(range);
+        return this;
     }
 
-    public void SetArgumentAt(int index, string value)
+    public ShellCommand SetArgumentAt(int index, string value)
     {
         _prepared = false;
         _arguments[index] = value;
+        return this;
     }
     
-    public void ReplaceArgument(string currentValue, string newValue)
+    public ShellCommand ReplaceArgument(string currentValue, string newValue)
     {
         _prepared = false;
         _arguments[_arguments.IndexOf(currentValue)] = newValue;
+        return this;
     }
     
-    public bool RemoveArgument(string item)
+    public ShellCommand RemoveArgument(string item)
     {
         _prepared = false;
-        return _arguments.Remove(item);
+        _arguments.Remove(item);
+        return this;
     }
     
-    public void RemoveArgumentAt(int index)
+    public ShellCommand RemoveArgumentAt(int index)
     {
         _prepared = false;
         _arguments.RemoveAt(index);
+        return this;
     }
     
-    public void ClearArguments()
+    public ShellCommand ClearArguments()
     {
         _prepared = false;
         _arguments.Clear();
+        return this;
     }
 
     public int Execute(string command, string[]? args = null, string? shellName = null, bool isScript = false,
@@ -165,15 +172,16 @@ public class ShellCommand
         return StatusCode;
     }
 
-    public void Prepare()
+    public ShellCommand Prepare()
     {
         if (_prepared)
         {
-            return;
+            return this;
         }
         
         ProcessFile = string.IsNullOrWhiteSpace(ShellName) ? Command : ShellName;
         ProcessArguments = GetShellArguments(Command, Arguments.ToArray(), ShellName, IsScript);
+        return this;
     }
 
     private void ProcessStdOutput(object sender, DataReceivedEventArgs e)
