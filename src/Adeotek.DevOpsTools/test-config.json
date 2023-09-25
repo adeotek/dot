@@ -1,8 +1,8 @@
 {
   "Image": "nginx",
-  "ImageTag": "latest",
-  "BaseName": "nginx-proxy",
+  "Tag": "latest",
   "NamePrefix": "sys--",
+  "BaseName": "nginx-proxy",
   "PrimarySuffix": null,
   "BackupSuffix": "-bak",
   "Ports": [

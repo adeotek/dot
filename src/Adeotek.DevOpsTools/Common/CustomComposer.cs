@@ -24,6 +24,16 @@ internal sealed class CustomComposer : IRenderable
         _content.Append(text);
         return this;
     }
+    
+    public CustomComposer Text(string text, int length)
+    {
+        Text(text);
+        if (text.Length < length)
+        {
+            Repeat(' ', length - text.Length);
+        }
+        return this;
+    }
 
     public CustomComposer Style(string style, string text)
     {
@@ -38,6 +48,16 @@ internal sealed class CustomComposer : IRenderable
         _content.Append('[').Append(style).Append(']');
         action(this);
         _content.Append("[/]");
+        return this;
+    }
+    
+    public CustomComposer Style(string color, string text, int length)
+    {
+        Style(color, text);
+        if (text.Length < length)
+        {
+            Repeat(' ', length - text.Length);
+        }
         return this;
     }
 
@@ -64,6 +84,14 @@ internal sealed class CustomComposer : IRenderable
     public CustomComposer Repeat(char character, int count)
     {
         _content.Append(new string(character, count));
+        return this;
+    }
+    
+    public CustomComposer Repeat(string style, char character, int count)
+    {
+        _content.Append('[').Append(style).Append(']');
+        _content.Append(new string(character, count));
+        _content.Append("[/]");
         return this;
     }
 

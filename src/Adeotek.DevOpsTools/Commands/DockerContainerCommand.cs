@@ -277,7 +277,7 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
     private void PrintSeparator(bool big = false)
     {
         AnsiConsole.Write(new CustomComposer()
-            .Repeat(big ? '=' : '-', _separatorLength).LineBreak());
+            .Repeat("gray", big ? '=' : '-', _separatorLength).LineBreak());
     }
     
     private void PrintStart()
@@ -285,13 +285,13 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
         AnsiConsole.Write(new CustomComposer()
             .Text("Running ").Style("purple", "DOT Container Tool").Space()
             .Style("green", $"v{_version}").LineBreak()
-            .Repeat('=', _separatorLength).LineBreak());
+            .Repeat("gray", '=', _separatorLength).LineBreak());
     }
     
     private void PrintDone()
     {
         AnsiConsole.Write(new CustomComposer()
-            .Repeat('=', _separatorLength).LineBreak()
+            .Repeat("gray", '=', _separatorLength).LineBreak()
             .Style("purple", "DONE.").LineBreak().LineBreak());
     }
 

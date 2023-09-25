@@ -6,10 +6,10 @@ public class ContainerConfig
 {
     // Image
     public string Image { get; set; } = default!;
-    public string? ImageTag { get; set; }
+    public string? Tag { get; set; }
     // Container Name
-    public string BaseName { get; set; } = default!;
     public string? NamePrefix { get; set; }
+    public string BaseName { get; set; } = default!;
     public string? PrimarySuffix { get; set; }
     public string? BackupSuffix { get; set; }
     // Ports
@@ -28,6 +28,8 @@ public class ContainerConfig
     // Misc
     public string? Restart { get; set; }
     // Computed
+    public string ImageTag => string.IsNullOrEmpty(Tag) ? "latest" : Tag;
+    public string FullImageName => $"{Image}:{ImageTag}";
     public string PrimaryName => $"{NamePrefix}{BaseName}{PrimarySuffix}";
     public string BackupName => $"{NamePrefix}{BaseName}{BackupSuffix}";
 }
