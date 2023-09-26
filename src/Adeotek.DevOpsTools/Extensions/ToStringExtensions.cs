@@ -8,6 +8,7 @@ namespace Adeotek.DevOpsTools.Extensions;
 internal static class AnsiConsolePrintExtensions
 {
     private const int NameLength = 18;
+    private const int SubValueIndent = 2;
     private const char SubValuePrefix = ' ';
     private const string MappingSeparator = " -> ";
     private const string Null = "[null]";
@@ -31,11 +32,19 @@ internal static class AnsiConsolePrintExtensions
             .Style(LabelColor, "Ports:").LineBreak().AddConfigPorts(config.Ports)
             .Style(LabelColor, "Volumes:").LineBreak().AddConfigVolumes(config.Volumes)
             .Style(LabelColor, "EnvVars:").LineBreak().AddConfigEnvVars(config.EnvVars)
-            .Style(LabelColor, "NetworkName:", NameLength).Style(ValueColor, config.NetworkName ?? Null).LineBreak()
-            .Style(LabelColor, "NetworkSubnet:", NameLength).Style(ValueColor, config.NetworkSubnet ?? Null).LineBreak()
-            .Style(LabelColor, "NetworkIpRange:", NameLength).Style(ValueColor, config.NetworkIpRange ?? Null).LineBreak()
-            .Style(LabelColor, "Hostname:", NameLength).Style(ValueColor, config.Hostname ?? Null).LineBreak()
-            .Style(LabelColor, "NetworkAlias:", NameLength).Style(ValueColor, config.NetworkAlias ?? Null).LineBreak()
+            .Style(LabelColor, "Network:").LineBreak()
+            .Repeat(SubValuePrefix, SubValueIndent)
+            .Style(LabelColor, "Name:", NameLength - SubValueIndent).Style(ValueColor, config.Network?.Name ?? Null).LineBreak()
+            .Repeat(SubValuePrefix, SubValueIndent)
+            .Style(LabelColor, "Subnet:", NameLength - SubValueIndent).Style(ValueColor, config.Network?.Subnet ?? Null).LineBreak()
+            .Repeat(SubValuePrefix, SubValueIndent)
+            .Style(LabelColor, "IpRange:", NameLength - SubValueIndent).Style(ValueColor, config.Network?.IpRange ?? Null).LineBreak()
+            .Repeat(SubValuePrefix, SubValueIndent)
+            .Style(LabelColor, "IpAddress:", NameLength - SubValueIndent).Style(ValueColor, config.Network?.IpAddress ?? Null).LineBreak()
+            .Repeat(SubValuePrefix, SubValueIndent)
+            .Style(LabelColor, "Hostname:", NameLength - SubValueIndent).Style(ValueColor, config.Network?.Hostname ?? Null).LineBreak()
+            .Repeat(SubValuePrefix, SubValueIndent)
+            .Style(LabelColor, "Alias:", NameLength - SubValueIndent).Style(ValueColor, config.Network?.Alias ?? Null).LineBreak()
             .Style(LabelColor, "Restart:", NameLength).Style(ValueColor, config.Restart ?? Null).LineBreak();
 
         AnsiConsole.Write(composer);

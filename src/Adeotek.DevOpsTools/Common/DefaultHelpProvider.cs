@@ -8,7 +8,7 @@ namespace Adeotek.DevOpsTools.Common;
 
 internal sealed class DefaultHelpProvider : HelpProvider
 {
-    private const string ApplicationTitle = "AdeoTEK Containers Tools";
+    private const string ApplicationTitle = "AdeoTEK DevOps Tools";
     private const char HS = '-';
     private const char HT = '-';
     private const int HTL = 12;

@@ -7,7 +7,7 @@ using Spectre.Console.Cli;
 CommandApp app = new();
 app.Configure(config =>
 {
-    config.SetApplicationName("act"); // ???
+    config.SetApplicationName("dot");
     config.SetHelpProvider(new DefaultHelpProvider(config.Settings));
     config.SetExceptionHandler(e =>
     {
@@ -15,8 +15,13 @@ app.Configure(config =>
         return 1;
     });
     // Commands
-    config.AddCommand<DockerContainerCommand>("container")
-        .WithAlias("ct");
-    config.AddCommand<TestCommand>("test");
+    config.AddBranch("container", ct =>
+    {
+        ct.SetDescription("Manage Docker containers.");
+        ct.AddCommand<ContainerUpCommand>("up")
+            .WithDescription("Create/Update Docker containers");
+        ct.AddCommand<ContainerDownCommand>("down")
+            .WithDescription("Remove Docker containers");
+    });
 });
 return app.Run(args);

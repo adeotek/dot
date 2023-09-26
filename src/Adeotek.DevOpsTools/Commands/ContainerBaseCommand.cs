@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
@@ -7,6 +6,7 @@ using System.Text.Json;
 using Adeotek.DevOpsTools.Common;
 using Adeotek.DevOpsTools.Extensions;
 using Adeotek.DevOpsTools.Models;
+using Adeotek.DevOpsTools.Settings;
 using Adeotek.Extensions.Processes;
 
 using Spectre.Console;
@@ -14,78 +14,45 @@ using Spectre.Console.Cli;
 
 namespace Adeotek.DevOpsTools.Commands;
 
-internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Settings>
+internal abstract class ContainerBaseCommand<TSettings> 
+    : Command<TSettings> where TSettings : ContainerSettings
 {
-    public sealed class Settings : CommandSettings
-    {
-        [Description("Config file (with absolute/relative path).")]
-        [CommandArgument(0, "<config_file>")]
-        public string? ConfigFile { get; init; }
-        
-        [Description("Force recreation if container exists.")]
-        [CommandOption("-f|--force")]
-        [DefaultValue(false)]
-        public bool Force { get; init; }
-        
-        [Description("Don't ask for user's input.")]
-        [CommandOption("-u|--unattended")]
-        [DefaultValue(false)]
-        public bool Unattended { get; init; }
-        
-        [Description("Don't apply any changes, just print the commands.")]
-        [CommandOption("--dry-run")]
-        [DefaultValue(false)]
-        public bool DryRun { get; init; }
-        
-        [CommandOption("--verbose")]
-        [DefaultValue(false)]
-        public bool Debug { get; init; }
-    }
-    
-    private readonly string _version = Assembly.GetEntryAssembly()
-                                           ?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
-                                       ?? "?";
-    private readonly int _separatorLength = 80;
-    private Settings? _settings;
-    private string? _errOutputColor = "red"; 
-    private bool IsDebug => _settings?.Debug ?? false;
+    protected static readonly string Version = Assembly.GetEntryAssembly()
+           ?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
+       ?? "?";
+    protected readonly int _separatorLength = 80;
+    protected readonly string _errorColor = "red";
+    protected readonly string _warningColor = "olive";
+    protected readonly string _standardColor = "turquoise4";
+    protected readonly string _successColor = "green";
+    protected string? _errOutputColor = "red";
+    protected TSettings? _settings;
+    protected CommandContext? _context;
+    protected bool IsVerbose => _settings?.Verbose ?? false;
 
-    public override int Execute([NotNull] CommandContext context, [NotNull] Settings settings)
+    protected abstract void ExecuteCommand(ContainerConfig config);
+    
+    public override int Execute([NotNull] CommandContext context, [NotNull] TSettings settings)
     {
         try
         {
             PrintStart();
+            _context = context;
             _settings = settings;
             var config = LoadConfig(settings.ConfigFile);
-            if (settings.Debug)
+            if (settings.Verbose)
             {
                 config.WriteToAnsiConsole();
             }
 
-            if (CheckIfContainerExists(config.PrimaryName))
-            {
-                PrintMessage("Container already present!");
-                // UpdateContainer(config, settings);
-            }
-            else
-            {
-                PrintMessage("Container not fond!");
-                if (CreateContainer(config))
-                {
-                    PrintMessage("Container created successfully!", "green");
-                }
-                else
-                {
-                    PrintMessage("Command failed, the container was not created!", "red");
-                }
-            }
+            ExecuteCommand(config);
 
             PrintDone();
             return 0;
         }
         catch (ShellCommandException e)
         {
-            if (settings.Debug)
+            if (settings.Verbose)
             {
                 AnsiConsole.WriteException(e, ExceptionFormats.ShortenEverything);
             }
@@ -98,7 +65,7 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
         }
         catch (Exception e)
         {
-            if (settings.Debug)
+            if (settings.Verbose)
             {
                 AnsiConsole.WriteException(e, ExceptionFormats.ShortenEverything);
             }
@@ -115,7 +82,7 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
         }
     }
 
-    private bool CreateContainer(ContainerConfig config)
+    protected virtual bool CreateContainer(ContainerConfig config)
     {
         if (!CheckNetwork(config.Network))
         {
@@ -130,7 +97,7 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
             }
         }
 
-        var dockerCommand = GetDockerCliCommand(IsDebug)
+        var dockerCommand = GetDockerCliCommand(IsVerbose)
             .AddArg("run")
             .AddArg("-d")
             .AddArg($"--name={config.PrimaryName}")
@@ -149,8 +116,18 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
             || dockerCommand.StdOutput.Count == 1
             || string.IsNullOrEmpty(dockerCommand.StdOutput.FirstOrDefault());
     }
+
+    protected virtual bool UpdateContainer(ContainerConfig config)
+    {
+        return false;
+    }
+
+    protected virtual bool RemoveContainer(ContainerConfig config)
+    {
+        return false;
+    }
     
-    private bool CheckVolume(VolumeConfig volume)
+    protected virtual bool CheckVolume(VolumeConfig volume)
     {
         if (volume.IsMapping)
         {
@@ -168,7 +145,7 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
             Directory.CreateDirectory(volume.Source);
             if (!ShellCommand.IsWindowsPlatform)
             {
-                var bashCommand = GetShellCommand("chgrp", IsDebug, ShellCommand.BashShell)
+                var bashCommand = GetShellCommand("chgrp", IsVerbose, ShellCommand.BashShell)
                     .AddArgument("docker")
                     .AddArgument(volume.Source);
                 PrintCommand(bashCommand);
@@ -182,7 +159,7 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
             return true;
         }
         
-        var dockerCommand = GetDockerCliCommand(IsDebug)
+        var dockerCommand = GetDockerCliCommand(IsVerbose)
             .AddArg("volume")
             .AddArg("ls")
             .AddFilterArg(volume.Source);
@@ -212,7 +189,7 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
         return true;
     }
     
-    private bool CheckNetwork(NetworkConfig? network)
+    protected virtual bool CheckNetwork(NetworkConfig? network)
     {
         if (network is null || string.IsNullOrEmpty(network.Name))
         {
@@ -224,7 +201,7 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
             return false;
         }
         
-        var dockerCommand = GetDockerCliCommand(IsDebug)
+        var dockerCommand = GetDockerCliCommand(IsVerbose)
             .AddArg("network")
             .AddArg("ls")
             .AddFilterArg(network.Name);
@@ -255,9 +232,9 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
         return true;
     }
 
-    private bool CheckIfContainerExists(string name)
+    protected virtual bool CheckIfContainerExists(string name)
     {
-        var dockerCommand = GetDockerCliCommand(IsDebug)
+        var dockerCommand = GetDockerCliCommand(IsVerbose)
             .AddArg("container")
             .AddArg("ls")
             .AddArg("--all")
@@ -267,7 +244,7 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
         return dockerCommand.IsSuccess(name);
     }
 
-    private ContainerConfig LoadConfig(string? configFile)
+    protected virtual ContainerConfig LoadConfig(string? configFile)
     {
         if (string.IsNullOrEmpty(configFile))
         {
@@ -301,9 +278,9 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
         throw new ShellCommandException(1, "The 'config_file' isn't in a valid format!");
     }
 
-    private void PrintCommand(ShellCommand shellCommand)
+    protected virtual void PrintCommand(ShellCommand shellCommand)
     {
-        if (!IsDebug)
+        if (!IsVerbose)
         {
             return;
         }
@@ -314,9 +291,9 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
             .Style("purple", shellCommand.ProcessArguments).LineBreak());
     }
     
-    private void PrintCommand(string command, string arguments = "")
+    protected virtual void PrintCommand(string command, string arguments = "")
     {
-        if (!IsDebug)
+        if (!IsVerbose)
         {
             return;
         }
@@ -325,10 +302,10 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
             .Style("purple", arguments).LineBreak());
     }
     
-    private void PrintMessage(string message, string? color = null, bool separator = false)
+    protected virtual void PrintMessage(string message, string? color = null, bool separator = false)
     {
         AnsiConsole.Write(new CustomComposer()
-            .Style(color ?? "olive", message).LineBreak());
+            .Style(color ?? _standardColor, message).LineBreak());
         if (!separator)
         {
             return;
@@ -336,28 +313,28 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
         PrintSeparator();
     }
     
-    private void PrintSeparator(bool big = false)
+    protected virtual void PrintSeparator(bool big = false)
     {
         AnsiConsole.Write(new CustomComposer()
             .Repeat("gray", big ? '=' : '-', _separatorLength).LineBreak());
     }
     
-    private void PrintStart()
+    protected virtual void PrintStart()
     {
         AnsiConsole.Write(new CustomComposer()
             .Text("Running ").Style("purple", "DOT Container Tool").Space()
-            .Style("green", $"v{_version}").LineBreak()
+            .Style("green", $"v{Version}").LineBreak()
             .Repeat("gray", '=', _separatorLength).LineBreak());
     }
     
-    private void PrintDone()
+    protected virtual void PrintDone()
     {
         AnsiConsole.Write(new CustomComposer()
             .Repeat("gray", '=', _separatorLength).LineBreak()
             .Style("purple", "DONE.").LineBreak().LineBreak());
     }
 
-    private ShellCommand GetShellCommand(string command, bool outputRedirect = true, 
+    protected virtual ShellCommand GetShellCommand(string command, bool outputRedirect = true, 
         string shellName = "")
     {
         var shellCommand = new ShellCommand { ShellName = shellName, Command = command };
@@ -369,7 +346,7 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
         return shellCommand;
     }
     
-    private DockerCliCommand GetDockerCliCommand(bool outputRedirect = true)
+    protected virtual DockerCliCommand GetDockerCliCommand(bool outputRedirect = true)
     {
         var shellCommand = new DockerCliCommand();
         if (outputRedirect)
@@ -380,12 +357,12 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
         return shellCommand;
     }
     
-    private void PrintStdOutput(object sender, OutputReceivedEventArgs e)
+    protected virtual void PrintStdOutput(object sender, OutputReceivedEventArgs e)
     {
         AnsiConsole.WriteLine(e.Data ?? "._.");
     }
 
-    private void PrintErrOutput(object sender, OutputReceivedEventArgs e)
+    protected virtual void PrintErrOutput(object sender, OutputReceivedEventArgs e)
     {
         if (!string.IsNullOrEmpty(_errOutputColor))
         {

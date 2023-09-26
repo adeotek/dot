@@ -62,6 +62,23 @@ public class ShellCommand
     private List<string> _arguments = new();
     private bool _isScript;
     
+    public bool IsSuccess(string resource, bool checkFirstLineOnly = false)
+    {
+        if (string.IsNullOrEmpty(resource))
+        {
+            return StatusCode == 0;
+        }
+
+        if (StatusCode != 0)
+        {
+            return false;
+        }
+        
+        return checkFirstLineOnly
+            ? (StdOutput.FirstOrDefault()?.Contains(resource) ?? false)
+            : StdOutput.Exists(e => e.Contains(resource));
+    }
+
     public ShellCommand AddArgument(string value)
     {
         _prepared = false;
