@@ -19,12 +19,7 @@ public class ContainerConfig
     // Environment variables
     public Dictionary<string, string> EnvVars { get; set; } = new();
     // Network
-    public string? NetworkName { get; set; }
-    public string? NetworkSubnet { get; set; }
-    public string? NetworkIpRange { get; set; }
-    // public NetworkConfig? Network { get; set; }
-    public string? Hostname { get; set; }
-    public string? NetworkAlias { get; set; }
+    public NetworkConfig? Network { get; set; }
     // Misc
     public string? Restart { get; set; }
     // Computed

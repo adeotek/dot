@@ -16,13 +16,6 @@ namespace Adeotek.DevOpsTools.Commands;
 
 internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Settings>
 {
-    private readonly string _version = Assembly.GetEntryAssembly()
-           ?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
-       ?? "?";
-    private int _separatorLength = 80;
-    private Settings? _settings;
-    private bool IsDebug => _settings?.Debug ?? false;
-    
     public sealed class Settings : CommandSettings
     {
         [Description("Config file (with absolute/relative path).")]
@@ -44,10 +37,18 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
         [DefaultValue(false)]
         public bool DryRun { get; init; }
         
-        [CommandOption("-d|--debug")]
+        [CommandOption("--verbose")]
         [DefaultValue(false)]
         public bool Debug { get; init; }
     }
+    
+    private readonly string _version = Assembly.GetEntryAssembly()
+                                           ?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
+                                       ?? "?";
+    private readonly int _separatorLength = 80;
+    private Settings? _settings;
+    private string? _errOutputColor = "red"; 
+    private bool IsDebug => _settings?.Debug ?? false;
 
     public override int Execute([NotNull] CommandContext context, [NotNull] Settings settings)
     {
@@ -59,7 +60,6 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
             if (settings.Debug)
             {
                 config.WriteToAnsiConsole();
-                PrintSeparator();
             }
 
             if (CheckIfContainerExists(config.PrimaryName))
@@ -70,7 +70,7 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
             else
             {
                 PrintMessage("Container not fond!");
-                if (CreateContainer(config, settings))
+                if (CreateContainer(config))
                 {
                     PrintMessage("Container created successfully!", "green");
                 }
@@ -115,19 +115,39 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
         }
     }
 
-    private bool CreateContainer(ContainerConfig config, Settings settings)
+    private bool CreateContainer(ContainerConfig config)
     {
-        // CheckNetwork(config);
+        if (!CheckNetwork(config.Network))
+        {
+            throw new ShellCommandException(1, $"Docker network '{config.Network?.Name}' is missing or cannot be created!");
+        }
         
         foreach (var volume in config.Volumes)
         {
             if (!CheckVolume(volume))
             {
-                throw new ShellCommandException(1, $"Docker volume '{volume.Source}' is missing!");
+                throw new ShellCommandException(1, $"Docker volume '{volume.Source}' is missing or cannot be created!");
             }
         }
+
+        var dockerCommand = GetDockerCliCommand(IsDebug)
+            .AddArg("run")
+            .AddArg("-d")
+            .AddArg($"--name={config.PrimaryName}")
+            .AddPortArgs(config.Ports)
+            .AddVolumeArgs(config.Volumes)
+            .AddEnvVarArgs(config.EnvVars)
+            .AddNetworkArgs(config)
+            .AddRestartArg(config.Restart)
+            .AddArg(config.FullImageName);
         
-        return false;
+        PrintCommand(dockerCommand);
+        _errOutputColor = null;
+        dockerCommand.Execute();
+        _errOutputColor = null;
+        return dockerCommand.StatusCode == 0
+            || dockerCommand.StdOutput.Count == 1
+            || string.IsNullOrEmpty(dockerCommand.StdOutput.FirstOrDefault());
     }
     
     private bool CheckVolume(VolumeConfig volume)
@@ -144,6 +164,7 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
                 return false;
             }
 
+            PrintCommand("mkdir", volume.Source);
             Directory.CreateDirectory(volume.Source);
             if (!ShellCommand.IsWindowsPlatform)
             {
@@ -152,24 +173,22 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
                     .AddArgument(volume.Source);
                 PrintCommand(bashCommand);
                 bashCommand.Execute();
-                if (bashCommand.StatusCode == 0 
-                    && (bashCommand.StdOutput.FirstOrDefault()?.Contains(volume.Source) ?? false))
+                if (!bashCommand.IsSuccess(volume.Source))
                 {
-                    throw new ShellCommandException(1, $"Unable set directory group to 'docker': {volume.Source}");
+                    throw new ShellCommandException(1, $"Unable set group 'docker' for '{volume.Source}' directory!");
                 }
             }
 
             return true;
         }
         
-        var shellCommand = GetShellCommand("docker", IsDebug)
-            .AddArgument("volume")
-            .AddArgument("ls")
-            .AddArgument($"--filter name={volume.Source}");
-        PrintCommand(shellCommand);
-        shellCommand.Execute();
-        if (shellCommand.StatusCode == 0 
-            && shellCommand.StdOutput.Exists(e => e.Contains(volume.Source)))
+        var dockerCommand = GetDockerCliCommand(IsDebug)
+            .AddArg("volume")
+            .AddArg("ls")
+            .AddFilterArg(volume.Source);
+        PrintCommand(dockerCommand);
+        dockerCommand.Execute();
+        if (dockerCommand.IsSuccess(volume.Source))
         {
             return true;
         }
@@ -179,16 +198,58 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
             return false;
         }
 
-        shellCommand.ClearArguments()
-            .AddArgument("volume")
-            .AddArgument("create")
-            .AddArgument(volume.Source);
-        PrintCommand(shellCommand);
-        shellCommand.Execute();
-        if (shellCommand.StatusCode == 0 
-            && (shellCommand.StdOutput.FirstOrDefault()?.Contains(volume.Source) ?? false))
+        dockerCommand.ClearArgs()
+            .AddArg("volume")
+            .AddArg("create")
+            .AddArg(volume.Source);
+        PrintCommand(dockerCommand);
+        dockerCommand.Execute();
+        if (!dockerCommand.IsSuccess(volume.Source, true))
         {
-            throw new ShellCommandException(1, $"Unable to create docker volume: {volume.Source}");
+            throw new ShellCommandException(1, $"Unable to create docker volume '{volume.Source}'!");
+        }
+
+        return true;
+    }
+    
+    private bool CheckNetwork(NetworkConfig? network)
+    {
+        if (network is null || string.IsNullOrEmpty(network.Name))
+        {
+            return true;
+        }
+        
+        if (string.IsNullOrEmpty(network.Subnet) || string.IsNullOrEmpty(network.IpRange))
+        {
+            return false;
+        }
+        
+        var dockerCommand = GetDockerCliCommand(IsDebug)
+            .AddArg("network")
+            .AddArg("ls")
+            .AddFilterArg(network.Name);
+        PrintCommand(dockerCommand);
+        dockerCommand.Execute();
+        if (dockerCommand.IsSuccess(network.Name))
+        {
+            return true;
+        }
+
+        dockerCommand.ClearArgs()
+            .AddArg("network")
+            .AddArg("create")
+            .AddArg("-d bridge")
+            .AddArg("--attachable")
+            .AddArg($"--subnet {network.Subnet}")
+            .AddArg($"--ip-range {network.IpRange}")
+            .AddArg(network.Name);
+        PrintCommand(dockerCommand);
+        dockerCommand.Execute();
+        if (dockerCommand.StatusCode != 0 
+            || dockerCommand.StdOutput.Count == 1
+            || string.IsNullOrEmpty(dockerCommand.StdOutput.FirstOrDefault()))
+        {
+            throw new ShellCommandException(1, $"Unable to create docker network '{network.Name}'!");
         }
 
         return true;
@@ -196,15 +257,14 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
 
     private bool CheckIfContainerExists(string name)
     {
-        var shellCommand = GetShellCommand("docker", IsDebug)
-            .AddArgument("container")
-            .AddArgument("ls")
-            .AddArgument("--all")
-            .AddArgument($"--filter name={name}");
-        PrintCommand(shellCommand);
-        shellCommand.Execute();
-        return shellCommand.StatusCode == 0 
-               && shellCommand.StdOutput.Exists(e => e.Contains(name));
+        var dockerCommand = GetDockerCliCommand(IsDebug)
+            .AddArg("container")
+            .AddArg("ls")
+            .AddArg("--all")
+            .AddFilterArg(name);
+        PrintCommand(dockerCommand);
+        dockerCommand.Execute();
+        return dockerCommand.IsSuccess(name);
     }
 
     private ContainerConfig LoadConfig(string? configFile)
@@ -240,16 +300,6 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
         
         throw new ShellCommandException(1, "The 'config_file' isn't in a valid format!");
     }
-    
-    private void PrintStdOutput(object sender, OutputReceivedEventArgs e)
-    {
-        AnsiConsole.WriteLine(e.Data ?? "._.");
-    }
-
-    private void PrintErrOutput(object sender, OutputReceivedEventArgs e)
-    {
-        AnsiConsole.MarkupLine($"[red]{e.Data ?? "_._"}[/]");
-    }
 
     private void PrintCommand(ShellCommand shellCommand)
     {
@@ -258,9 +308,21 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
             return;
         }
         shellCommand.Prepare();
+        PrintSeparator();
         AnsiConsole.Write(new CustomComposer()
             .Style("aqua", shellCommand.ProcessFile).Space()
             .Style("purple", shellCommand.ProcessArguments).LineBreak());
+    }
+    
+    private void PrintCommand(string command, string arguments = "")
+    {
+        if (!IsDebug)
+        {
+            return;
+        }
+        AnsiConsole.Write(new CustomComposer()
+            .Style("aqua", command).Space()
+            .Style("purple", arguments).LineBreak());
     }
     
     private void PrintMessage(string message, string? color = null, bool separator = false)
@@ -305,5 +367,36 @@ internal sealed class DockerContainerCommand : Command<DockerContainerCommand.Se
             shellCommand.OnErrOutput += PrintErrOutput;    
         }
         return shellCommand;
+    }
+    
+    private DockerCliCommand GetDockerCliCommand(bool outputRedirect = true)
+    {
+        var shellCommand = new DockerCliCommand();
+        if (outputRedirect)
+        {
+            shellCommand.OnStdOutput += PrintStdOutput;
+            shellCommand.OnErrOutput += PrintErrOutput;    
+        }
+        return shellCommand;
+    }
+    
+    private void PrintStdOutput(object sender, OutputReceivedEventArgs e)
+    {
+        AnsiConsole.WriteLine(e.Data ?? "._.");
+    }
+
+    private void PrintErrOutput(object sender, OutputReceivedEventArgs e)
+    {
+        if (!string.IsNullOrEmpty(_errOutputColor))
+        {
+            AnsiConsole.MarkupLine($"[yellow](!)[/] [{_errOutputColor}]{e.Data ?? "_._"}[/]");
+            return;
+        }
+        if (string.IsNullOrEmpty(e.Data))
+        {
+            return;
+        }
+        
+        AnsiConsole.MarkupLine(e.Data);
     }
 }

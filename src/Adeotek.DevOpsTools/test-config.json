@@ -26,10 +26,13 @@
   "EnvVars": {
     "TZ": "Europe/Bucharest"
   },
-  "NetworkName": null,
-  "NetworkSubnet": null,
-  "NetworkIpRange": null,
-  "Hostname": null,
-  "NetworkAlias": null,
-  "Restart": null
+  "Network": {
+    "Name": "services-shared-net",
+    "Subnet": "172.21.10.1/24",
+    "IpRange": "172.21.10.1/26",
+    "IpAddress": "172.21.10.10",
+    "Hostname": null,
+    "Alias": null
+  },
+  "Restart": "unless-stopped"
 }
