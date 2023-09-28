@@ -1,6 +1,6 @@
 {
   "Image": "nginx",
-  "Tag": "latest",
+  "Tag": "1.24.0",
   "NamePrefix": "sys--",
   "BaseName": "nginx-proxy",
   "PrimarySuffix": null,
@@ -21,6 +21,12 @@
       "Destination": "/data",
       "IsMapping": true,
       "AutoCreate": true
+    },
+    {
+      "Source": "sys--nginx-ssl",
+      "Destination": "/ssl",
+      "IsMapping": false,
+      "AutoCreate": true
     }
   ],
   "EnvVars": {
@@ -32,7 +38,8 @@
     "IpRange": "172.21.10.1/26",
     "IpAddress": "172.21.10.10",
     "Hostname": null,
-    "Alias": null
+    "Alias": null,
+    "IsShared": false
   },
   "Restart": "unless-stopped"
 }

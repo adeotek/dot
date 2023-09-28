@@ -10,11 +10,6 @@ internal class ContainerSettings : CommandSettings
     [CommandArgument(0, "<config_file>")]
     public string? ConfigFile { get; init; }
     
-    [Description("Don't ask for any user inputs")]
-    [CommandOption("-n|--not-interactive|--unattended")]
-    [DefaultValue(false)]
-    public bool Unattended { get; init; }
-    
     [Description("Don't apply any changes, just print the commands")]
     [CommandOption("--dry-run")]
     [DefaultValue(false)]

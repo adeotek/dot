@@ -117,14 +117,217 @@ internal abstract class ContainerBaseCommand<TSettings>
             || string.IsNullOrEmpty(dockerCommand.StdOutput.FirstOrDefault());
     }
 
-    protected virtual bool UpdateContainer(ContainerConfig config)
+    protected virtual void UpdateContainer(ContainerConfig config, bool replace = false)
     {
-        return false;
+        if (!CheckIfNewVersionExists(config))
+        {
+            PrintMessage("No newer version found, nothing to do.");
+            return;
+        }
+        
+        if (replace)
+        {
+            StopAndRemoveContainer(config.PrimaryName);
+        }
+        else
+        {
+            DemoteContainer(config);    
+        }
+
+        CreateContainer(config);
+        PrintMessage("Container updated successfully!", _successColor);
     }
 
-    protected virtual bool RemoveContainer(ContainerConfig config)
+    protected virtual void DemoteContainer(ContainerConfig config)
     {
-        return false;
+        if (CheckIfContainerExists(config.BackupName))
+        {
+            StopAndRemoveContainer(config.BackupName);
+        }
+
+        RenameContainer(config.PrimaryName, config.BackupName);
+    }
+
+    protected virtual void RemoveContainer(ContainerConfig config, bool purge = false)
+    {
+        StopAndRemoveContainer(config.PrimaryName);
+        if (!purge)
+        {
+            return;
+        }
+
+        if (CheckIfContainerExists(config.BackupName))
+        {
+            PrintMessage("Backup container found, removing it.", _standardColor);
+            StopAndRemoveContainer(config.BackupName);    
+        }
+
+        var dockerCommand = GetDockerCliCommand(IsVerbose);
+        foreach (var volume in config.Volumes.Where(e => e is { AutoCreate: true, IsMapping: false }))
+        {
+            dockerCommand.ClearArgs()
+                .AddArg("volume")
+                .AddArg("rm")
+                .AddArg(volume.Source);
+            PrintCommand(dockerCommand);
+            dockerCommand.Execute();
+            if (dockerCommand.IsSuccess(volume.Source, true))
+            {
+                continue;
+            }
+            
+            if (dockerCommand.IsError($"Error response from daemon: get {volume.Source}: no such volume", true))
+            {
+                PrintMessage($"Volume '{volume.Source}' not found!", _warningColor);
+                return;
+            }
+            
+            throw new ShellCommandException(1, $"Unable to remove volume '{volume.Source}'!");
+        }
+    }
+    
+    protected virtual void StopAndRemoveContainer(string containerName)
+    {
+        StopContainer(containerName);
+
+        var dockerCommand = GetDockerCliCommand(IsVerbose)
+            .AddArg("rm")
+            .AddArg(containerName);
+        PrintCommand(dockerCommand);
+        dockerCommand.Execute();
+        if (dockerCommand.IsSuccess(containerName, true))
+        {
+            return;
+        }
+
+        if (dockerCommand.IsError($"Error response from daemon: No such container: {containerName}", true))
+        {
+            PrintMessage($"Container '{containerName}' not found!", _warningColor);
+            return;
+        }
+        
+        throw new ShellCommandException(1, $"Unable to remove container '{containerName}'!");
+    }
+
+    protected virtual void StopContainer(string containerName)
+    {
+        var dockerCommand = GetDockerCliCommand(IsVerbose)
+            .AddArg("stop")
+            .AddArg(containerName);
+        PrintCommand(dockerCommand);
+        dockerCommand.Execute();
+        if (dockerCommand.IsSuccess(containerName, true))
+        {
+            return;
+        }
+        
+        if (!dockerCommand.IsError($"Error response from daemon: No such container: {containerName}", true))
+        {
+            throw new ShellCommandException(1, $"Unable to stop container '{containerName}'!");    
+        }
+            
+        PrintMessage($"Container '{containerName}' not found!", _warningColor);
+    }
+    
+    protected virtual void RenameContainer(string currentName, string newName)
+    {
+        StopContainer(currentName);
+
+        var dockerCommand = GetDockerCliCommand(IsVerbose)
+            .AddArg("rename")
+            .AddArg(currentName)
+            .AddArg(newName);
+        PrintCommand(dockerCommand);
+        dockerCommand.Execute();
+        if (dockerCommand.IsSuccess())
+        {
+            return;
+        }
+
+        if (dockerCommand.IsError($"Error response from daemon: No such container: {currentName}", true))
+        {
+            PrintMessage($"Container '{currentName}' not found!", _warningColor);
+            return;
+        }
+        
+        throw new ShellCommandException(1, $"Unable to rename container '{currentName}'!");
+    }
+    
+    protected virtual string PullImage(string image, string? tag = null)
+    {
+        var fullImageName = $"{image}:{tag ?? "latest"}";
+        var dockerCommand = GetDockerCliCommand(IsVerbose)
+            .AddArg("pull")
+            .AddArg("--quiet")
+            .AddArg(fullImageName);
+        PrintCommand(dockerCommand);
+        dockerCommand.Execute();
+        if (dockerCommand.StatusCode != 0
+            || !dockerCommand.StdOutput.Exists(e => 
+                e.Contains($"Status: Downloaded newer image for {fullImageName}")
+                || e.Contains($"Status: Image is up to date for {fullImageName}")))
+        {
+            throw new ShellCommandException(1, $"Unable to pull image '{fullImageName}'!");
+        }
+        
+        return dockerCommand.StdOutput
+                   .FirstOrDefault(e => e.StartsWith("Digest: "))
+                   ?.Replace("Digest: ", "")
+               ?? "";
+    }
+
+    protected virtual string GetContainerImageId(string containerName)
+    {
+        var dockerCommand = GetDockerCliCommand(IsVerbose)
+            .AddArg("container")
+            .AddArg("inspect")
+            .AddArg("--format '{{lower .Image}}'")
+            .AddArg(containerName);
+        PrintCommand(dockerCommand);
+        dockerCommand.Execute();
+        if (dockerCommand.IsError() || dockerCommand.StdOutput.Count != 1)
+        {
+            throw new ShellCommandException(1, $"Unable to inspect container '{containerName}'!");
+        }
+
+        var result = dockerCommand.StdOutput.First();
+        if (result.StartsWith("sha256:"))
+        {
+            return result;
+        }
+
+        throw new ShellCommandException(1, $"Unable to obtain image ID for container '{containerName}'!");
+    }
+    
+    protected virtual string GetImageId(string image, string? tag = null)
+    {
+        var fullImageName = $"{image}:{tag ?? "latest"}";
+        var dockerCommand = GetDockerCliCommand(IsVerbose)
+            .AddArg("image")
+            .AddArg("inspect")
+            .AddArg("--format '{{lower .Id}}'")
+            .AddArg(fullImageName);
+        PrintCommand(dockerCommand);
+        dockerCommand.Execute();
+        if (dockerCommand.IsError() || dockerCommand.StdOutput.Count != 1)
+        {
+            throw new ShellCommandException(1, $"Unable to inspect image '{fullImageName}'!");
+        }
+
+        var result = dockerCommand.StdOutput.First();
+        if (result.StartsWith("sha256:"))
+        {
+            return result;
+        }
+
+        throw new ShellCommandException(1, $"Unable to obtain image ID for '{fullImageName}'!");
+    }
+
+    protected virtual bool CheckIfNewVersionExists(ContainerConfig config)
+    {
+        var imageId = PullImage(config.Image, config.ImageTag);
+        var containerImageId = GetContainerImageId(config.PrimaryName);
+        return containerImageId.Equals(imageId, StringComparison.InvariantCultureIgnoreCase);
     }
     
     protected virtual bool CheckVolume(VolumeConfig volume)
@@ -152,7 +355,7 @@ internal abstract class ContainerBaseCommand<TSettings>
                 bashCommand.Execute();
                 if (!bashCommand.IsSuccess(volume.Source))
                 {
-                    throw new ShellCommandException(1, $"Unable set group 'docker' for '{volume.Source}' directory!");
+                    throw new ShellCommandException(1, $"Unable to set group 'docker' for '{volume.Source}' directory!");
                 }
             }
 
@@ -165,7 +368,7 @@ internal abstract class ContainerBaseCommand<TSettings>
             .AddFilterArg(volume.Source);
         PrintCommand(dockerCommand);
         dockerCommand.Execute();
-        if (dockerCommand.IsSuccess(volume.Source))
+        if (dockerCommand.IsSuccess(volume.Source, true))
         {
             return true;
         }

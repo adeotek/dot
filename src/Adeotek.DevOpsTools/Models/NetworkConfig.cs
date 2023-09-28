@@ -8,4 +8,5 @@ public class NetworkConfig
     public string? IpAddress { get; set; }
     public string? Hostname { get; set; }
     public string? Alias { get; set; }
+    public bool IsShared { get; set; }
 }

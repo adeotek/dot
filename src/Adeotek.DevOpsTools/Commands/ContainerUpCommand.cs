@@ -5,22 +5,25 @@ namespace Adeotek.DevOpsTools.Commands;
 
 internal sealed class ContainerUpCommand : ContainerBaseCommand<ContainerUpSettings>
 {
+    private bool Update => _settings?.Update ?? false;
+    private bool Replace => _settings?.Replace ?? false;
+    
     protected override void ExecuteCommand(ContainerConfig config)
     {
         if (CheckIfContainerExists(config.PrimaryName))
         {
-            if (_settings is null || !_settings.Update)
+            if (!Update)
             {
-                PrintMessage("Container already present, nothing to do!", _standardColor);
+                PrintMessage("Container already present, nothing to do!");
                 return;
             }
-            
+
             PrintMessage("Container already present, updating it.", _warningColor);
-            UpdateContainer(config);
+            UpdateContainer(config, Replace);
             return;
         }
 
-        PrintMessage("Container not fond, creating new one.", _standardColor);
+        PrintMessage("Container not fond, creating new one.");
         if (CreateContainer(config))
         {
             PrintMessage("Container created successfully!", _successColor);

@@ -62,9 +62,9 @@ public class ShellCommand
     private List<string> _arguments = new();
     private bool _isScript;
     
-    public bool IsSuccess(string resource, bool checkFirstLineOnly = false)
+    public bool IsSuccess(string? message = null, bool checkFirstLineOnly = false)
     {
-        if (string.IsNullOrEmpty(resource))
+        if (string.IsNullOrEmpty(message))
         {
             return StatusCode == 0;
         }
@@ -75,8 +75,25 @@ public class ShellCommand
         }
         
         return checkFirstLineOnly
-            ? (StdOutput.FirstOrDefault()?.Contains(resource) ?? false)
-            : StdOutput.Exists(e => e.Contains(resource));
+            ? (StdOutput.FirstOrDefault()?.Contains(message) ?? false)
+            : StdOutput.Exists(e => e.Contains(message));
+    }
+    
+    public bool IsError(string? message = null, bool checkFirstLineOnly = false)
+    {
+        if (string.IsNullOrEmpty(message))
+        {
+            return StatusCode != 0;
+        }
+
+        if (StatusCode == 0)
+        {
+            return false;
+        }
+        
+        return checkFirstLineOnly
+            ? (ErrOutput.FirstOrDefault()?.Contains(message) ?? false)
+            : ErrOutput.Exists(e => e.Contains(message));
     }
 
     public ShellCommand AddArgument(string value)
