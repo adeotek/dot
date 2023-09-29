@@ -34,9 +34,9 @@
   },
   "Network": {
     "Name": "services-shared-net",
-    "Subnet": "172.21.10.1/24",
-    "IpRange": "172.21.10.1/26",
-    "IpAddress": "172.21.10.10",
+    "Subnet": "172.21.1.1/24",
+    "IpRange": "172.21.1.1/26",
+    "IpAddress": "172.21.1.10",
     "Hostname": null,
     "Alias": null,
     "IsShared": false

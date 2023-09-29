@@ -162,7 +162,7 @@ public class ShellCommand
         Reset();
         Prepare();
 
-        ProcessStartInfo processStartInfo = new ProcessStartInfo
+        ProcessStartInfo processStartInfo = new()
         {
             FileName = ProcessFile,
             Arguments = ProcessArguments,
@@ -177,7 +177,7 @@ public class ShellCommand
             processStartInfo.Verb = "runas";
         }
 
-        using Process process = new Process();
+        using Process process = new();
         process.StartInfo = processStartInfo;
         process.OutputDataReceived += ProcessStdOutput;
         process.ErrorDataReceived += ProcessErrOutput;

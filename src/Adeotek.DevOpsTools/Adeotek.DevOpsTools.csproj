@@ -6,7 +6,24 @@
       <ImplicitUsings>enable</ImplicitUsings>
       <Nullable>enable</Nullable>
       <AssemblyName>dot</AssemblyName>
-      <Version>0.1.0</Version>
+      <Title>AdeoTEK DevOps Tools</Title>
+      <Description>A collection of CLI DevOps tools</Description>
+      <Product>AdeoTEK DevOps Tools</Product>
+      <Authors>George Benjamin-Schonberger</Authors>
+      <Copyright>George Benjamin-Schonberger 2023</Copyright>
+      <Version>0.1.0-preview.1</Version>
+      <PackageId>Adeotek.DevOps.Tools</PackageId>
+      <PackageTags>cli,devops,tools,docker</PackageTags>
+      <PackageProjectUrl>https://adeotek.github.io/dot/</PackageProjectUrl>
+      <PackageLicense>https://github.com/adeotek/dot/blob/master/LICENSE</PackageLicense>
+      <RepositoryUrl>https://github.com/adeotek/dot/</RepositoryUrl>
+      <RepositoryType>Git</RepositoryType>
+      <PackageIcon>PackageIcon.png</PackageIcon>
+      <PackageLicenseFile>LICENSE</PackageLicenseFile>
+      <PackageReadmeFile>README.md</PackageReadmeFile>
+      <PackageVersion>0.1.0-preview.1</PackageVersion>
+      <PackAsTool>true</PackAsTool>
+      <ToolCommandName>dot</ToolCommandName>
     </PropertyGroup>
 
     <ItemGroup>
@@ -16,14 +33,6 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Adeotek.Extensions.Processes\Adeotek.Extensions.Processes.csproj" />
-    </ItemGroup>
-
-
-
-    <ItemGroup>
-      <None Update="test-config.json">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
     </ItemGroup>
 
 </Project>
