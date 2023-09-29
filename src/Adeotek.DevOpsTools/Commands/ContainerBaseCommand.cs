@@ -12,6 +12,9 @@ using Adeotek.Extensions.Processes;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
+
 namespace Adeotek.DevOpsTools.Commands;
 
 internal abstract class ContainerBaseCommand<TSettings> 
@@ -258,7 +261,6 @@ internal abstract class ContainerBaseCommand<TSettings>
         var fullImageName = $"{image}:{tag ?? "latest"}";
         var dockerCommand = GetDockerCliCommand(IsVerbose)
             .AddArg("pull")
-            .AddArg("--quiet")
             .AddArg(fullImageName);
         PrintCommand(dockerCommand);
         dockerCommand.Execute();
@@ -281,7 +283,7 @@ internal abstract class ContainerBaseCommand<TSettings>
         var dockerCommand = GetDockerCliCommand(IsVerbose)
             .AddArg("container")
             .AddArg("inspect")
-            .AddArg("--format '{{lower .Image}}'")
+            .AddArg("--format \"{{lower .Image}}\"")
             .AddArg(containerName);
         PrintCommand(dockerCommand);
         dockerCommand.Execute();
@@ -305,7 +307,7 @@ internal abstract class ContainerBaseCommand<TSettings>
         var dockerCommand = GetDockerCliCommand(IsVerbose)
             .AddArg("image")
             .AddArg("inspect")
-            .AddArg("--format '{{lower .Id}}'")
+            .AddArg("--format \"{{lower .Id}}\"")
             .AddArg(fullImageName);
         PrintCommand(dockerCommand);
         dockerCommand.Execute();
@@ -465,20 +467,54 @@ internal abstract class ContainerBaseCommand<TSettings>
             throw new ShellCommandException(1, "The 'config_file' doesn't exist or is empty!");
         }
 
-        if (Path.GetExtension(configFile) == ".json")
+        if (Path.GetExtension(configFile).ToLower() == ".json")
         {
-            try
-            {
-                return JsonSerializer.Deserialize<ContainerConfig>(configContent) 
-                       ?? throw new ShellCommandException(1, "The 'config_file' doesn't exist or is empty!");
-            }
-            catch (Exception e)
-            {
-                throw new ShellCommandException(1, "The 'config_file' isn't in a valid format!", e);
-            }
+            return LoadJsonConfig(configContent);
         }
-        
+
+        if ((new [] {".yaml", ".yml"}).Contains(Path.GetExtension(configFile).ToLower()))
+        {
+            return LoadYamlConfig(configContent);
+        }
+
         throw new ShellCommandException(1, "The 'config_file' isn't in a valid format!");
+    }
+
+    protected virtual ContainerConfig LoadJsonConfig(string data)
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<ContainerConfig>(data)
+                   ?? throw new ShellCommandException(1, "The 'config_file' doesn't exist or is empty!");
+        }
+        catch (ShellCommandException)
+        {
+            throw;
+        }
+        catch (Exception e)
+        {
+            throw new ShellCommandException(1, "The 'config_file' isn't in a valid JSON format!", e);
+        }
+    }
+    
+    protected virtual ContainerConfig LoadYamlConfig(string data)
+    {
+        try
+        {
+            var deserializer = new DeserializerBuilder()
+                .WithNamingConvention(PascalCaseNamingConvention.Instance) 
+                .Build();
+            return deserializer.Deserialize<ContainerConfig>(data)
+                   ?? throw new ShellCommandException(1, "The 'config_file' doesn't exist or is empty!");;
+        }
+        catch (ShellCommandException)
+        {
+            throw;
+        }
+        catch (Exception e)
+        {
+            throw new ShellCommandException(1, "The 'config_file' isn't in a valid YAML format!", e);
+        }
     }
 
     protected virtual void PrintCommand(ShellCommand shellCommand)
