@@ -5,8 +5,9 @@ using System.Text.Json;
 
 using Adeotek.DevOpsTools.Common;
 using Adeotek.DevOpsTools.Extensions;
-using Adeotek.DevOpsTools.Models;
 using Adeotek.DevOpsTools.Settings;
+using Adeotek.Extensions.Docker;
+using Adeotek.Extensions.Docker.Config;
 using Adeotek.Extensions.Processes;
 
 using Spectre.Console;
@@ -20,7 +21,7 @@ namespace Adeotek.DevOpsTools.Commands;
 internal abstract class ContainerBaseCommand<TSettings> 
     : Command<TSettings> where TSettings : ContainerSettings
 {
-    protected static readonly string Version = Assembly.GetEntryAssembly()
+    protected readonly string _version = Assembly.GetEntryAssembly()
            ?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
        ?? "?";
     protected readonly int _separatorLength = 80;
@@ -104,9 +105,9 @@ internal abstract class ContainerBaseCommand<TSettings>
             .AddArg("run")
             .AddArg("-d")
             .AddArg($"--name={config.PrimaryName}")
-            .AddPortArgs(config.Ports)
-            .AddVolumeArgs(config.Volumes)
-            .AddEnvVarArgs(config.EnvVars)
+            .AddPortsArgs(config.Ports)
+            .AddVolumesArgs(config.Volumes)
+            .AddEnvVarsArgs(config.EnvVars)
             .AddNetworkArgs(config)
             .AddRestartArg(config.Restart)
             .AddArg(config.FullImageName);
@@ -351,8 +352,8 @@ internal abstract class ContainerBaseCommand<TSettings>
             if (!ShellCommand.IsWindowsPlatform)
             {
                 var bashCommand = GetShellCommand("chgrp", IsVerbose, ShellCommand.BashShell)
-                    .AddArgument("docker")
-                    .AddArgument(volume.Source);
+                    .AddArg("docker")
+                    .AddArg(volume.Source);
                 PrintCommand(bashCommand);
                 bashCommand.Execute();
                 if (!bashCommand.IsSuccess(volume.Source))
@@ -562,7 +563,7 @@ internal abstract class ContainerBaseCommand<TSettings>
     {
         AnsiConsole.Write(new CustomComposer()
             .Text("Running ").Style("purple", "DOT Container Tool").Space()
-            .Style("green", $"v{Version}").LineBreak()
+            .Style("green", $"v{_version}").LineBreak()
             .Repeat("gray", '=', _separatorLength).LineBreak());
     }
     
@@ -576,7 +577,7 @@ internal abstract class ContainerBaseCommand<TSettings>
     protected virtual ShellCommand GetShellCommand(string command, bool outputRedirect = true, 
         string shellName = "")
     {
-        var shellCommand = new ShellCommand { ShellName = shellName, Command = command };
+        var shellCommand = new ShellCommand { Shell = shellName, Command = command };
         if (outputRedirect)
         {
             shellCommand.OnStdOutput += PrintStdOutput;

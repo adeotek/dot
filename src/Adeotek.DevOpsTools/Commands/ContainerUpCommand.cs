@@ -1,5 +1,5 @@
-﻿using Adeotek.DevOpsTools.Models;
-using Adeotek.DevOpsTools.Settings;
+﻿using Adeotek.DevOpsTools.Settings;
+using Adeotek.Extensions.Docker.Config;
 
 namespace Adeotek.DevOpsTools.Commands;
 

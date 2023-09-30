@@ -1,4 +1,4 @@
-﻿namespace Adeotek.DevOpsTools.Common;
+﻿namespace Adeotek.Extensions.Processes;
 
 public class ShellCommandException : Exception
 {

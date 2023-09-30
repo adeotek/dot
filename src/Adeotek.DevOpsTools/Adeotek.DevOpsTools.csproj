@@ -1,40 +1,40 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-      <OutputType>Exe</OutputType>
-      <TargetFramework>net7.0</TargetFramework>
-      <ImplicitUsings>enable</ImplicitUsings>
-      <Nullable>enable</Nullable>
-      <AssemblyName>dot</AssemblyName>
-      <Title>AdeoTEK DevOps Tools</Title>
-      <Description>A collection of CLI DevOps tools</Description>
-      <Product>AdeoTEK DevOps Tools</Product>
-      <Authors>George Benjamin-Schonberger</Authors>
-      <Copyright>George Benjamin-Schonberger 2023</Copyright>
-      <Version>0.1.0-preview.1</Version>
-      <PackageId>Adeotek.DevOps.Tools</PackageId>
-      <PackageTags>cli,devops,tools,docker</PackageTags>
-      <PackageProjectUrl>https://adeotek.github.io/dot/</PackageProjectUrl>
-      <PackageLicense>https://github.com/adeotek/dot/blob/master/LICENSE</PackageLicense>
-      <RepositoryUrl>https://github.com/adeotek/dot/</RepositoryUrl>
-      <RepositoryType>Git</RepositoryType>
-      <PackageIcon>PackageIcon.png</PackageIcon>
-      <PackageLicenseFile>LICENSE</PackageLicenseFile>
-      <PackageReadmeFile>README.md</PackageReadmeFile>
-      <PackageVersion>0.1.0-preview.1</PackageVersion>
-      <PackAsTool>true</PackAsTool>
-      <ToolCommandName>dot</ToolCommandName>
-    </PropertyGroup>
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>dot</AssemblyName>
+    <Title>AdeoTEK DevOps Tools</Title>
+    <Description>A collection of CLI DevOps tools</Description>
+    <Product>AdeoTEK DevOps Tools</Product>
+    <Authors>George Benjamin-Schonberger</Authors>
+    <Copyright>George Benjamin-Schonberger 2023</Copyright>
+    <Version>0.1.0-preview.2</Version>
+    <PackageId>Adeotek.DevOps.Tools</PackageId>
+    <PackageTags>cli,devops,tools,docker</PackageTags>
+    <PackageProjectUrl>https://adeotek.github.io/dot/</PackageProjectUrl>
+    <PackageLicense>https://github.com/adeotek/dot/blob/master/LICENSE</PackageLicense>
+    <RepositoryUrl>https://github.com/adeotek/dot/</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+    <PackageIcon>PackageIcon.png</PackageIcon>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageVersion>0.1.0-preview.2</PackageVersion>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>dot</ToolCommandName>
+  </PropertyGroup>
 
-    <ItemGroup>
-      <PackageReference Include="Spectre.Console" Version="0.47.1-preview.0.25" />
-      <PackageReference Include="Spectre.Console.Cli" Version="0.47.1-preview.0.25" />
-      <PackageReference Include="YamlDotNet" Version="13.4.0" />
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Spectre.Console" Version="0.47.1-preview.0.25" />
+    <PackageReference Include="Spectre.Console.Cli" Version="0.47.1-preview.0.25" />
+  </ItemGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\Adeotek.Extensions.Processes\Adeotek.Extensions.Processes.csproj" />
-    </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Adeotek.Extensions.Docker\Adeotek.Extensions.Docker.csproj" />
+    <ProjectReference Include="..\Adeotek.Extensions.Processes\Adeotek.Extensions.Processes.csproj" />
+  </ItemGroup>
 
   <ItemGroup>
     <None Include="../../LICENSE">

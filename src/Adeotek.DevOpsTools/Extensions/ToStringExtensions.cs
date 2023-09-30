@@ -1,5 +1,6 @@
 ﻿using Adeotek.DevOpsTools.Common;
-using Adeotek.DevOpsTools.Models;
+using Adeotek.Extensions.Docker.Config;
+using Adeotek.Extensions.Processes;
 
 using Spectre.Console;
 
