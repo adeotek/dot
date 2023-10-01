@@ -1,33 +1,30 @@
 ﻿using Adeotek.DevOpsTools.CommandsSettings;
-using Adeotek.DevOpsTools.Extensions;
-
-using Spectre.Console;
-using Spectre.Console.Cli;
+using Adeotek.Extensions.Processes;
 
 namespace Adeotek.DevOpsTools.Commands;
 
 internal abstract class Utf8BomBaseCommand<TSettings> 
     : CommandBase<TSettings> where TSettings : Utf8BomSettings
 {
-    protected override int ExecuteCommand(CommandContext context, TSettings settings)
+    protected int ProcessDirectory(string targetPath, Func<string, int> processFile, 
+        string fileExtensions = "", string ignoreDirs = "")
     {
-        try
+        if (!Directory.Exists(targetPath))
         {
-            
-            return 0;
+            throw new ShellCommandException(1, "The target directory does not exist");
         }
-        catch (Exception e)
-        {
-            if (settings.Verbose)
-            {
-                AnsiConsole.WriteException(e, ExceptionFormats.ShortenEverything);
-            }
-            else
-            {
-                e.WriteToAnsiConsole();
-            }
-
-            return 1;
-        }
+        
+        // DirectoryInfo dirInfo = new(targetPath);
+        // var files = from f in dirInfo.EnumerateFiles()
+        //     where f.CreationTimeUtc < StartOf2009
+        //     select f;
+        //
+        // var files = from f in Directory.EnumerateFileSystemEntries(targetPath)
+        //     where f.CreationTimeUtc < StartOf2009
+        //     select f;
+        
+        return 0;
     }
+    
+    
 }

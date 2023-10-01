@@ -69,12 +69,16 @@ public class DockerManager
                || string.IsNullOrEmpty(_dockerCli.StdOutput.FirstOrDefault());
     }
     
-    public void UpdateContainer(ContainerConfig config, bool replace = false)
+    public void UpdateContainer(ContainerConfig config, bool replace = false, bool force = false)
     {
         if (!CheckIfNewVersionExists(config))
         {
-            LogMessage("No newer version found, nothing to do.");
-            return;
+            if (!force)
+            {
+                LogMessage("No newer version found, nothing to do.", "msg");
+                return;    
+            }
+            LogMessage("No newer version found, forcing container recreation!", "warn");
         }
         
         if (replace)

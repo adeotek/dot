@@ -14,6 +14,7 @@ internal sealed class ContainerDownCommand : ContainerBaseCommand<ContainerDownS
         {
             PrintMessage("Container found, removing it.");
             dockerManager.RemoveContainer(config, Purge);
+            PrintMessage($"Container removed{(Purge ? " and resources purged" : "")} successfully!", _successColor, separator: IsVerbose);
             return;
         }
         
@@ -21,6 +22,7 @@ internal sealed class ContainerDownCommand : ContainerBaseCommand<ContainerDownS
         {
             PrintMessage("Container not found, trying to purge resources.", _warningColor);
             dockerManager.RemoveContainer(config, Purge);
+            PrintMessage("Container resources purged successfully!", _successColor, separator: IsVerbose);
         }
         else
         {

@@ -228,20 +228,22 @@ public class ShellCommand
 
     protected virtual void ProcessStdOutput(object sender, DataReceivedEventArgs e)
     {
-        OnStdOutput?.Invoke(this, new OutputReceivedEventArgs(e.Data));
-        if (e.Data is not null)
+        if (e.Data is null)
         {
-            StdOutput.Add(e.Data);
+            return;
         }
+        OnStdOutput?.Invoke(this, new OutputReceivedEventArgs(e.Data));
+        StdOutput.Add(e.Data);
     }
 
     protected virtual void ProcessErrOutput(object sender, DataReceivedEventArgs e)
     {
-        OnErrOutput?.Invoke(this, new OutputReceivedEventArgs(e.Data, true));
-        if (e.Data is not null)
+        if (e.Data is null)
         {
-            ErrOutput.Add(e.Data);
+            return;
         }
+        OnErrOutput?.Invoke(this, new OutputReceivedEventArgs(e.Data, true));
+        ErrOutput.Add(e.Data);
     }
 
     protected virtual void Reset()

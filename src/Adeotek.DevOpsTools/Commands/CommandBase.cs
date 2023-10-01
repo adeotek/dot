@@ -71,13 +71,12 @@ internal abstract class CommandBase<TSettings> : Command<TSettings> where TSetti
     
     protected virtual void PrintMessage(string message, string? color = null, bool separator = false)
     {
+        if (separator)
+        {
+            PrintSeparator();
+        }
         AnsiConsole.Write(new CustomComposer()
             .Style(color ?? _standardColor, message).LineBreak());
-        if (!separator)
-        {
-            return;
-        }
-        PrintSeparator();
     }
     
     protected virtual void PrintSeparator(bool big = false)

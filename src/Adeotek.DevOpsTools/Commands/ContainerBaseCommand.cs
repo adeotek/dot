@@ -68,40 +68,51 @@ internal abstract class ContainerBaseCommand<TSettings>
         switch (e.Type)
         {
             case DockerCliEventType.Command:
-                if (IsVerbose)
+                if (!IsVerbose)
                 {
-                    AnsiConsole.Write(new CustomComposer()
-                        .Style("aqua", e.Data.GetValueOrDefault("cmd") ?? "?")
-                        .Space()
-                        .Style("purple", e.Data.GetValueOrDefault("args") ?? "?").LineBreak());
+                    break;
                 }
+                PrintSeparator();
+                AnsiConsole.Write(new CustomComposer()
+                    .Style("aqua", e.Data.GetValueOrDefault("cmd") ?? "?")
+                    .Space()
+                    .Style("purple", e.Data.GetValueOrDefault("args") ?? "?").LineBreak());
                 break;
             case DockerCliEventType.Message:
+                var level = e.Data.GetValueOrDefault("level") ?? "";
+                if (IsVerbose && level == "msg")
+                {
+                    PrintSeparator();
+                }
                 AnsiConsole.Write(new CustomComposer()
-                    .Style(GetColorFromLogLevel(
-                        e.Data.GetValueOrDefault("level") ?? ""), 
-                        e.Data.GetValueOrDefault("message") ?? "")
+                    .Style(GetColorFromLogLevel(level), e.Data.GetValueOrDefault("message") ?? "")
                     .LineBreak());
                 break;
             case DockerCliEventType.StdOutput:
+                if (!IsVerbose)
+                {
+                    break;        
+                }
                 AnsiConsole.WriteLine(e.DataToString(Environment.NewLine, "._."));
                 break;
             case DockerCliEventType.ErrOutput:
+                if (!IsVerbose)
+                {
+                    break;        
+                }
                 var data = e.DataToString(Environment.NewLine, "_._");
                 if (!string.IsNullOrEmpty(_errOutputColor))
                 {
                     AnsiConsole.MarkupLineInterpolated($"[yellow](!)[/] [{_errOutputColor}]{data}[/]");
-                    return;
+                    break;
                 }
                 if (string.IsNullOrEmpty(data))
                 {
-                    return;
+                    break;
                 }
-        
                 AnsiConsole.WriteLine(data);
                 break;
             case DockerCliEventType.ExitCode:
-                PrintSeparator();
                 break;
         }
     }
@@ -110,8 +121,8 @@ internal abstract class ContainerBaseCommand<TSettings>
         level switch
         {
             "info" => _standardColor,
-            "warn" => _warningColor,
             "msg" => _successColor,
+            "warn" => _warningColor,
             "err" => _errorColor,
             _ => _standardColor
         };

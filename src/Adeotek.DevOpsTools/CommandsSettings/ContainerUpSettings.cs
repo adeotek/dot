@@ -15,4 +15,9 @@ internal sealed class ContainerUpSettings : ContainerSettings
     [CommandOption("-r|--replace")]
     [DefaultValue(false)]
     public bool Replace { get; init; }
+    
+    [Description("Force container recreation (update), even if the container is on the latest image\nTo be used together with the '--update' option")]
+    [CommandOption("-f|--force")]
+    [DefaultValue(false)]
+    public bool Force { get; init; }
 }

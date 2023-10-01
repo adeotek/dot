@@ -7,6 +7,7 @@ internal sealed class ContainerUpCommand : ContainerBaseCommand<ContainerUpSetti
 {
     private bool Update => _settings?.Update ?? false;
     private bool Replace => _settings?.Replace ?? false;
+    private bool Force => _settings?.Force ?? false;
     
     protected override void ExecuteContainerCommand(ContainerConfig config)
     {
@@ -15,19 +16,19 @@ internal sealed class ContainerUpCommand : ContainerBaseCommand<ContainerUpSetti
         {
             if (!Update)
             {
-                PrintMessage("Container already present, nothing to do!");
+                PrintMessage("Container already present, nothing to do!", _successColor, separator: IsVerbose);
                 return;
             }
         
             PrintMessage("Container already present, updating it.", _warningColor);
-            dockerManager.UpdateContainer(config, Replace);
+            dockerManager.UpdateContainer(config, Replace, Force);
             return;
         }
         
         PrintMessage("Container not fond, creating new one.");
         if (dockerManager.CreateContainer(config))
         {
-            PrintMessage("Container created successfully!", _successColor);
+            PrintMessage("Container created successfully!", _successColor, separator: IsVerbose);
         }
         else
         {
