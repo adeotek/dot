@@ -1,4 +1,4 @@
-name: .NET build
+name: .NET publish
 
 on:
   workflow_dispatch:
