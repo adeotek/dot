@@ -2,7 +2,7 @@
 
 using Spectre.Console.Cli;
 
-namespace Adeotek.DevOpsTools.Settings;
+namespace Adeotek.DevOpsTools.CommandsSettings;
 
 internal sealed class ContainerDownSettings : ContainerSettings
 {

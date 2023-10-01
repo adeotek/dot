@@ -5,8 +5,7 @@ namespace Adeotek.Extensions.Processes;
 
 public class ShellCommand
 {
-    public delegate void OutputReceivedEventHandler(object sender, OutputReceivedEventArgs e);
-
+    public const string NoShell = "";
     public const string BashShell = "/bin/bash";
     public const string ShShell = "/bin/sh";
     public const string PsShell = "pwsh";
@@ -14,17 +13,31 @@ public class ShellCommand
     public const string CommandPromptShell = "cmd";
 
     public static readonly bool IsWindowsPlatform = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+    
+    public delegate void OutputReceivedEventHandler(object sender, OutputReceivedEventArgs e);
+    public event OutputReceivedEventHandler? OnStdOutput;
+    public event OutputReceivedEventHandler? OnErrOutput;
+    
+    protected bool _prepared;
+    protected string _shell = NoShell;
+    protected string _command = "";
+    protected List<string> _arguments = new();
+    protected bool _isScript;
 
-    public string ShellName
+    public ShellCommand(string shell = NoShell)
     {
-        get => _shellName;
-        set
-        {
-            if (_shellName != value) _prepared = false;
-            _shellName = value;
-        }
+        Shell = shell;
     }
 
+    public string Shell
+    {
+        get => _shell;
+        set
+        {
+            if (_shell != value) _prepared = false;
+            _shell = value;
+        }
+    }
     public string Command
     {
         get => _command;
@@ -34,9 +47,6 @@ public class ShellCommand
             _command = value;
         }
     }
-
-    public string[] Arguments => _arguments.ToArray();
-
     public bool IsScript
     {
         get => _isScript;
@@ -46,21 +56,13 @@ public class ShellCommand
             _isScript = value;
         }
     }
-
     public bool IsElevated { get; set; }
+    public string[] Args => _arguments.ToArray();
     public string ProcessFile { get; private set; } = "";
     public string ProcessArguments { get; private set; } = "";
     public int StatusCode { get; private set; } = -1;
     public List<string> StdOutput { get; } = new();
     public List<string> ErrOutput { get; } = new();
-    public event OutputReceivedEventHandler? OnStdOutput;
-    public event OutputReceivedEventHandler? OnErrOutput;
-
-    private bool _prepared;
-    private string _shellName = "";
-    private string _command = "";
-    private List<string> _arguments = new();
-    private bool _isScript;
     
     public bool IsSuccess(string? message = null, bool checkFirstLineOnly = false)
     {
@@ -96,53 +98,59 @@ public class ShellCommand
             : ErrOutput.Exists(e => e.Contains(message));
     }
 
-    public ShellCommand AddArgument(string value)
+    public ShellCommand AddArg(string value)
     {
         _prepared = false;
         _arguments.Add(value);
         return this;
     }
     
-    public ShellCommand AddArguments(IEnumerable<string> range)
+    public ShellCommand AddArg(IEnumerable<string> range)
     {
         _prepared = false;
         _arguments.AddRange(range);
         return this;
     }
 
-    public ShellCommand SetArgumentAt(int index, string value)
+    public ShellCommand SetArgAt(int index, string value)
     {
         _prepared = false;
         _arguments[index] = value;
         return this;
     }
     
-    public ShellCommand ReplaceArgument(string currentValue, string newValue)
+    public ShellCommand ReplaceArg(string currentValue, string newValue)
     {
         _prepared = false;
         _arguments[_arguments.IndexOf(currentValue)] = newValue;
         return this;
     }
     
-    public ShellCommand RemoveArgument(string item)
+    public ShellCommand RemoveArg(string item)
     {
         _prepared = false;
         _arguments.Remove(item);
         return this;
     }
     
-    public ShellCommand RemoveArgumentAt(int index)
+    public ShellCommand RemoveArgAt(int index)
     {
         _prepared = false;
         _arguments.RemoveAt(index);
         return this;
     }
     
-    public ShellCommand ClearArguments()
+    public ShellCommand ClearArgs()
     {
         _prepared = false;
         _arguments.Clear();
         return this;
+    }
+
+    public ShellCommand ClearArgsAndReset()
+    {
+        Reset();
+        return ClearArgs();
     }
 
     public int Execute(string command, string[]? args = null, string? shellName = null, bool isScript = false,
@@ -150,7 +158,7 @@ public class ShellCommand
     {
         Command = command;
         _arguments = args?.ToList() ?? new List<string>();
-        ShellName = shellName ?? "";
+        Shell = shellName ?? "";
         IsScript = isScript;
         IsElevated = isElevated;
 
@@ -213,41 +221,39 @@ public class ShellCommand
             return this;
         }
         
-        ProcessFile = string.IsNullOrWhiteSpace(ShellName) ? Command : ShellName;
-        ProcessArguments = GetShellArguments(Command, Arguments.ToArray(), ShellName, IsScript);
+        ProcessFile = string.IsNullOrWhiteSpace(Shell) ? Command : Shell;
+        ProcessArguments = GetShellArguments(Command, Args.ToArray(), Shell, IsScript);
         return this;
     }
 
-    private void ProcessStdOutput(object sender, DataReceivedEventArgs e)
+    protected virtual void ProcessStdOutput(object sender, DataReceivedEventArgs e)
     {
         if (e.Data is null)
         {
             return;
         }
-
         OnStdOutput?.Invoke(this, new OutputReceivedEventArgs(e.Data));
         StdOutput.Add(e.Data);
     }
 
-    private void ProcessErrOutput(object sender, DataReceivedEventArgs e)
+    protected virtual void ProcessErrOutput(object sender, DataReceivedEventArgs e)
     {
         if (e.Data is null)
         {
             return;
         }
-
         OnErrOutput?.Invoke(this, new OutputReceivedEventArgs(e.Data, true));
         ErrOutput.Add(e.Data);
     }
 
-    private void Reset()
+    protected virtual void Reset()
     {
         StatusCode = -1;
         StdOutput.Clear();
         ErrOutput.Clear();
     }
 
-    private static string GetShellArguments(string command, string[] args, string shellName, bool isScript = false)
+    protected static string GetShellArguments(string command, string[] args, string shellName, bool isScript = false)
     {
         if (string.IsNullOrWhiteSpace(command))
         {
@@ -269,14 +275,12 @@ public class ShellCommand
             : $"{GetArgsPrepend(shellName, isScript)}\"{command}{(args.Length > 0 ? $" {string.Join(' ', args)}" : "")}\"";
     }
 
-    private static string GetArgsPrepend(string shellName, bool isScript = false)
-    {
-        return shellName switch
+    protected static string GetArgsPrepend(string shellName, bool isScript = false) =>
+        shellName switch
         {
             BashShell or ShShell or PowerShell => isScript ? "" : "-c ",
             PsShell => $"{(IsWindowsPlatform ? "-NoProfile " : "")}{(isScript ? "" : "-c ")}",
             CommandPromptShell => isScript ? "" : "/c ",
             _ => string.Empty
         };
-    }
 }

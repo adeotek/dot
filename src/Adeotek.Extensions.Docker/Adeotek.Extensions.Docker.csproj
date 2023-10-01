@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Title>AdeoTEK Docker Extensions</Title>
+    <Description>Extensions and helpers for interaction with Docker</Description>
+    <Product>AdeoTEK Extensions Docker</Product>
+    <Authors>George Benjamin-Schonberger</Authors>
+    <Copyright>George Benjamin-Schonberger 2023</Copyright>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="YamlDotNet" Version="13.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Adeotek.Extensions.Processes\Adeotek.Extensions.Processes.csproj" />
+  </ItemGroup>
+
+</Project>

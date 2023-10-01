@@ -1,8 +1,12 @@
-# AdeoTEK DevOps Tools (dot)
+# dot - AdeoTEK DevOps Tools
 
-A collection of CLI DevOps tools.
+`dot` is a collection of CLI tools for developers and DevOps.
+
+[![.NET build](https://github.com/adeotek/dot/actions/workflows/dotnet_build.yml/badge.svg)](https://github.com/adeotek/dot/actions/workflows/dotnet_build.yml)
 
 ## Install
+
+AdeoTEK DevOps Tools NuGet package can be found [on nuget.org](https://www.nuget.org/packages/AdeoTEK.DevOps.Tools/).
 
 ```shell
 dotnet tool install -g AdeoTEK.DevOps.Tools
@@ -13,8 +17,6 @@ dotnet tool install -g AdeoTEK.DevOps.Tools
 ```shell
 dotnet tool update -g AdeoTEK.DevOps.Tools
 ```
-
-AdeoTEK DevOps Tools NuGet package can be found [here](https://www.nuget.org/packages/AdeoTEK.DevOps.Tools/).
 
 ## Usage
 

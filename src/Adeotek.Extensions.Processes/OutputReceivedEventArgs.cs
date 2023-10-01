@@ -1,5 +1,8 @@
-﻿namespace Adeotek.Extensions.Processes;
+﻿using System.Diagnostics.CodeAnalysis;
 
+namespace Adeotek.Extensions.Processes;
+
+[ExcludeFromCodeCoverage]
 public class OutputReceivedEventArgs : EventArgs
 {
     public string? Data { get; }

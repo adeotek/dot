@@ -1,6 +1,4 @@
-﻿using System.Text;
-
-namespace Adeotek.DevOpsTools.Models;
+﻿namespace Adeotek.Extensions.Docker.Config;
 
 public class ContainerConfig
 {

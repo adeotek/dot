@@ -1,5 +1,8 @@
-﻿namespace Adeotek.DevOpsTools.Common;
+﻿using System.Diagnostics.CodeAnalysis;
 
+namespace Adeotek.Extensions.Processes;
+
+[ExcludeFromCodeCoverage]
 public class ShellCommandException : Exception
 {
     public int ExitCode { get; }
