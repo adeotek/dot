@@ -5,6 +5,7 @@ namespace Adeotek.Extensions.Processes;
 
 public class ShellCommand
 {
+    public const string NoShell = "";
     public const string BashShell = "/bin/bash";
     public const string ShShell = "/bin/sh";
     public const string PsShell = "pwsh";
@@ -18,10 +19,15 @@ public class ShellCommand
     public event OutputReceivedEventHandler? OnErrOutput;
     
     protected bool _prepared;
-    protected string _shell = "";
+    protected string _shell = NoShell;
     protected string _command = "";
     protected List<string> _arguments = new();
     protected bool _isScript;
+
+    public ShellCommand(string shell = NoShell)
+    {
+        Shell = shell;
+    }
 
     public string Shell
     {
@@ -141,6 +147,12 @@ public class ShellCommand
         return this;
     }
 
+    public ShellCommand ClearArgsAndReset()
+    {
+        Reset();
+        return ClearArgs();
+    }
+
     public int Execute(string command, string[]? args = null, string? shellName = null, bool isScript = false,
         bool isElevated = false)
     {
@@ -216,24 +228,20 @@ public class ShellCommand
 
     protected virtual void ProcessStdOutput(object sender, DataReceivedEventArgs e)
     {
-        if (e.Data is null)
-        {
-            return;
-        }
-
         OnStdOutput?.Invoke(this, new OutputReceivedEventArgs(e.Data));
-        StdOutput.Add(e.Data);
+        if (e.Data is not null)
+        {
+            StdOutput.Add(e.Data);
+        }
     }
 
     protected virtual void ProcessErrOutput(object sender, DataReceivedEventArgs e)
     {
-        if (e.Data is null)
-        {
-            return;
-        }
-
         OnErrOutput?.Invoke(this, new OutputReceivedEventArgs(e.Data, true));
-        ErrOutput.Add(e.Data);
+        if (e.Data is not null)
+        {
+            ErrOutput.Add(e.Data);
+        }
     }
 
     protected virtual void Reset()

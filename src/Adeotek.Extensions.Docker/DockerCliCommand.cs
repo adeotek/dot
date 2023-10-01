@@ -7,7 +7,6 @@ public class DockerCliCommand : ShellCommand
 {
     public DockerCliCommand()
     {
-        Shell = "";
         Command = "docker";
         IsScript = false;
         IsElevated = false;
@@ -27,6 +26,8 @@ public class DockerCliCommand : ShellCommand
         (DockerCliCommand) base.RemoveArgAt(index);
     public new DockerCliCommand ClearArgs() =>
         (DockerCliCommand) base.ClearArgs();
+    public new DockerCliCommand ClearArgsAndReset() =>
+        (DockerCliCommand) base.ClearArgsAndReset();
     
     public DockerCliCommand AddFilterArg(string value, string? key = null) => 
         AddArg($"--filter {key ?? "name"}={value}");
@@ -53,13 +54,13 @@ public class DockerCliCommand : ShellCommand
     {
         foreach (var volume in volumes)
         {
-            AddVolumeArg(volume.Source, volume.Destination);
+            AddVolumeArg(volume.Source, volume.Destination, volume.IsReadonly);
         }
         return this;
     }
     
     public DockerCliCommand AddEnvVarArg(string name, string value) => 
-        AddArg(value.Contains('=') ? $"-e {name}=\"{value}\"" : $"-e {name}={value}");
+        AddArg(value.Contains('=') || value.Contains(' ') ? $"-e {name}=\"{value}\"" : $"-e {name}={value}");
 
     public DockerCliCommand AddEnvVarsArgs(Dictionary<string, string> envVars)
     {

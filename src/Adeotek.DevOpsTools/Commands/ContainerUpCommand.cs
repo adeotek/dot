@@ -1,4 +1,4 @@
-﻿using Adeotek.DevOpsTools.Settings;
+﻿using Adeotek.DevOpsTools.CommandsSettings;
 using Adeotek.Extensions.Docker.Config;
 
 namespace Adeotek.DevOpsTools.Commands;
@@ -8,23 +8,24 @@ internal sealed class ContainerUpCommand : ContainerBaseCommand<ContainerUpSetti
     private bool Update => _settings?.Update ?? false;
     private bool Replace => _settings?.Replace ?? false;
     
-    protected override void ExecuteCommand(ContainerConfig config)
+    protected override void ExecuteContainerCommand(ContainerConfig config)
     {
-        if (CheckIfContainerExists(config.PrimaryName))
+        var dockerManager = GetDockerManager();
+        if (dockerManager.ContainerExists(config.PrimaryName))
         {
             if (!Update)
             {
                 PrintMessage("Container already present, nothing to do!");
                 return;
             }
-
+        
             PrintMessage("Container already present, updating it.", _warningColor);
-            UpdateContainer(config, Replace);
+            dockerManager.UpdateContainer(config, Replace);
             return;
         }
-
+        
         PrintMessage("Container not fond, creating new one.");
-        if (CreateContainer(config))
+        if (dockerManager.CreateContainer(config))
         {
             PrintMessage("Container created successfully!", _successColor);
         }

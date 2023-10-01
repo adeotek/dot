@@ -1,73 +1,34 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
-using System.Text;
-using System.Text.Json;
-
-using Adeotek.DevOpsTools.Common;
+﻿using Adeotek.DevOpsTools.Common;
 using Adeotek.DevOpsTools.Extensions;
-using Adeotek.DevOpsTools.Settings;
+using Adeotek.DevOpsTools.CommandsSettings;
 using Adeotek.Extensions.Docker;
 using Adeotek.Extensions.Docker.Config;
-using Adeotek.Extensions.Processes;
+using Adeotek.Extensions.Docker.Exceptions;
 
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
-
 namespace Adeotek.DevOpsTools.Commands;
 
 internal abstract class ContainerBaseCommand<TSettings> 
-    : Command<TSettings> where TSettings : ContainerSettings
+    : CommandBase<TSettings> where TSettings : ContainerSettings
 {
-    protected readonly string _version = Assembly.GetEntryAssembly()
-           ?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
-       ?? "?";
-    protected readonly int _separatorLength = 80;
-    protected readonly string _errorColor = "red";
-    protected readonly string _warningColor = "olive";
-    protected readonly string _standardColor = "turquoise4";
-    protected readonly string _successColor = "green";
-    protected string? _errOutputColor = "red";
-    protected TSettings? _settings;
-    protected CommandContext? _context;
-    protected bool IsVerbose => _settings?.Verbose ?? false;
+    protected abstract void ExecuteContainerCommand(ContainerConfig config);
 
-    protected abstract void ExecuteCommand(ContainerConfig config);
-    
-    public override int Execute([NotNull] CommandContext context, [NotNull] TSettings settings)
+    protected override int ExecuteCommand(CommandContext context, TSettings settings)
     {
         try
         {
-            PrintStart();
-            _context = context;
-            _settings = settings;
-            var config = LoadConfig(settings.ConfigFile);
+            var config = DockerConfigManager.LoadContainerConfig(settings.ConfigFile);
             if (settings.Verbose)
             {
                 config.WriteToAnsiConsole();
             }
 
-            ExecuteCommand(config);
-
-            PrintDone();
+            ExecuteContainerCommand(config);
             return 0;
         }
-        catch (ShellCommandException e)
-        {
-            if (settings.Verbose)
-            {
-                AnsiConsole.WriteException(e, ExceptionFormats.ShortenEverything);
-            }
-            else
-            {
-                e.WriteToAnsiConsole();
-            }
-
-            return e.ExitCode;
-        }
-        catch (Exception e)
+        catch (DockerConfigException e)
         {
             if (settings.Verbose)
             {
@@ -80,540 +41,78 @@ internal abstract class ContainerBaseCommand<TSettings>
 
             return 1;
         }
-        finally
+        catch (DockerCliException e)
         {
-            _settings = null;
-        }
-    }
-
-    protected virtual bool CreateContainer(ContainerConfig config)
-    {
-        if (!CheckNetwork(config.Network))
-        {
-            throw new ShellCommandException(1, $"Docker network '{config.Network?.Name}' is missing or cannot be created!");
-        }
-        
-        foreach (var volume in config.Volumes)
-        {
-            if (!CheckVolume(volume))
+            if (settings.Verbose)
             {
-                throw new ShellCommandException(1, $"Docker volume '{volume.Source}' is missing or cannot be created!");
+                AnsiConsole.WriteException(e, ExceptionFormats.ShortenEverything);
             }
-        }
-
-        var dockerCommand = GetDockerCliCommand(IsVerbose)
-            .AddArg("run")
-            .AddArg("-d")
-            .AddArg($"--name={config.PrimaryName}")
-            .AddPortsArgs(config.Ports)
-            .AddVolumesArgs(config.Volumes)
-            .AddEnvVarsArgs(config.EnvVars)
-            .AddNetworkArgs(config)
-            .AddRestartArg(config.Restart)
-            .AddArg(config.FullImageName);
-        
-        PrintCommand(dockerCommand);
-        _errOutputColor = null;
-        dockerCommand.Execute();
-        _errOutputColor = null;
-        return dockerCommand.StatusCode == 0
-            || dockerCommand.StdOutput.Count == 1
-            || string.IsNullOrEmpty(dockerCommand.StdOutput.FirstOrDefault());
-    }
-
-    protected virtual void UpdateContainer(ContainerConfig config, bool replace = false)
-    {
-        if (!CheckIfNewVersionExists(config))
-        {
-            PrintMessage("No newer version found, nothing to do.");
-            return;
-        }
-        
-        if (replace)
-        {
-            StopAndRemoveContainer(config.PrimaryName);
-        }
-        else
-        {
-            DemoteContainer(config);    
-        }
-
-        CreateContainer(config);
-        PrintMessage("Container updated successfully!", _successColor);
-    }
-
-    protected virtual void DemoteContainer(ContainerConfig config)
-    {
-        if (CheckIfContainerExists(config.BackupName))
-        {
-            StopAndRemoveContainer(config.BackupName);
-        }
-
-        RenameContainer(config.PrimaryName, config.BackupName);
-    }
-
-    protected virtual void RemoveContainer(ContainerConfig config, bool purge = false)
-    {
-        StopAndRemoveContainer(config.PrimaryName);
-        if (!purge)
-        {
-            return;
-        }
-
-        if (CheckIfContainerExists(config.BackupName))
-        {
-            PrintMessage("Backup container found, removing it.", _standardColor);
-            StopAndRemoveContainer(config.BackupName);    
-        }
-
-        var dockerCommand = GetDockerCliCommand(IsVerbose);
-        foreach (var volume in config.Volumes.Where(e => e is { AutoCreate: true, IsMapping: false }))
-        {
-            dockerCommand.ClearArgs()
-                .AddArg("volume")
-                .AddArg("rm")
-                .AddArg(volume.Source);
-            PrintCommand(dockerCommand);
-            dockerCommand.Execute();
-            if (dockerCommand.IsSuccess(volume.Source, true))
+            else
             {
-                continue;
+                e.WriteToAnsiConsole();
             }
-            
-            if (dockerCommand.IsError($"Error response from daemon: get {volume.Source}: no such volume", true))
-            {
-                PrintMessage($"Volume '{volume.Source}' not found!", _warningColor);
-                return;
-            }
-            
-            throw new ShellCommandException(1, $"Unable to remove volume '{volume.Source}'!");
+
+            return e.ExitCode;
         }
     }
     
-    protected virtual void StopAndRemoveContainer(string containerName)
+    protected virtual DockerManager GetDockerManager()
     {
-        StopContainer(containerName);
-
-        var dockerCommand = GetDockerCliCommand(IsVerbose)
-            .AddArg("rm")
-            .AddArg(containerName);
-        PrintCommand(dockerCommand);
-        dockerCommand.Execute();
-        if (dockerCommand.IsSuccess(containerName, true))
-        {
-            return;
-        }
-
-        if (dockerCommand.IsError($"Error response from daemon: No such container: {containerName}", true))
-        {
-            PrintMessage($"Container '{containerName}' not found!", _warningColor);
-            return;
-        }
-        
-        throw new ShellCommandException(1, $"Unable to remove container '{containerName}'!");
+        DockerManager dockerManager = new();
+        dockerManager.OnDockerCliEvent += HandleDockerCliEvent;
+        return dockerManager;
     }
 
-    protected virtual void StopContainer(string containerName)
+    private void HandleDockerCliEvent(object sender, DockerCliEventArgs e)
     {
-        var dockerCommand = GetDockerCliCommand(IsVerbose)
-            .AddArg("stop")
-            .AddArg(containerName);
-        PrintCommand(dockerCommand);
-        dockerCommand.Execute();
-        if (dockerCommand.IsSuccess(containerName, true))
+        switch (e.Type)
         {
-            return;
-        }
-        
-        if (!dockerCommand.IsError($"Error response from daemon: No such container: {containerName}", true))
-        {
-            throw new ShellCommandException(1, $"Unable to stop container '{containerName}'!");    
-        }
-            
-        PrintMessage($"Container '{containerName}' not found!", _warningColor);
-    }
-    
-    protected virtual void RenameContainer(string currentName, string newName)
-    {
-        StopContainer(currentName);
-
-        var dockerCommand = GetDockerCliCommand(IsVerbose)
-            .AddArg("rename")
-            .AddArg(currentName)
-            .AddArg(newName);
-        PrintCommand(dockerCommand);
-        dockerCommand.Execute();
-        if (dockerCommand.IsSuccess())
-        {
-            return;
-        }
-
-        if (dockerCommand.IsError($"Error response from daemon: No such container: {currentName}", true))
-        {
-            PrintMessage($"Container '{currentName}' not found!", _warningColor);
-            return;
-        }
-        
-        throw new ShellCommandException(1, $"Unable to rename container '{currentName}'!");
-    }
-    
-    protected virtual string PullImage(string image, string? tag = null)
-    {
-        var fullImageName = $"{image}:{tag ?? "latest"}";
-        var dockerCommand = GetDockerCliCommand(IsVerbose)
-            .AddArg("pull")
-            .AddArg(fullImageName);
-        PrintCommand(dockerCommand);
-        dockerCommand.Execute();
-        if (dockerCommand.StatusCode != 0
-            || !dockerCommand.StdOutput.Exists(e => 
-                e.Contains($"Status: Downloaded newer image for {fullImageName}")
-                || e.Contains($"Status: Image is up to date for {fullImageName}")))
-        {
-            throw new ShellCommandException(1, $"Unable to pull image '{fullImageName}'!");
-        }
-        
-        return dockerCommand.StdOutput
-                   .FirstOrDefault(e => e.StartsWith("Digest: "))
-                   ?.Replace("Digest: ", "")
-               ?? "";
-    }
-
-    protected virtual string GetContainerImageId(string containerName)
-    {
-        var dockerCommand = GetDockerCliCommand(IsVerbose)
-            .AddArg("container")
-            .AddArg("inspect")
-            .AddArg("--format \"{{lower .Image}}\"")
-            .AddArg(containerName);
-        PrintCommand(dockerCommand);
-        dockerCommand.Execute();
-        if (dockerCommand.IsError() || dockerCommand.StdOutput.Count != 1)
-        {
-            throw new ShellCommandException(1, $"Unable to inspect container '{containerName}'!");
-        }
-
-        var result = dockerCommand.StdOutput.First();
-        if (result.StartsWith("sha256:"))
-        {
-            return result;
-        }
-
-        throw new ShellCommandException(1, $"Unable to obtain image ID for container '{containerName}'!");
-    }
-    
-    protected virtual string GetImageId(string image, string? tag = null)
-    {
-        var fullImageName = $"{image}:{tag ?? "latest"}";
-        var dockerCommand = GetDockerCliCommand(IsVerbose)
-            .AddArg("image")
-            .AddArg("inspect")
-            .AddArg("--format \"{{lower .Id}}\"")
-            .AddArg(fullImageName);
-        PrintCommand(dockerCommand);
-        dockerCommand.Execute();
-        if (dockerCommand.IsError() || dockerCommand.StdOutput.Count != 1)
-        {
-            throw new ShellCommandException(1, $"Unable to inspect image '{fullImageName}'!");
-        }
-
-        var result = dockerCommand.StdOutput.First();
-        if (result.StartsWith("sha256:"))
-        {
-            return result;
-        }
-
-        throw new ShellCommandException(1, $"Unable to obtain image ID for '{fullImageName}'!");
-    }
-
-    protected virtual bool CheckIfNewVersionExists(ContainerConfig config)
-    {
-        var imageId = PullImage(config.Image, config.ImageTag);
-        var containerImageId = GetContainerImageId(config.PrimaryName);
-        return containerImageId.Equals(imageId, StringComparison.InvariantCultureIgnoreCase);
-    }
-    
-    protected virtual bool CheckVolume(VolumeConfig volume)
-    {
-        if (volume.IsMapping)
-        {
-            if (Path.Exists(volume.Source))
-            {
-                return true;
-            }
-
-            if (!volume.AutoCreate)
-            {
-                return false;
-            }
-
-            PrintCommand("mkdir", volume.Source);
-            Directory.CreateDirectory(volume.Source);
-            if (!ShellCommand.IsWindowsPlatform)
-            {
-                var bashCommand = GetShellCommand("chgrp", IsVerbose, ShellCommand.BashShell)
-                    .AddArg("docker")
-                    .AddArg(volume.Source);
-                PrintCommand(bashCommand);
-                bashCommand.Execute();
-                if (!bashCommand.IsSuccess(volume.Source))
+            case DockerCliEventType.Command:
+                if (IsVerbose)
                 {
-                    throw new ShellCommandException(1, $"Unable to set group 'docker' for '{volume.Source}' directory!");
+                    AnsiConsole.Write(new CustomComposer()
+                        .Style("aqua", e.Data.GetValueOrDefault("cmd") ?? "?")
+                        .Space()
+                        .Style("purple", e.Data.GetValueOrDefault("args") ?? "?").LineBreak());
                 }
-            }
-
-            return true;
-        }
+                break;
+            case DockerCliEventType.Message:
+                AnsiConsole.Write(new CustomComposer()
+                    .Style(GetColorFromLogLevel(
+                        e.Data.GetValueOrDefault("level") ?? ""), 
+                        e.Data.GetValueOrDefault("message") ?? "")
+                    .LineBreak());
+                break;
+            case DockerCliEventType.StdOutput:
+                AnsiConsole.WriteLine(e.DataToString(Environment.NewLine, "._."));
+                break;
+            case DockerCliEventType.ErrOutput:
+                var data = e.DataToString(Environment.NewLine, "_._");
+                if (!string.IsNullOrEmpty(_errOutputColor))
+                {
+                    AnsiConsole.MarkupLineInterpolated($"[yellow](!)[/] [{_errOutputColor}]{data}[/]");
+                    return;
+                }
+                if (string.IsNullOrEmpty(data))
+                {
+                    return;
+                }
         
-        var dockerCommand = GetDockerCliCommand(IsVerbose)
-            .AddArg("volume")
-            .AddArg("ls")
-            .AddFilterArg(volume.Source);
-        PrintCommand(dockerCommand);
-        dockerCommand.Execute();
-        if (dockerCommand.IsSuccess(volume.Source, true))
-        {
-            return true;
-        }
-
-        if (!volume.AutoCreate)
-        {
-            return false;
-        }
-
-        dockerCommand.ClearArgs()
-            .AddArg("volume")
-            .AddArg("create")
-            .AddArg(volume.Source);
-        PrintCommand(dockerCommand);
-        dockerCommand.Execute();
-        if (!dockerCommand.IsSuccess(volume.Source, true))
-        {
-            throw new ShellCommandException(1, $"Unable to create docker volume '{volume.Source}'!");
-        }
-
-        return true;
-    }
-    
-    protected virtual bool CheckNetwork(NetworkConfig? network)
-    {
-        if (network is null || string.IsNullOrEmpty(network.Name))
-        {
-            return true;
-        }
-        
-        if (string.IsNullOrEmpty(network.Subnet) || string.IsNullOrEmpty(network.IpRange))
-        {
-            return false;
-        }
-        
-        var dockerCommand = GetDockerCliCommand(IsVerbose)
-            .AddArg("network")
-            .AddArg("ls")
-            .AddFilterArg(network.Name);
-        PrintCommand(dockerCommand);
-        dockerCommand.Execute();
-        if (dockerCommand.IsSuccess(network.Name))
-        {
-            return true;
-        }
-
-        dockerCommand.ClearArgs()
-            .AddArg("network")
-            .AddArg("create")
-            .AddArg("-d bridge")
-            .AddArg("--attachable")
-            .AddArg($"--subnet {network.Subnet}")
-            .AddArg($"--ip-range {network.IpRange}")
-            .AddArg(network.Name);
-        PrintCommand(dockerCommand);
-        dockerCommand.Execute();
-        if (dockerCommand.StatusCode != 0 
-            || dockerCommand.StdOutput.Count != 1
-            || string.IsNullOrEmpty(dockerCommand.StdOutput.FirstOrDefault()))
-        {
-            throw new ShellCommandException(1, $"Unable to create docker network '{network.Name}'!");
-        }
-
-        return true;
-    }
-
-    protected virtual bool CheckIfContainerExists(string name)
-    {
-        var dockerCommand = GetDockerCliCommand(IsVerbose)
-            .AddArg("container")
-            .AddArg("ls")
-            .AddArg("--all")
-            .AddFilterArg(name);
-        PrintCommand(dockerCommand);
-        dockerCommand.Execute();
-        return dockerCommand.IsSuccess(name);
-    }
-
-    protected virtual ContainerConfig LoadConfig(string? configFile)
-    {
-        if (string.IsNullOrEmpty(configFile))
-        {
-            throw new ShellCommandException(2, "The 'config_file' command argument is required!");
-        }
-
-        if (!File.Exists(configFile))
-        {
-            throw new ShellCommandException(1, "The 'config_file' doesn't exist or is empty!");
-        }
-        
-        var configContent = File.ReadAllText(configFile, Encoding.UTF8);
-        if (string.IsNullOrEmpty(configContent))
-        {
-            throw new ShellCommandException(1, "The 'config_file' doesn't exist or is empty!");
-        }
-
-        if (Path.GetExtension(configFile).ToLower() == ".json")
-        {
-            return LoadJsonConfig(configContent);
-        }
-
-        if ((new [] {".yaml", ".yml"}).Contains(Path.GetExtension(configFile).ToLower()))
-        {
-            return LoadYamlConfig(configContent);
-        }
-
-        throw new ShellCommandException(1, "The 'config_file' isn't in a valid format!");
-    }
-
-    protected virtual ContainerConfig LoadJsonConfig(string data)
-    {
-        try
-        {
-            return JsonSerializer.Deserialize<ContainerConfig>(data)
-                   ?? throw new ShellCommandException(1, "The 'config_file' doesn't exist or is empty!");
-        }
-        catch (ShellCommandException)
-        {
-            throw;
-        }
-        catch (Exception e)
-        {
-            throw new ShellCommandException(1, "The 'config_file' isn't in a valid JSON format!", e);
-        }
-    }
-    
-    protected virtual ContainerConfig LoadYamlConfig(string data)
-    {
-        try
-        {
-            var deserializer = new DeserializerBuilder()
-                .WithNamingConvention(PascalCaseNamingConvention.Instance) 
-                .Build();
-            return deserializer.Deserialize<ContainerConfig>(data)
-                   ?? throw new ShellCommandException(1, "The 'config_file' doesn't exist or is empty!");;
-        }
-        catch (ShellCommandException)
-        {
-            throw;
-        }
-        catch (Exception e)
-        {
-            throw new ShellCommandException(1, "The 'config_file' isn't in a valid YAML format!", e);
+                AnsiConsole.WriteLine(data);
+                break;
+            case DockerCliEventType.ExitCode:
+                PrintSeparator();
+                break;
         }
     }
 
-    protected virtual void PrintCommand(ShellCommand shellCommand)
-    {
-        if (!IsVerbose)
+    protected virtual string GetColorFromLogLevel(string level) =>
+        level switch
         {
-            return;
-        }
-        shellCommand.Prepare();
-        PrintSeparator();
-        AnsiConsole.Write(new CustomComposer()
-            .Style("aqua", shellCommand.ProcessFile).Space()
-            .Style("purple", shellCommand.ProcessArguments).LineBreak());
-    }
-    
-    protected virtual void PrintCommand(string command, string arguments = "")
-    {
-        if (!IsVerbose)
-        {
-            return;
-        }
-        AnsiConsole.Write(new CustomComposer()
-            .Style("aqua", command).Space()
-            .Style("purple", arguments).LineBreak());
-    }
-    
-    protected virtual void PrintMessage(string message, string? color = null, bool separator = false)
-    {
-        AnsiConsole.Write(new CustomComposer()
-            .Style(color ?? _standardColor, message).LineBreak());
-        if (!separator)
-        {
-            return;
-        }
-        PrintSeparator();
-    }
-    
-    protected virtual void PrintSeparator(bool big = false)
-    {
-        AnsiConsole.Write(new CustomComposer()
-            .Repeat("gray", big ? '=' : '-', _separatorLength).LineBreak());
-    }
-    
-    protected virtual void PrintStart()
-    {
-        AnsiConsole.Write(new CustomComposer()
-            .Text("Running ").Style("purple", "DOT Container Tool").Space()
-            .Style("green", $"v{_version}").LineBreak()
-            .Repeat("gray", '=', _separatorLength).LineBreak());
-    }
-    
-    protected virtual void PrintDone()
-    {
-        AnsiConsole.Write(new CustomComposer()
-            .Repeat("gray", '=', _separatorLength).LineBreak()
-            .Style("purple", "DONE.").LineBreak().LineBreak());
-    }
-
-    protected virtual ShellCommand GetShellCommand(string command, bool outputRedirect = true, 
-        string shellName = "")
-    {
-        var shellCommand = new ShellCommand { Shell = shellName, Command = command };
-        if (outputRedirect)
-        {
-            shellCommand.OnStdOutput += PrintStdOutput;
-            shellCommand.OnErrOutput += PrintErrOutput;    
-        }
-        return shellCommand;
-    }
-    
-    protected virtual DockerCliCommand GetDockerCliCommand(bool outputRedirect = true)
-    {
-        var shellCommand = new DockerCliCommand();
-        if (outputRedirect)
-        {
-            shellCommand.OnStdOutput += PrintStdOutput;
-            shellCommand.OnErrOutput += PrintErrOutput;    
-        }
-        return shellCommand;
-    }
-    
-    protected virtual void PrintStdOutput(object sender, OutputReceivedEventArgs e)
-    {
-        AnsiConsole.WriteLine(e.Data ?? "._.");
-    }
-
-    protected virtual void PrintErrOutput(object sender, OutputReceivedEventArgs e)
-    {
-        if (!string.IsNullOrEmpty(_errOutputColor))
-        {
-            AnsiConsole.MarkupLine($"[yellow](!)[/] [{_errOutputColor}]{e.Data ?? "_._"}[/]");
-            return;
-        }
-        if (string.IsNullOrEmpty(e.Data))
-        {
-            return;
-        }
-        
-        AnsiConsole.MarkupLine(e.Data);
-    }
+            "info" => _standardColor,
+            "warn" => _warningColor,
+            "msg" => _successColor,
+            "err" => _errorColor,
+            _ => _standardColor
+        };
 }

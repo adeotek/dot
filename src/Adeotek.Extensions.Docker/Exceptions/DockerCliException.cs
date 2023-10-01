@@ -1,7 +1,10 @@
-﻿using Adeotek.Extensions.Processes;
+﻿using System.Diagnostics.CodeAnalysis;
+
+using Adeotek.Extensions.Processes;
 
 namespace Adeotek.Extensions.Docker.Exceptions;
 
+[ExcludeFromCodeCoverage]
 public class DockerCliException : ShellCommandException
 {
     public string Command { get; }

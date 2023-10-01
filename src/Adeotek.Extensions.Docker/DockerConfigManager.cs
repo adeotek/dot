@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using System.Text.Json;
 
 using Adeotek.Extensions.Docker.Config;
@@ -9,9 +10,10 @@ using YamlDotNet.Serialization.NamingConventions;
 
 namespace Adeotek.Extensions.Docker;
 
+[ExcludeFromCodeCoverage]
 public class DockerConfigManager
 {
-    public static ContainerConfig LoadConfig(string? configFile)
+    public static ContainerConfig LoadContainerConfig(string? configFile)
     {
         if (string.IsNullOrEmpty(configFile))
         {
@@ -31,18 +33,18 @@ public class DockerConfigManager
 
         if (Path.GetExtension(configFile).ToLower() == ".json")
         {
-            return LoadJsonConfig(configContent);
+            return LoadContainerConfigFromJsonString(configContent);
         }
 
         if ((new [] {".yaml", ".yml"}).Contains(Path.GetExtension(configFile).ToLower()))
         {
-            return LoadYamlConfig(configContent);
+            return LoadContainerConfigFromYamlString(configContent);
         }
 
         throw new DockerConfigException("The config file is not in a valid format", configFile);
     }
 
-    public static ContainerConfig LoadJsonConfig(string data)
+    public static ContainerConfig LoadContainerConfigFromJsonString(string data)
     {
         try
         {
@@ -59,7 +61,7 @@ public class DockerConfigManager
         }
     }
     
-    public static ContainerConfig LoadYamlConfig(string data)
+    public static ContainerConfig LoadContainerConfigFromYamlString(string data)
     {
         try
         {

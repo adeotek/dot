@@ -1,4 +1,4 @@
-﻿using Adeotek.DevOpsTools.Settings;
+﻿using Adeotek.DevOpsTools.CommandsSettings;
 using Adeotek.Extensions.Docker.Config;
 
 namespace Adeotek.DevOpsTools.Commands;
@@ -7,19 +7,20 @@ internal sealed class ContainerDownCommand : ContainerBaseCommand<ContainerDownS
 {
     private bool Purge => _settings?.Purge ?? false;
     
-    protected override void ExecuteCommand(ContainerConfig config)
+    protected override void ExecuteContainerCommand(ContainerConfig config)
     {
-        if (CheckIfContainerExists(config.PrimaryName))
+        var dockerManager = GetDockerManager();
+        if (dockerManager.ContainerExists(config.PrimaryName))
         {
             PrintMessage("Container found, removing it.");
-            RemoveContainer(config, Purge);
+            dockerManager.RemoveContainer(config, Purge);
             return;
         }
         
         if (Purge)
         {
             PrintMessage("Container not found, trying to purge resources.", _warningColor);
-            RemoveContainer(config, Purge);
+            dockerManager.RemoveContainer(config, Purge);
         }
         else
         {

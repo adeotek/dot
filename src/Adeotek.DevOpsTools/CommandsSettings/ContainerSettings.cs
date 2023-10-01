@@ -2,9 +2,9 @@
 
 using Spectre.Console.Cli;
 
-namespace Adeotek.DevOpsTools.Settings;
+namespace Adeotek.DevOpsTools.CommandsSettings;
 
-internal class ContainerSettings : CommandSettings
+internal class ContainerSettings : GlobalSettings
 {
     [Description("Config file (with absolute/relative path)")]
     [CommandArgument(0, "<config_file>")]
@@ -14,9 +14,4 @@ internal class ContainerSettings : CommandSettings
     [CommandOption("--dry-run")]
     [DefaultValue(false)]
     public bool DryRun { get; init; }
-        
-    [Description("Output all messages, including docker commands output")]
-    [CommandOption("--verbose")]
-    [DefaultValue(false)]
-    public bool Verbose { get; init; }
 }
