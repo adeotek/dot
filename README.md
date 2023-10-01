@@ -6,6 +6,8 @@
 
 ## Install
 
+AdeoTEK DevOps Tools NuGet package can be found [on nuget.org](https://www.nuget.org/packages/AdeoTEK.DevOps.Tools/).
+
 ```shell
 dotnet tool install -g AdeoTEK.DevOps.Tools
 ```
@@ -15,8 +17,6 @@ dotnet tool install -g AdeoTEK.DevOps.Tools
 ```shell
 dotnet tool update -g AdeoTEK.DevOps.Tools
 ```
-
-AdeoTEK DevOps Tools NuGet package can be found [here](https://www.nuget.org/packages/AdeoTEK.DevOps.Tools/).
 
 ## Usage
 
