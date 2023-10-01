@@ -39,7 +39,9 @@ public class ShellCommandTests
     [Fact]
     public void Prepare_WithPwshCommand_ExpectValidProcessArgs()
     {
-        var expectedArgs = "-NoProfile -c \"Get-ChildItem Env: | Select Name\"";
+        var expectedArgs = ShellCommand.IsWindowsPlatform
+            ? "-NoProfile -c \"Get-ChildItem Env: | Select Name\""
+            : "-c \"Get-ChildItem Env: | Select Name\"";
         ShellCommand command = new()
         {
             Shell = ShellCommand.PsShell, 
@@ -58,7 +60,9 @@ public class ShellCommandTests
     [Fact]
     public void Prepare_WithPwshScript_ExpectValidProcessArgs()
     {
-        var expectedArgs = "-NoProfile .\\some_script.ps1 --some-arg abc";
+        var expectedArgs = ShellCommand.IsWindowsPlatform
+            ? "-NoProfile .\\some_script.ps1 --some-arg abc"
+            : ".\\some_script.ps1 --some-arg abc";
         ShellCommand command = new()
         {
             Shell = ShellCommand.PsShell, 
