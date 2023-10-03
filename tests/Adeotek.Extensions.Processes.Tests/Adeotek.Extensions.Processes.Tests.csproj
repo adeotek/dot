@@ -23,7 +23,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\src\Adeotek.Extensions.Processes\Adeotek.Extensions.Processes.csproj" />
+      <ProjectReference Include="..\..\src\Adeotek.Extensions.Processes\Adeotek.Extensions.Processes.csproj" />
     </ItemGroup>
 
 </Project>

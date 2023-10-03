@@ -14,7 +14,7 @@ app.Configure(config =>
         AnsiConsole.WriteException(e, ExceptionFormats.ShortenEverything);
         return 1;
     });
-    // Commands
+    
     config.AddBranch("container", ct =>
     {
         ct.SetDescription("Manage Docker containers");
@@ -30,6 +30,14 @@ app.Configure(config =>
             cfg.AddCommand<ContainerConfigSampleCommand>("sample")
                 .WithDescription("Generate Docker container config sample file");
         });
+    });
+    
+    config.AddBranch("utf8bom", bom =>
+    {
+        bom.AddCommand<Utf8BomAddCommand>("add")
+            .WithDescription("Add UTF8 Signature (BOM) to files");
+        bom.AddCommand<Utf8BomRemoveCommand>("remove")
+            .WithDescription("Add UTF8 Signature (BOM) from files");
     });
 });
 return app.Run(args);

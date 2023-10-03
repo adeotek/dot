@@ -23,7 +23,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\src\Adeotek.Extensions.Docker\Adeotek.Extensions.Docker.csproj" />
+      <ProjectReference Include="..\..\src\Adeotek.Extensions.Docker\Adeotek.Extensions.Docker.csproj" />
     </ItemGroup>
 
 </Project>
