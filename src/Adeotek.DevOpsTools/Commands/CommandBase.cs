@@ -48,6 +48,7 @@ internal abstract class CommandBase<TSettings> : Command<TSettings> where TSetti
                 e.WriteToAnsiConsole();
             }
 
+            PrintDone(e.ExitCode);
             return e.ExitCode;
         }
         catch (Exception e)
@@ -60,7 +61,8 @@ internal abstract class CommandBase<TSettings> : Command<TSettings> where TSetti
             {
                 e.WriteToAnsiConsole();
             }
-
+            
+            PrintDone(1);
             return 1;
         }
         finally
@@ -79,10 +81,15 @@ internal abstract class CommandBase<TSettings> : Command<TSettings> where TSetti
             .Style(color ?? _standardColor, message).LineBreak());
     }
     
-    protected virtual void PrintSeparator(bool big = false)
+    protected virtual void PrintSeparator(bool big = false, bool addEmptyLine = false)
     {
-        AnsiConsole.Write(new CustomComposer()
-            .Repeat("gray", big ? '=' : '-', _separatorLength).LineBreak());
+        var composer = new CustomComposer()
+            .Repeat("gray", big ? '=' : '-', _separatorLength).LineBreak();
+        if (addEmptyLine)
+        {
+            composer.LineBreak();
+        }
+        AnsiConsole.Write(composer);
     }
     
     protected virtual void PrintStart()
@@ -93,10 +100,10 @@ internal abstract class CommandBase<TSettings> : Command<TSettings> where TSetti
             .Repeat("gray", '=', _separatorLength).LineBreak());
     }
     
-    protected virtual void PrintDone()
+    protected virtual void PrintDone(int exitCode = 0)
     {
         AnsiConsole.Write(new CustomComposer()
             .Repeat("gray", '=', _separatorLength).LineBreak()
-            .Style("purple", "DONE.").LineBreak().LineBreak());
+            .Style(exitCode == 0 ? "purple" : "gray", "DONE.").LineBreak().LineBreak());
     }
 }

@@ -1,4 +1,8 @@
-﻿namespace Adeotek.Extensions.Docker.Config;
+﻿using System.Text.Json.Serialization;
+
+using YamlDotNet.Serialization;
+
+namespace Adeotek.Extensions.Docker.Config;
 
 public class ContainerConfig
 {
@@ -21,8 +25,12 @@ public class ContainerConfig
     // Misc
     public string? Restart { get; set; }
     // Computed
+    [JsonIgnore] [YamlIgnore]
     public string ImageTag => string.IsNullOrEmpty(Tag) ? "latest" : Tag;
+    [JsonIgnore] [YamlIgnore]
     public string FullImageName => $"{Image}:{ImageTag}";
+    [JsonIgnore] [YamlIgnore]
     public string PrimaryName => $"{NamePrefix}{BaseName}{PrimarySuffix}";
+    [JsonIgnore] [YamlIgnore]
     public string BackupName => $"{NamePrefix}{BaseName}{BackupSuffix}";
 }
