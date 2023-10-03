@@ -5,9 +5,9 @@ using Spectre.Console.Cli;
 
 namespace Adeotek.DevOpsTools.Commands;
 
-internal class ContainerConfigValidateCommand : CommandBase<ContainerConfigSettings>
+internal class ContainerConfigValidateCommand : CommandBase<ContainerConfigValidateSettings>
 {
-    protected override int ExecuteCommand(CommandContext context, ContainerConfigSettings settings)
+    protected override int ExecuteCommand(CommandContext context, ContainerConfigValidateSettings settings)
     {
         var config = DockerConfigManager.LoadContainerConfig(settings.ConfigFile);
         bool hasErrors = false;

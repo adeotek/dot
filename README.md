@@ -36,5 +36,7 @@ dotnet dot [options] <command>
    1. `up` - Create/Update Docker containers based on JSON/YAML configuration files
    2. `down` - Remove Docker containers based on JSON/YAML configuration files
    3. `config` - JSON/YAML configuration files generator/checker
+      1. `validate` - validate existing JSON/YAML configuration file
+      2. `sample` - generate new sample JSON/YAML configuration file
 
 Use `dot <command> --help` for more information about a command.

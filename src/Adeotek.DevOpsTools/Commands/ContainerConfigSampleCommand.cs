@@ -19,7 +19,7 @@ internal class ContainerConfigSampleCommand : CommandBase<ContainerConfigSampleS
         
         var config = DockerConfigManager.GetSerializedSampleConfig(settings.Format);
         
-        if (settings.ConfigFile?.ToLower() == "screen" || settings.ConfigFile?.ToLower() == "display")
+        if (settings.Target?.ToLower() == "screen" || settings.Target?.ToLower() == "display")
         {
             if (settings.Format != "json")
             {
@@ -36,7 +36,7 @@ internal class ContainerConfigSampleCommand : CommandBase<ContainerConfigSampleS
             return 0;
         }
 
-        if (string.IsNullOrWhiteSpace(settings.ConfigFile))
+        if (string.IsNullOrWhiteSpace(settings.Target))
         {
             PrintMessage("Invalid argument value for 'config_file'!", _errorColor, IsVerbose);    
             return 1;
@@ -44,13 +44,13 @@ internal class ContainerConfigSampleCommand : CommandBase<ContainerConfigSampleS
 
         try
         {
-            File.WriteAllText(settings.ConfigFile, config);
+            File.WriteAllText(settings.Target, config);
             PrintMessage("Sample config file generated: ", _successColor, IsVerbose);
             return 0;
         }
         catch (Exception e)
         {
-            PrintMessage($"Sample config file generated: {settings.ConfigFile}", _errorColor);
+            PrintMessage($"Sample config file generated: {settings.Target}", _errorColor);
             if (IsVerbose)
             {
                 AnsiConsole.WriteException(e, ExceptionFormats.ShortenEverything);

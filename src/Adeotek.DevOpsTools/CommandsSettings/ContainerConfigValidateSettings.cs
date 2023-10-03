@@ -4,7 +4,7 @@ using Spectre.Console.Cli;
 
 namespace Adeotek.DevOpsTools.CommandsSettings;
 
-internal class ContainerConfigSettings : GlobalSettings
+internal class ContainerConfigValidateSettings : GlobalSettings
 {
     [Description("Config file (with absolute/relative path)")]
     [CommandArgument(0, "<config_file>")]
