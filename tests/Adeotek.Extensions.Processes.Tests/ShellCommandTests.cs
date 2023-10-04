@@ -1,4 +1,4 @@
-namespace Adeotek.Extensions.Processes.Tests;
+﻿namespace Adeotek.Extensions.Processes.Tests;
 
 public class ShellCommandTests
 {

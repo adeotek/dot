@@ -1,4 +1,4 @@
-namespace Adeotek.Extensions.Docker.Tests;
+﻿namespace Adeotek.Extensions.Docker.Tests;
 
 public class DockerCliEventArgsTests
 {
