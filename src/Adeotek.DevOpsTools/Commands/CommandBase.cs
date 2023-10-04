@@ -17,6 +17,7 @@ internal abstract class CommandBase<TSettings> : Command<TSettings> where TSetti
             ?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
         ?? "?";
     protected readonly int _separatorLength = 80;
+    protected readonly string _verboseColor = "aqua";
     protected readonly string _errorColor = "red";
     protected readonly string _warningColor = "olive";
     protected readonly string _standardColor = "turquoise4";
@@ -71,14 +72,20 @@ internal abstract class CommandBase<TSettings> : Command<TSettings> where TSetti
         }
     }
     
-    protected virtual void PrintMessage(string message, string? color = null, bool separator = false)
+    protected virtual void PrintMessage(string message, string? color = null, bool separator = false, bool skipLineBreak = false)
     {
         if (separator)
         {
             PrintSeparator();
         }
-        AnsiConsole.Write(new CustomComposer()
-            .Style(color ?? _standardColor, message).LineBreak());
+        
+        var composer = new CustomComposer()
+            .Style(color ?? _standardColor, message);
+        if (!skipLineBreak)
+        {
+            composer.LineBreak();
+        }
+        AnsiConsole.Write(composer);
     }
     
     protected virtual void PrintSeparator(bool big = false, bool addEmptyLine = false)

@@ -8,15 +8,15 @@ public class Utf8BomSettings : GlobalSettings
 {
     [Description("Target path (absolute or relative)")]
     [CommandArgument(0, "<target_path>")]
-    public string? TargetPath { get; init; }
-    
-    [Description("Process only files with these extensions")]
-    [CommandOption("-f|--file-extensions")]
-    public string? FileExtensions { get; init; }
+    public string TargetPath { get; init; } = default!;
+
+    [Description("Process only files with these extensions (must contain the leading dot, i.e. '.cs')")]
+    [CommandOption("-f|--file-ext <value>")]
+    public string[] FileExtensions { get; init; } = Array.Empty<string>();
     
     [Description("Subdirectories to be ignored")]
-    [CommandOption("-i|--ignore-dirs")]
-    public string? IgnoreDirs { get; init; }
+    [CommandOption("-i|--ignore-dir <value>")]
+    public string[] IgnoreDirs { get; init; } = Array.Empty<string>();
     
     [Description("Don't apply any changes, just print the commands")]
     [CommandOption("--dry-run")]
