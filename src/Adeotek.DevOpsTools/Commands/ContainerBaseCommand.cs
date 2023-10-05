@@ -13,6 +13,7 @@ namespace Adeotek.DevOpsTools.Commands;
 internal abstract class ContainerBaseCommand<TSettings> 
     : CommandBase<TSettings> where TSettings : ContainerSettings
 {
+    protected bool IsDryRun => _settings?.DryRun ?? false;
     protected abstract void ExecuteContainerCommand(ContainerConfig config);
 
     protected override int ExecuteCommand(CommandContext context, TSettings settings)
@@ -68,7 +69,7 @@ internal abstract class ContainerBaseCommand<TSettings>
         switch (e.Type)
         {
             case DockerCliEventType.Command:
-                if (!IsVerbose)
+                if (!IsVerbose && !IsDryRun)
                 {
                     break;
                 }

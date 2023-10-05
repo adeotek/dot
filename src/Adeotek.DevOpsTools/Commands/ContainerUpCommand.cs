@@ -21,18 +21,25 @@ internal sealed class ContainerUpCommand : ContainerBaseCommand<ContainerUpSetti
             }
         
             PrintMessage("Container already present, updating it.", _warningColor);
-            dockerManager.UpdateContainer(config, Replace, Force);
+            dockerManager.UpdateContainer(config, Replace, Force, IsDryRun);
             return;
         }
         
         PrintMessage("Container not fond, creating new one.");
-        if (dockerManager.CreateContainer(config))
+        if (!dockerManager.CreateContainer(config, IsDryRun))
         {
-            PrintMessage("Container created successfully!", _successColor, separator: IsVerbose);
+            PrintMessage("Command failed, the container was not created!", _errorColor);
+            return;
+        }
+        
+        if (IsDryRun)
+        {
+            PrintMessage("Container create finished.", _standardColor, separator: IsVerbose);
+            PrintMessage("Dry run: No changes were made!", _warningColor);
         }
         else
         {
-            PrintMessage("Command failed, the container was not created!", _errorColor);
+            PrintMessage("Container created successfully!", _successColor, separator: IsVerbose);
         }
     }
 }
