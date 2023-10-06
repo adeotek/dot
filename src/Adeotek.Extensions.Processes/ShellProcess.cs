@@ -21,11 +21,11 @@ public class ShellProcess : Process, IShellProcess
     public int StartAndWaitForExit()
     {
         StartInfo = GetProcessInfo();
+        Start();
         if (RedirectStandardOutput)
         {
             BeginOutputReadLine();
         }
-        
         if (RedirectStandardError)
         {
             BeginErrorReadLine();

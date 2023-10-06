@@ -19,7 +19,7 @@ public class DockerManager
 
     public string[] LastStdOutput => _dockerCli.StdOutput.ToArray();
     public string[] LastErrOutput => _dockerCli.ErrOutput.ToArray();
-    public int LastStatusCode => _dockerCli.StatusCode;
+    public int LastStatusCode => _dockerCli.ExitCode;
 
     public bool ContainerExists(string name)
     {
@@ -67,7 +67,7 @@ public class DockerManager
         }
         _dockerCli.Execute();
         LogExitCode();
-        return _dockerCli.StatusCode == 0
+        return _dockerCli.ExitCode == 0
                || _dockerCli.StdOutput.Count == 1
                || string.IsNullOrEmpty(_dockerCli.StdOutput.FirstOrDefault());
     }
@@ -246,12 +246,12 @@ public class DockerManager
         LogCommand();
         _dockerCli.Execute();
         LogExitCode();
-        if (_dockerCli.StatusCode != 0
+        if (_dockerCli.ExitCode != 0
             || !_dockerCli.StdOutput.Exists(e => 
                 e.Contains($"Status: Downloaded newer image for {fullImageName}")
                 || e.Contains($"Status: Image is up to date for {fullImageName}")))
         {
-            throw new DockerCliException("pull", _dockerCli.StatusCode, $"Unable to pull image '{fullImageName}'!");
+            throw new DockerCliException("pull", _dockerCli.ExitCode, $"Unable to pull image '{fullImageName}'!");
         }
         
         return _dockerCli.StdOutput
@@ -353,7 +353,7 @@ public class DockerManager
                 return true;
             }
             bashCommand.Execute();
-            LogExitCode(bashCommand.StatusCode, bashCommand.ProcessFile, bashCommand.ProcessArguments);
+            LogExitCode(bashCommand.ExitCode, bashCommand.ProcessFile, bashCommand.ProcessArguments);
             if (!bashCommand.IsSuccess(volume.Source))
             {
                 throw new ShellCommandException(1, $"Unable to set group 'docker' for '{volume.Source}' directory!");
@@ -437,7 +437,7 @@ public class DockerManager
         }
         _dockerCli.Execute();
         LogExitCode();
-        if (_dockerCli.StatusCode != 0 
+        if (_dockerCli.ExitCode != 0 
             || _dockerCli.StdOutput.Count != 1
             || string.IsNullOrEmpty(_dockerCli.StdOutput.FirstOrDefault()))
         {
@@ -506,7 +506,7 @@ public class DockerManager
         {
             { "cmd", _dockerCli.ProcessFile },
             { "args", _dockerCli.ProcessArguments },
-            { "exit", _dockerCli.StatusCode.ToString() }
+            { "exit", _dockerCli.ExitCode.ToString() }
         };
         OnDockerCliEvent.Invoke(this,new DockerCliEventArgs(eventData, DockerCliEventType.ExitCode));
     }

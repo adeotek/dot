@@ -1,7 +1,21 @@
-﻿namespace Adeotek.Extensions.Processes.Tests;
+﻿using System.Diagnostics;
+
+using NSubstitute;
+
+using Xunit.Abstractions;
+
+namespace Adeotek.Extensions.Processes.Tests;
 
 public class ShellCommandTests
 {
+    private readonly ITestOutputHelper _testOutputHelper;
+    private readonly IShellProcessProvider _shellProcessProvider = Substitute.For<IShellProcessProvider>();
+
+    public ShellCommandTests(ITestOutputHelper testOutputHelper)
+    {
+        _testOutputHelper = testOutputHelper;
+    }
+
     [Fact]
     public void Prepare_WithBashCommand_ExpectValidProcessArgs()
     {
@@ -84,5 +98,52 @@ public class ShellCommandTests
         
         Assert.Equal(commandName, command.ProcessFile);
         Assert.Equal(expectedArgs, command.ProcessArguments);
+    }
+    
+    [Fact]
+    public void Execute_WithNoEvents_ExpectZeroExitCode()
+    {
+        var command = new ShellCommand(_shellProcessProvider) { Command = "docker" };
+        command.AddArg("ps");
+        command.AddArg("--all");
+        command.Prepare();
+        
+        var shellProcess = Substitute.For<IShellProcess>();
+        shellProcess.StartAndWaitForExit().Returns(0);
+        
+        _shellProcessProvider.GetShellProcess(
+            command.ProcessFile,
+            command.ProcessArguments,
+            outputDataReceived: null,
+            errorDataReceived: null)
+            .Returns(shellProcess);
+
+        var result = command.Execute();
+        
+        Assert.Equal(0, result);
+    }
+    
+    [Fact]
+    public void Execute_WithEvents_ExpectZeroExitCode()
+    {
+        var command = new ShellCommand(_shellProcessProvider) { Command = "docker" };
+        command.AddArg("ps");
+        command.AddArg("--all");
+        command.Prepare();
+
+        var shellProcess = Substitute.For<IShellProcess>();
+        shellProcess.StartAndWaitForExit().Returns(0);
+
+        DataReceivedEventHandler eventHandlerMock = (_, e) => _testOutputHelper.WriteLine(e.Data ?? ".");
+        _shellProcessProvider.GetShellProcess(
+            command.ProcessFile,
+            command.ProcessArguments,
+            outputDataReceived: eventHandlerMock,
+            errorDataReceived: eventHandlerMock)
+            .Returns(shellProcess);
+
+        var result = command.Execute();
+        
+        Assert.Equal(0, result);
     }
 }

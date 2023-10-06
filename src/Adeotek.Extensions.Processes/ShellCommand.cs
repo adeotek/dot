@@ -83,7 +83,7 @@ public class ShellCommand
     public string[] Args => _arguments.ToArray();
     public string ProcessFile { get; private set; } = "";
     public string ProcessArguments { get; private set; } = "";
-    public int StatusCode { get; private set; } = -1;
+    public int ExitCode { get; private set; } = -1;
     public List<string> StdOutput { get; } = new();
     public List<string> ErrOutput { get; } = new();
     
@@ -91,10 +91,10 @@ public class ShellCommand
     {
         if (string.IsNullOrEmpty(message))
         {
-            return StatusCode == 0;
+            return ExitCode == 0;
         }
 
-        if (StatusCode != 0)
+        if (ExitCode != 0)
         {
             return false;
         }
@@ -108,10 +108,10 @@ public class ShellCommand
     {
         if (string.IsNullOrEmpty(message))
         {
-            return StatusCode != 0;
+            return ExitCode != 0;
         }
 
-        if (StatusCode == 0)
+        if (ExitCode == 0)
         {
             return false;
         }
@@ -213,7 +213,7 @@ public class ShellCommand
         
         try
         {
-            StatusCode = process.StartAndWaitForExit();
+            ExitCode = process.StartAndWaitForExit();
             
         }
         catch (Exception e)
@@ -227,10 +227,10 @@ public class ShellCommand
             }
 
             OnErrOutput?.Invoke(this, new OutputReceivedEventArgs(eventArgsData, true));
-            StatusCode = -1;
+            ExitCode = -1;
         }
 
-        return StatusCode;
+        return ExitCode;
     }
 
     protected virtual void ProcessStdOutput(object sender, DataReceivedEventArgs e)
@@ -255,7 +255,7 @@ public class ShellCommand
 
     protected virtual void Reset()
     {
-        StatusCode = -1;
+        ExitCode = -1;
         StdOutput.Clear();
         ErrOutput.Clear();
     }

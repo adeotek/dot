@@ -10,8 +10,8 @@ public interface IShellProcess : IDisposable
     string FileName { get; set; }
     string WorkingDirectory { get; set; }
     string? Arguments { get; set; }
-    Collection<string>? ArgumentList { get; set; }
-    Dictionary<string,string?>? Environment { get; set; }
+    Collection<string> ArgumentList { get; set; }
+    Dictionary<string,string?> Environment { get; set; }
     bool RedirectStandardOutput { get; set; }
     bool RedirectStandardError { get; set; }
     bool IsElevated { get; set; }
