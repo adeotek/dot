@@ -5,11 +5,26 @@ namespace Adeotek.Extensions.Docker;
 
 public class DockerCliCommand : ShellCommand
 {
-    public DockerCliCommand()
+    public static DockerCliCommand GetDockerCliCommandInstance(
+        OutputReceivedEventHandler? onStdOutput = null,
+        OutputReceivedEventHandler? onErrOutput = null)
+    {
+        var instance = new DockerCliCommand(new DefaultShellProcessProvider()) { Command = "docker" };
+        if (onStdOutput is not null)
+        {
+            instance.OnStdOutput += onStdOutput;
+        }
+        if (onErrOutput is not null)
+        {
+            instance.OnErrOutput += onErrOutput;
+        }
+        return instance;
+    }
+
+    public DockerCliCommand(IShellProcessProvider shellProcessProvider) 
+        : base(shellProcessProvider)
     {
         Command = "docker";
-        IsScript = false;
-        IsElevated = false;
     }
     
     public new DockerCliCommand AddArg(string value) =>

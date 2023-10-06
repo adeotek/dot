@@ -13,9 +13,8 @@ public class DockerManager
 
     public DockerManager()
     {
-        _dockerCli = new DockerCliCommand();
-        _dockerCli.OnStdOutput += CommandStdOutputHandler;
-        _dockerCli.OnErrOutput += CommandErrOutputHandler;
+        _dockerCli = DockerCliCommand.GetDockerCliCommandInstance(
+            CommandStdOutputHandler, CommandErrOutputHandler);
     }
 
     public string[] LastStdOutput => _dockerCli.StdOutput.ToArray();
@@ -341,10 +340,11 @@ public class DockerManager
                 return true;
             }
 
-            var bashCommand = new ShellCommand(ShellCommand.BashShell) { Command = "chgrp" };
-            bashCommand.OnStdOutput += CommandStdOutputHandler;
-            bashCommand.OnErrOutput += CommandErrOutputHandler;
-            bashCommand
+            var bashCommand = ShellCommand.GetShellCommandInstance(
+                shell: ShellCommand.BashShell,
+                command: "chgrp",
+                onStdOutput: CommandStdOutputHandler,
+                onErrOutput: CommandErrOutputHandler)
                 .AddArg("docker")
                 .AddArg(volume.Source);
             LogCommand(bashCommand.ProcessFile, bashCommand.ProcessArguments);

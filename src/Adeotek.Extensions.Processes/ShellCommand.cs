@@ -5,6 +5,28 @@ namespace Adeotek.Extensions.Processes;
 
 public class ShellCommand
 {
+    public static ShellCommand GetShellCommandInstance(
+        string? shell = null, 
+        string? command = null, 
+        bool isScript = false,
+        OutputReceivedEventHandler? onStdOutput = null,
+        OutputReceivedEventHandler? onErrOutput = null)
+    {
+        var instance = new ShellCommand(new DefaultShellProcessProvider())
+        {
+            Shell = shell ?? NoShell, Command = command ?? "", IsScript = isScript
+        };
+        if (onStdOutput is not null)
+        {
+            instance.OnStdOutput += onStdOutput;
+        }
+        if (onErrOutput is not null)
+        {
+            instance.OnErrOutput += onErrOutput;
+        }
+        return instance;
+    }
+
     public const string NoShell = "";
     public const string BashShell = "/bin/bash";
     public const string ShShell = "/bin/sh";
@@ -23,10 +45,11 @@ public class ShellCommand
     protected string _command = "";
     protected List<string> _arguments = new();
     protected bool _isScript;
+    protected readonly IShellProcessProvider _shellProcessProvider;
 
-    public ShellCommand(string shell = NoShell)
+    public ShellCommand(IShellProcessProvider shellProcessProvider)
     {
-        Shell = shell;
+        _shellProcessProvider = shellProcessProvider;
     }
 
     public string Shell
@@ -152,6 +175,18 @@ public class ShellCommand
         Reset();
         return ClearArgs();
     }
+    
+    public ShellCommand Prepare()
+    {
+        if (_prepared)
+        {
+            return this;
+        }
+        
+        ProcessFile = string.IsNullOrWhiteSpace(Shell) ? Command : Shell;
+        ProcessArguments = GetShellArguments(Command, Args.ToArray(), Shell, IsScript);
+        return this;
+    }
 
     public int Execute(string command, string[]? args = null, string? shellName = null, bool isScript = false,
         bool isElevated = false)
@@ -169,33 +204,17 @@ public class ShellCommand
     {
         Reset();
         Prepare();
-
-        ProcessStartInfo processStartInfo = new()
-        {
-            FileName = ProcessFile,
-            Arguments = ProcessArguments,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
-
-        if (IsElevated)
-        {
-            processStartInfo.Verb = "runas";
-        }
-
-        using Process process = new();
-        process.StartInfo = processStartInfo;
-        process.OutputDataReceived += ProcessStdOutput;
-        process.ErrorDataReceived += ProcessErrOutput;
+        
+        using IShellProcess process = _shellProcessProvider.GetShellProcess(
+            ProcessFile,
+            ProcessArguments,
+            ProcessStdOutput, 
+            ProcessErrOutput);
+        
         try
         {
-            process.Start();
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-            process.WaitForExit();
-            StatusCode = process.ExitCode;
+            StatusCode = process.StartAndWaitForExit();
+            
         }
         catch (Exception e)
         {
@@ -212,18 +231,6 @@ public class ShellCommand
         }
 
         return StatusCode;
-    }
-
-    public ShellCommand Prepare()
-    {
-        if (_prepared)
-        {
-            return this;
-        }
-        
-        ProcessFile = string.IsNullOrWhiteSpace(Shell) ? Command : Shell;
-        ProcessArguments = GetShellArguments(Command, Args.ToArray(), Shell, IsScript);
-        return this;
     }
 
     protected virtual void ProcessStdOutput(object sender, DataReceivedEventArgs e)

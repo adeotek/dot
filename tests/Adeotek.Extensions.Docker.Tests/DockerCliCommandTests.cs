@@ -4,7 +4,7 @@ namespace Adeotek.Extensions.Docker.Tests;
 
 public class DockerCliCommandTests
 {
-    private readonly DockerCliCommand _sut = new();
+    private readonly DockerCliCommand _sut = new(new ShellProcessMockProvider());
 
     [Fact]
     public void AddFilterArg_WithKey_SetArgsDictValue()

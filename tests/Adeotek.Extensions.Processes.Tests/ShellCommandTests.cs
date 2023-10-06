@@ -6,11 +6,10 @@ public class ShellCommandTests
     public void Prepare_WithBashCommand_ExpectValidProcessArgs()
     {
         var expectedArgs = "-c \"ls -lA\"";
-        ShellCommand command = new(ShellCommand.BashShell)
-        {
-            IsScript = false, 
-            Command = "ls"
-        };
+        var command = ShellCommand.GetShellCommandInstance(
+            shell: ShellCommand.BashShell, 
+            command: "ls", 
+            isScript: false);
         command.AddArg("-lA");
 
         command.Prepare();
@@ -23,11 +22,10 @@ public class ShellCommandTests
     public void Prepare_WithBashScript_ExpectValidProcessArgs()
     {
         var expectedArgs = "./some_script.sh --some-arg abc";
-        ShellCommand command = new(ShellCommand.BashShell)
-        {
-            IsScript = true, 
-            Command = "./some_script.sh"
-        };
+        var command = ShellCommand.GetShellCommandInstance(
+            shell: ShellCommand.BashShell, 
+            command: "./some_script.sh", 
+            isScript: true);
         command.AddArg("--some-arg abc");
 
         command.Prepare();
@@ -42,12 +40,10 @@ public class ShellCommandTests
         var expectedArgs = ShellCommand.IsWindowsPlatform
             ? "-NoProfile -c \"Get-ChildItem Env: | Select Name\""
             : "-c \"Get-ChildItem Env: | Select Name\"";
-        ShellCommand command = new()
-        {
-            Shell = ShellCommand.PsShell, 
-            IsScript = false, 
-            Command = "Get-ChildItem"
-        };
+        var command = ShellCommand.GetShellCommandInstance(
+            shell: ShellCommand.PsShell, 
+            command: "Get-ChildItem", 
+            isScript: false);
         command.AddArg("Env:");
         command.AddArg("| Select Name");
 
@@ -63,12 +59,10 @@ public class ShellCommandTests
         var expectedArgs = ShellCommand.IsWindowsPlatform
             ? "-NoProfile .\\some_script.ps1 --some-arg abc"
             : ".\\some_script.ps1 --some-arg abc";
-        ShellCommand command = new()
-        {
-            Shell = ShellCommand.PsShell, 
-            IsScript = true, 
-            Command = ".\\some_script.ps1"
-        };
+        var command = ShellCommand.GetShellCommandInstance(
+            shell: ShellCommand.PsShell, 
+            command: ".\\some_script.ps1", 
+            isScript: true);
         command.AddArg("--some-arg abc");
 
         command.Prepare();
@@ -82,11 +76,7 @@ public class ShellCommandTests
     {
         var commandName = "docker";
         var expectedArgs = "ps --all";
-        ShellCommand command = new()
-        {
-            IsScript = false, 
-            Command = commandName
-        };
+        var command = ShellCommand.GetShellCommandInstance(command: commandName);
         command.AddArg("ps");
         command.AddArg("--all");
 
