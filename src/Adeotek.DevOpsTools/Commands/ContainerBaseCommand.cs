@@ -75,9 +75,9 @@ internal abstract class ContainerBaseCommand<TSettings>
                 }
                 PrintSeparator();
                 AnsiConsole.Write(new CustomComposer()
-                    .Style("aqua", e.Data.GetValueOrDefault("cmd") ?? "?")
+                    .Style("purple", e.Data.GetValueOrDefault("cmd") ?? "?")
                     .Space()
-                    .Style("purple", e.Data.GetValueOrDefault("args") ?? "?").LineBreak());
+                    .Style("aqua", e.Data.GetValueOrDefault("args") ?? "?").LineBreak());
                 break;
             case DockerCliEventType.Message:
                 var level = e.Data.GetValueOrDefault("level") ?? "";
