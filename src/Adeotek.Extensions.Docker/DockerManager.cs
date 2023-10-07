@@ -200,12 +200,12 @@ public class DockerManager
         }
     }
     
-    public void RemoveVolume(VolumeConfig volume, bool dryRun = false)
+    public void RemoveVolume(string volumeName, bool dryRun = false)
     {
         _dockerCli.ClearArgsAndReset()
             .AddArg("volume")
             .AddArg("rm")
-            .AddArg(volume.Source);
+            .AddArg(volumeName);
         LogCommand();
         if (dryRun)
         {
@@ -213,18 +213,17 @@ public class DockerManager
         }
         _dockerCli.Execute();
         LogExitCode();
-        if (_dockerCli.IsSuccess(volume.Source, true))
+        if (_dockerCli.IsSuccess(volumeName, true))
         {
             return;
         }
-            
-        if (_dockerCli.IsError($"Error response from daemon: get {volume.Source}: no such volume", true))
+
+        if (!_dockerCli.IsError($"Error response from daemon: get {volumeName}: no such volume", true))
         {
-            LogMessage($"Volume '{volume.Source}' not found!", "warn");
-            return;
+            throw new DockerCliException("volume rm", 1, $"Unable to remove volume '{volumeName}'!");
         }
-            
-        throw new DockerCliException("volume rm", 1, $"Unable to remove volume '{volume.Source}'!");
+
+        LogMessage($"Volume '{volumeName}' not found!", "warn");
     }
     
     public bool NetworkExists(string networkName)
@@ -262,6 +261,32 @@ public class DockerManager
         {
             throw new DockerCliException("network create", 1, $"Unable to create docker network '{network.Name}'!");
         }
+    }
+    
+    public void RemoveNetwork(string networkName, bool dryRun = false)
+    {
+        _dockerCli.ClearArgsAndReset()
+            .AddArg("network")
+            .AddArg("rm")
+            .AddArg(networkName);
+        LogCommand();
+        if (dryRun)
+        {
+            return;
+        }
+        _dockerCli.Execute();
+        LogExitCode();
+        if (_dockerCli.IsSuccess(networkName, true))
+        {
+            return;
+        }
+
+        if (!_dockerCli.IsError($"Error response from daemon: network {networkName} not found", true))
+        {
+            throw new DockerCliException("volume rm", 1, $"Unable to remove volume '{networkName}'!");
+        }
+
+        LogMessage($"Network '{networkName}' not found!", "warn");
     }
     
     public string PullImage(string image, string? tag = null)
@@ -425,10 +450,18 @@ public class DockerManager
     
         foreach (var volume in config.Volumes.Where(e => e is { AutoCreate: true, IsMapping: false }))
         {
-            RemoveVolume(volume, dryRun);
+            if (volume.IsMapping)
+            {
+                continue;
+            }
+            
+            RemoveVolume(volume.Source, dryRun);
         }
-        
-        // TODO: remove network
+
+        if (config.Network is not null && !config.Network.IsShared)
+        {
+            RemoveNetwork(config.Network.Name, dryRun);
+        }
     }
     
     public bool CheckVolume(VolumeConfig volume, bool dryRun = false)

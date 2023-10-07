@@ -61,9 +61,9 @@ public class ShellProcess : Process, IShellProcess
             UseShellExecute = false, // false is required for output redirection
             CreateNoWindow = true,
             ErrorDialog = false,
-            StandardInputEncoding = StandardInputEncoding,
-            StandardOutputEncoding = StandardOutputEncoding,
-            StandardErrorEncoding = StandardErrorEncoding
+            StandardInputEncoding = null,
+            StandardOutputEncoding = RedirectStandardOutput ? StandardOutputEncoding : null,
+            StandardErrorEncoding = RedirectStandardError ? StandardErrorEncoding : null
         };
 
         foreach (var arg in ArgumentList)
