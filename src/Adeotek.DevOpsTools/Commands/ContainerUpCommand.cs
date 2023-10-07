@@ -26,7 +26,7 @@ internal sealed class ContainerUpCommand : ContainerBaseCommand<ContainerUpSetti
         }
         
         PrintMessage("Container not fond, creating new one.");
-        if (!dockerManager.CreateContainer(config, IsDryRun))
+        if (!dockerManager.CheckAndCreateContainer(config, IsDryRun))
         {
             PrintMessage("Command failed, the container was not created!", _errorColor);
             return;

@@ -13,7 +13,7 @@ internal sealed class ContainerDownCommand : ContainerBaseCommand<ContainerDownS
         if (dockerManager.ContainerExists(config.PrimaryName))
         {
             PrintMessage("Container found, removing it.");
-            dockerManager.RemoveContainer(config, Purge, IsDryRun);
+            dockerManager.PurgeContainer(config, Purge, IsDryRun);
             if (IsDryRun)
             {
                 PrintMessage("Container remove finished.", _standardColor, separator: IsVerbose);
@@ -29,7 +29,7 @@ internal sealed class ContainerDownCommand : ContainerBaseCommand<ContainerDownS
         if (Purge)
         {
             PrintMessage("Container not found, trying to purge resources.", _warningColor);
-            dockerManager.RemoveContainer(config, Purge, IsDryRun);
+            dockerManager.PurgeContainer(config, Purge, IsDryRun);
             if (IsDryRun)
             {
                 PrintMessage("Container resources purge finished.", _standardColor, separator: IsVerbose);
