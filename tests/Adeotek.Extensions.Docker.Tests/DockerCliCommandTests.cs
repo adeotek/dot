@@ -1,10 +1,18 @@
 ﻿using Adeotek.Extensions.Docker.Config;
+using Adeotek.Extensions.Processes;
 
 namespace Adeotek.Extensions.Docker.Tests;
 
 public class DockerCliCommandTests
 {
-    private readonly DockerCliCommand _sut = new(new ShellProcessMockProvider());
+    private readonly IShellProcess _shellProcessMock;
+    private readonly DockerCliCommand _sut;
+
+    public DockerCliCommandTests()
+    {
+        var provider = TestHelpers.GetShellProcessProvider(out _shellProcessMock);
+        _sut = new DockerCliCommand(provider) { Command = "docker" };
+    }
 
     [Fact]
     public void AddFilterArg_WithKey_SetArgsDictValue()

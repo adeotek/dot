@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
 namespace Adeotek.Extensions.Processes;
 
@@ -36,7 +35,6 @@ public class ShellCommand
 
     public static readonly bool IsWindowsPlatform = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
     
-    public delegate void OutputReceivedEventHandler(object sender, OutputReceivedEventArgs e);
     public event OutputReceivedEventHandler? OnStdOutput;
     public event OutputReceivedEventHandler? OnErrOutput;
     
@@ -214,7 +212,6 @@ public class ShellCommand
         try
         {
             ExitCode = process.StartAndWaitForExit();
-            
         }
         catch (Exception e)
         {
@@ -233,23 +230,23 @@ public class ShellCommand
         return ExitCode;
     }
 
-    protected virtual void ProcessStdOutput(object sender, DataReceivedEventArgs e)
+    protected virtual void ProcessStdOutput(object sender, OutputReceivedEventArgs e)
     {
         if (e.Data is null)
         {
             return;
         }
-        OnStdOutput?.Invoke(this, new OutputReceivedEventArgs(e.Data));
+        OnStdOutput?.Invoke(this, e);
         StdOutput.Add(e.Data);
     }
 
-    protected virtual void ProcessErrOutput(object sender, DataReceivedEventArgs e)
+    protected virtual void ProcessErrOutput(object sender, OutputReceivedEventArgs e)
     {
         if (e.Data is null)
         {
             return;
         }
-        OnErrOutput?.Invoke(this, new OutputReceivedEventArgs(e.Data, true));
+        OnErrOutput?.Invoke(this, e);
         ErrOutput.Add(e.Data);
     }
 

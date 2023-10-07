@@ -1,21 +1,9 @@
-﻿using System.Diagnostics;
-
-using NSubstitute;
-
-using Xunit.Abstractions;
+﻿using NSubstitute;
 
 namespace Adeotek.Extensions.Processes.Tests;
 
 public class ShellCommandTests
 {
-    private readonly ITestOutputHelper _testOutputHelper;
-    private readonly IShellProcessProvider _shellProcessProvider = Substitute.For<IShellProcessProvider>();
-
-    public ShellCommandTests(ITestOutputHelper testOutputHelper)
-    {
-        _testOutputHelper = testOutputHelper;
-    }
-
     [Fact]
     public void Prepare_WithBashCommand_ExpectValidProcessArgs()
     {
@@ -103,20 +91,13 @@ public class ShellCommandTests
     [Fact]
     public void Execute_WithNoEvents_ExpectZeroExitCode()
     {
-        var command = new ShellCommand(_shellProcessProvider) { Command = "docker" };
+        var provider = TestHelpers.GetShellProcessProvider(out var processMock);
+        var command = new ShellCommand(provider) { Command = "docker" };
         command.AddArg("ps");
         command.AddArg("--all");
         command.Prepare();
         
-        var shellProcess = Substitute.For<IShellProcess>();
-        shellProcess.StartAndWaitForExit().Returns(0);
-        
-        _shellProcessProvider.GetShellProcess(
-            command.ProcessFile,
-            command.ProcessArguments,
-            outputDataReceived: null,
-            errorDataReceived: null)
-            .Returns(shellProcess);
+        processMock.StartAndWaitForExit().Returns(0);
 
         var result = command.Execute();
         
@@ -126,24 +107,27 @@ public class ShellCommandTests
     [Fact]
     public void Execute_WithEvents_ExpectZeroExitCode()
     {
-        var command = new ShellCommand(_shellProcessProvider) { Command = "docker" };
+        var onStdOutputCalled = false;
+        var onErrOutputCalled = false;
+        var provider = TestHelpers.GetShellProcessProvider(out var processMock);
+        var command = new ShellCommand(provider) { Command = "docker" };
+        command.OnStdOutput += (_, _) => onStdOutputCalled = true;
+        command.OnErrOutput += (_, _) => onErrOutputCalled = true;
         command.AddArg("ps");
         command.AddArg("--all");
         command.Prepare();
 
-        var shellProcess = Substitute.For<IShellProcess>();
-        shellProcess.StartAndWaitForExit().Returns(0);
-
-        DataReceivedEventHandler eventHandlerMock = (_, e) => _testOutputHelper.WriteLine(e.Data ?? ".");
-        _shellProcessProvider.GetShellProcess(
-            command.ProcessFile,
-            command.ProcessArguments,
-            outputDataReceived: eventHandlerMock,
-            errorDataReceived: eventHandlerMock)
-            .Returns(shellProcess);
+        processMock.StartAndWaitForExit().Returns(0);
 
         var result = command.Execute();
         
+        processMock.StdOutputDataReceived += Raise.Event<OutputReceivedEventHandler>(this, 
+            new OutputReceivedEventArgs("Test Std Output"));
+        processMock.ErrOutputDataReceived += Raise.Event<OutputReceivedEventHandler>(this, 
+            new OutputReceivedEventArgs("Test Err Output", true));
+        
         Assert.Equal(0, result);
+        Assert.True(onStdOutputCalled);
+        Assert.True(onErrOutputCalled);
     }
 }

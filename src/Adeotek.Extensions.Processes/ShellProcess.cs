@@ -17,10 +17,24 @@ public class ShellProcess : Process, IShellProcess
     public Encoding? StandardInputEncoding { get; set; } = Encoding.UTF8;
     public Encoding? StandardOutputEncoding { get; set; } = Encoding.UTF8;
     public Encoding? StandardErrorEncoding { get; set; } = Encoding.UTF8;
+    
+    public event OutputReceivedEventHandler? StdOutputDataReceived;
+    public event OutputReceivedEventHandler? ErrOutputDataReceived;
 
     public int StartAndWaitForExit()
     {
         StartInfo = GetProcessInfo();
+
+        if (RedirectStandardOutput)
+        {
+            OutputDataReceived += ProcessOutputDataReceived;
+        }
+        
+        if (RedirectStandardError)
+        {
+            ErrorDataReceived += ProcessErrorDataReceived;
+        }
+        
         Start();
         if (RedirectStandardOutput)
         {
@@ -31,6 +45,7 @@ public class ShellProcess : Process, IShellProcess
             BeginErrorReadLine();
         }
         WaitForExit();
+        
         return ExitCode;
     }
     
@@ -68,4 +83,10 @@ public class ShellProcess : Process, IShellProcess
 
         return processStartInfo;
     }
+    
+    private void ProcessOutputDataReceived(object sender, DataReceivedEventArgs e) => 
+        StdOutputDataReceived?.Invoke(this, new OutputReceivedEventArgs(e.Data));
+
+    private void ProcessErrorDataReceived(object sender, DataReceivedEventArgs e) => 
+        ErrOutputDataReceived?.Invoke(this, new OutputReceivedEventArgs(e.Data, true));
 }

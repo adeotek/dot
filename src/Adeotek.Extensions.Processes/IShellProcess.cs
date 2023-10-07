@@ -30,8 +30,6 @@ public interface IShellProcess : IDisposable
     StreamReader StandardError { get; }
     StreamReader StandardOutput { get; }
     
-    event DataReceivedEventHandler? OutputDataReceived;
-    event DataReceivedEventHandler? ErrorDataReceived;
     event EventHandler Exited;
     
     bool Start();
@@ -50,4 +48,11 @@ public interface IShellProcess : IDisposable
     // Custom
     ProcessStartInfo GetProcessInfo();
     int StartAndWaitForExit();
+    
+    // OutputDataReceived and ErrorDataReceived need to be hidden behind 
+    // StdOutputDataReceived and ErrOutputDataReceived in order to make the 
+    // IShellProcess mockable (DataReceivedEventArgs has an internal constructor,
+    // so we cannot use it)
+    event OutputReceivedEventHandler? StdOutputDataReceived;
+    event OutputReceivedEventHandler? ErrOutputDataReceived;
 }
