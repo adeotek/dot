@@ -79,6 +79,32 @@ public class DockerManager
         throw new DockerCliException("run", 1, $"Unable to create container '{config.PrimaryName}'!");
     }
     
+    public bool StartContainer(string containerName, bool dryRun = false)
+    {
+        _dockerCli.ClearArgsAndReset()
+            .AddArg("start")
+            .AddArg(containerName);
+        LogCommand();
+        if (dryRun)
+        {
+            return true;
+        }
+        _dockerCli.Execute();
+        LogExitCode();
+        if (_dockerCli.IsSuccess(containerName, true))
+        {
+            return true;
+        }
+        
+        if (!_dockerCli.IsError($"Error response from daemon: No such container: {containerName}", true))
+        {
+            throw new DockerCliException("start", 1, $"Unable to stop container '{containerName}'!");    
+        }
+            
+        LogMessage($"Container '{containerName}' not found!", "warn");
+        return false;
+    }
+    
     public void StopContainer(string containerName, bool dryRun = false)
     {
         _dockerCli.ClearArgsAndReset()
@@ -396,7 +422,7 @@ public class DockerManager
         return CreateContainer(config, dryRun);
     }
     
-    public void UpdateContainer(ContainerConfig config, bool replace = false, bool force = false, bool dryRun = false)
+    public void UpgradeContainer(ContainerConfig config, bool replace = false, bool force = false, bool dryRun = false)
     {
         if (!CheckIfNewVersionExists(config))
         {
@@ -447,6 +473,22 @@ public class DockerManager
         }
     
         StopAndRenameContainer(config.PrimaryName, config.BackupName, dryRun);
+    }
+
+    public void DowngradeContainer(ContainerConfig config, bool dryRun = false)
+    {
+        if (!ContainerExists(config.BackupName))
+        {
+            throw new DockerCliException("downgrade", 1, "Backup container is missing!");
+        }
+
+        if (ContainerExists(config.PrimaryName))
+        {
+            StopAndRemoveContainer(config.PrimaryName, dryRun);    
+        }
+        
+        RenameContainer(config.BackupName, config.PrimaryName, dryRun);
+        StartContainer(config.PrimaryName, dryRun);
     }
     
     public void PurgeContainer(ContainerConfig config, bool purge = false, bool dryRun = false)

@@ -179,6 +179,96 @@ public class DockerManagerTests
     }
 
     [Fact]
+    public void StartContainer_WithExisting_ReturnTrue()
+    {
+        const string containerName = "test-container-mock";
+        var sut = GetDockerManager(out var shellProcessMock);
+        string? cmd = null;
+        string? args = null;
+        
+        sut.OnDockerCliEvent += (_, e) =>
+        {
+            if (e is { Type: DockerCliEventType.ExitCode, Data.Count: 3 })
+            {
+                cmd = e.Data.GetValueOrDefault("cmd");
+                args = e.Data.GetValueOrDefault("args");
+            }
+        };
+
+        ShellProcessMockSendStdOutput(shellProcessMock, new[] { containerName });
+        
+        var result = sut.StartContainer(containerName);
+
+        Assert.True(result);
+        Assert.Equal(CliCommand, cmd);
+        Assert.Equal($"start {containerName}", args);
+    }
+    
+    [Fact]
+    public void StartContainer_WithMissing_ReturnsFalse()
+    {
+        const string containerName = "test-container-mock";
+        var sut = GetDockerManager(out var shellProcessMock);
+        string? cmd = null;
+        string? args = null;
+        string? message = null;
+        string? level = null;
+        
+        sut.OnDockerCliEvent += (_, e) =>
+        {
+            if (e is { Type: DockerCliEventType.Command, Data.Count: 2 })
+            {
+                cmd = e.Data.GetValueOrDefault("cmd");
+                args = e.Data.GetValueOrDefault("args");
+            }
+            else if (e is { Type: DockerCliEventType.Message, Data.Count: 2 })
+            {
+                message = e.Data.GetValueOrDefault("message");
+                level = e.Data.GetValueOrDefault("level");
+            }
+        };
+
+        ShellProcessMockSendErrOutput(shellProcessMock, new[]
+        {
+            $"Error response from daemon: No such container: {containerName}"
+        });
+        
+        var result = sut.StartContainer(containerName);
+        
+        Assert.False(result);
+        Assert.Equal(CliCommand, cmd);
+        Assert.Equal($"start {containerName}", args);
+        Assert.Equal($"Container '{containerName}' not found!", message);
+        Assert.Equal("warn", level);
+    }
+    
+    [Fact]
+    public void StartContainer_WithUnknownError_ThrowsException()
+    {
+        const string containerName = "test-container-mock";
+        var sut = GetDockerManager(out var shellProcessMock);
+        string? cmd = null;
+        string? args = null;
+        
+        sut.OnDockerCliEvent += (_, e) =>
+        {
+            if (e is { Type: DockerCliEventType.Command, Data.Count: 2 })
+            {
+                cmd = e.Data.GetValueOrDefault("cmd");
+                args = e.Data.GetValueOrDefault("args");
+            }
+        };
+
+        ShellProcessMockSendErrOutput(shellProcessMock, new[] { DockerGenericError });
+        
+        var action = () => { sut.StartContainer(containerName); };
+        
+        Assert.Throws<DockerCliException>(action);
+        Assert.Equal(CliCommand, cmd);
+        Assert.Equal($"start {containerName}", args);
+    }
+    
+    [Fact]
     public void StopContainer_WithExisting_ExpectSuccess()
     {
         const string containerName = "test-container-mock";
@@ -268,7 +358,6 @@ public class DockerManagerTests
         Assert.Equal(CliCommand, cmd);
         Assert.Equal($"stop {containerName}", args);
     }
-    
     
     [Fact]
     public void RemoveContainer_WithExisting_ExpectSuccess()

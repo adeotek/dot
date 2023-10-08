@@ -5,7 +5,7 @@ namespace Adeotek.DevOpsTools.Commands;
 
 internal sealed class ContainerUpCommand : ContainerBaseCommand<ContainerUpSettings>
 {
-    private bool Update => _settings?.Update ?? false;
+    private bool Upgrade => _settings?.Upgrade ?? false;
     private bool Replace => _settings?.Replace ?? false;
     private bool Force => _settings?.Force ?? false;
     
@@ -14,14 +14,14 @@ internal sealed class ContainerUpCommand : ContainerBaseCommand<ContainerUpSetti
         var dockerManager = GetDockerManager();
         if (dockerManager.ContainerExists(config.PrimaryName))
         {
-            if (!Update)
+            if (!Upgrade)
             {
                 PrintMessage("Container already present, nothing to do!", _successColor, separator: IsVerbose);
                 return;
             }
         
             PrintMessage("Container already present, updating it.", _warningColor);
-            dockerManager.UpdateContainer(config, Replace, Force, IsDryRun);
+            dockerManager.UpgradeContainer(config, Replace, Force, IsDryRun);
             return;
         }
         

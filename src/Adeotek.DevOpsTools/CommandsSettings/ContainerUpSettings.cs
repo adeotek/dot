@@ -6,10 +6,10 @@ namespace Adeotek.DevOpsTools.CommandsSettings;
 
 internal sealed class ContainerUpSettings : ContainerSettings
 {
-    [Description("Update container if it exists")]
-    [CommandOption("-u|--update")]
+    [Description("Upgrade container if it exists")]
+    [CommandOption("-u|--upgrade")]
     [DefaultValue(false)]
-    public bool Update { get; init; }
+    public bool Upgrade { get; init; }
     
     [Description("Replace existing container, instead of demoting it to 'backup'\nTo be used together with the '--update' option")]
     [CommandOption("-r|--replace")]
