@@ -1,10 +1,31 @@
-﻿using System.Diagnostics;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
 namespace Adeotek.Extensions.Processes;
 
 public class ShellCommand
 {
+    public static ShellCommand GetShellCommandInstance(
+        string? shell = null, 
+        string? command = null, 
+        bool isScript = false,
+        OutputReceivedEventHandler? onStdOutput = null,
+        OutputReceivedEventHandler? onErrOutput = null)
+    {
+        var instance = new ShellCommand(new DefaultShellProcessProvider())
+        {
+            Shell = shell ?? NoShell, Command = command ?? "", IsScript = isScript
+        };
+        if (onStdOutput is not null)
+        {
+            instance.OnStdOutput += onStdOutput;
+        }
+        if (onErrOutput is not null)
+        {
+            instance.OnErrOutput += onErrOutput;
+        }
+        return instance;
+    }
+
     public const string NoShell = "";
     public const string BashShell = "/bin/bash";
     public const string ShShell = "/bin/sh";
@@ -14,7 +35,6 @@ public class ShellCommand
 
     public static readonly bool IsWindowsPlatform = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
     
-    public delegate void OutputReceivedEventHandler(object sender, OutputReceivedEventArgs e);
     public event OutputReceivedEventHandler? OnStdOutput;
     public event OutputReceivedEventHandler? OnErrOutput;
     
@@ -23,10 +43,11 @@ public class ShellCommand
     protected string _command = "";
     protected List<string> _arguments = new();
     protected bool _isScript;
+    protected readonly IShellProcessProvider _shellProcessProvider;
 
-    public ShellCommand(string shell = NoShell)
+    public ShellCommand(IShellProcessProvider shellProcessProvider)
     {
-        Shell = shell;
+        _shellProcessProvider = shellProcessProvider;
     }
 
     public string Shell
@@ -60,7 +81,7 @@ public class ShellCommand
     public string[] Args => _arguments.ToArray();
     public string ProcessFile { get; private set; } = "";
     public string ProcessArguments { get; private set; } = "";
-    public int StatusCode { get; private set; } = -1;
+    public int ExitCode { get; private set; } = -1;
     public List<string> StdOutput { get; } = new();
     public List<string> ErrOutput { get; } = new();
     
@@ -68,10 +89,10 @@ public class ShellCommand
     {
         if (string.IsNullOrEmpty(message))
         {
-            return StatusCode == 0;
+            return ExitCode == 0;
         }
 
-        if (StatusCode != 0)
+        if (ExitCode != 0)
         {
             return false;
         }
@@ -85,10 +106,10 @@ public class ShellCommand
     {
         if (string.IsNullOrEmpty(message))
         {
-            return StatusCode != 0;
+            return ExitCode != 0;
         }
 
-        if (StatusCode == 0)
+        if (ExitCode == 0)
         {
             return false;
         }
@@ -152,6 +173,18 @@ public class ShellCommand
         Reset();
         return ClearArgs();
     }
+    
+    public ShellCommand Prepare()
+    {
+        if (_prepared)
+        {
+            return this;
+        }
+        
+        ProcessFile = string.IsNullOrWhiteSpace(Shell) ? Command : Shell;
+        ProcessArguments = GetShellArguments(Command, Args.ToArray(), Shell, IsScript);
+        return this;
+    }
 
     public int Execute(string command, string[]? args = null, string? shellName = null, bool isScript = false,
         bool isElevated = false)
@@ -169,33 +202,16 @@ public class ShellCommand
     {
         Reset();
         Prepare();
-
-        ProcessStartInfo processStartInfo = new()
-        {
-            FileName = ProcessFile,
-            Arguments = ProcessArguments,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
-
-        if (IsElevated)
-        {
-            processStartInfo.Verb = "runas";
-        }
-
-        using Process process = new();
-        process.StartInfo = processStartInfo;
-        process.OutputDataReceived += ProcessStdOutput;
-        process.ErrorDataReceived += ProcessErrOutput;
+        
+        using IShellProcess process = _shellProcessProvider.GetShellProcess(
+            ProcessFile,
+            ProcessArguments,
+            ProcessStdOutput, 
+            ProcessErrOutput);
+        
         try
         {
-            process.Start();
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-            process.WaitForExit();
-            StatusCode = process.ExitCode;
+            ExitCode = process.StartAndWaitForExit();
         }
         catch (Exception e)
         {
@@ -208,47 +224,35 @@ public class ShellCommand
             }
 
             OnErrOutput?.Invoke(this, new OutputReceivedEventArgs(eventArgsData, true));
-            StatusCode = -1;
+            ExitCode = -1;
         }
 
-        return StatusCode;
+        return ExitCode;
     }
 
-    public ShellCommand Prepare()
-    {
-        if (_prepared)
-        {
-            return this;
-        }
-        
-        ProcessFile = string.IsNullOrWhiteSpace(Shell) ? Command : Shell;
-        ProcessArguments = GetShellArguments(Command, Args.ToArray(), Shell, IsScript);
-        return this;
-    }
-
-    protected virtual void ProcessStdOutput(object sender, DataReceivedEventArgs e)
+    protected virtual void ProcessStdOutput(object sender, OutputReceivedEventArgs e)
     {
         if (e.Data is null)
         {
             return;
         }
-        OnStdOutput?.Invoke(this, new OutputReceivedEventArgs(e.Data));
+        OnStdOutput?.Invoke(this, e);
         StdOutput.Add(e.Data);
     }
 
-    protected virtual void ProcessErrOutput(object sender, DataReceivedEventArgs e)
+    protected virtual void ProcessErrOutput(object sender, OutputReceivedEventArgs e)
     {
         if (e.Data is null)
         {
             return;
         }
-        OnErrOutput?.Invoke(this, new OutputReceivedEventArgs(e.Data, true));
+        OnErrOutput?.Invoke(this, e);
         ErrOutput.Add(e.Data);
     }
 
     protected virtual void Reset()
     {
-        StatusCode = -1;
+        ExitCode = -1;
         StdOutput.Clear();
         ErrOutput.Clear();
     }

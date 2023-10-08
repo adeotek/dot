@@ -45,9 +45,8 @@ internal class ContainerConfigValidateCommand : CommandBase<ContainerConfigValid
             PrintMessage("`Volume[*].Source`/`Volume[*].Destination` cannot be empty, nor contain any spaces!", _errorColor);
         }
         
-        if (config.Network is not null 
-            && (string.IsNullOrEmpty(config.Network.Name) 
-                || (config.Network?.Name.Contains(' ') ?? false)))
+        if (config.Network is not null // || string.IsNullOrEmpty(config.Network.Name)
+            && ((config.Network?.Name.Contains(' ') ?? false))) 
         {
             hasErrors = true;
             PrintMessage("`Network.Name` cannot be empty, nor contain any spaces!", _errorColor);

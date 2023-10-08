@@ -2,6 +2,8 @@
 
 namespace Adeotek.Extensions.Processes;
 
+public delegate void OutputReceivedEventHandler(object sender, OutputReceivedEventArgs e);
+
 [ExcludeFromCodeCoverage]
 public class OutputReceivedEventArgs : EventArgs
 {

@@ -44,8 +44,10 @@ internal class ContainerConfigSampleCommand : CommandBase<ContainerConfigSampleS
 
         try
         {
-            File.WriteAllText(settings.Target, config);
-            PrintMessage("Sample config file generated: ", _successColor, IsVerbose);
+            var sampleFile = NormalizeTargetFile(settings.Target, settings.Format);
+            File.WriteAllText(sampleFile, config);
+            PrintMessage("Sample config file generated: ", _successColor, IsVerbose, true);
+            PrintMessage(sampleFile, _verboseColor);
             return 0;
         }
         catch (Exception e)
@@ -57,5 +59,13 @@ internal class ContainerConfigSampleCommand : CommandBase<ContainerConfigSampleS
             }
             return 1;
         }
+    }
+
+    private static string NormalizeTargetFile(string target, string format)
+    {
+        var ext = Path.GetExtension(target).ToLower();
+        return ext is ".json" or ".yml" or ".yaml" 
+            ? target 
+            : $"{target}.{(format == "yaml" ? "yml" : "json")}";
     }
 }

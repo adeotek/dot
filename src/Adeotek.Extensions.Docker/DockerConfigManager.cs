@@ -110,11 +110,14 @@ public class DockerConfigManager
             Image = "<image-name>",
             Tag = "<image-tag>",
             NamePrefix = "<optional-container-name-prefix>",
-            BaseName = "<base-container-name",
+            BaseName = "<base-container-name>",
             PrimarySuffix = "<optional-container-name-suffix>",
             BackupSuffix = "<optional-demoted-container-name-suffix>",
-            Ports =
-                new PortMapping[] { new() { Host = 8080, Container = 80 }, new() { Host = 8443, Container = 443 } },
+            Ports = new PortMapping[]
+            {
+                new() { Host = 8080, Container = 80 }, 
+                new() { Host = 8443, Container = 443 }
+            },
             Volumes = new VolumeConfig[]
             {
                 new()
@@ -132,7 +135,11 @@ public class DockerConfigManager
                     AutoCreate = true
                 }
             },
-            EnvVars = new() { { "TZ", "UTC" }, { "DEBUG_MODE", "true" } },
+            EnvVars = new()
+            {
+                { "TZ", "UTC" }, 
+                { "DEBUG_MODE", "true" }
+            },
             Network = new()
             {
                 Name = "<docker-network-name>",

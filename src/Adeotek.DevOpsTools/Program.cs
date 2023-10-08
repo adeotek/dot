@@ -34,6 +34,7 @@ app.Configure(config =>
     
     config.AddBranch("utf8bom", bom =>
     {
+        bom.SetDescription("Add/Remove/Check BOM (Byte Order Mark) signature of UTF-8 encoded files");
         bom.AddCommand<Utf8BomAddCommand>("add")
             .WithDescription("Add UTF8 Signature (BOM) to files");
         bom.AddCommand<Utf8BomRemoveCommand>("remove")

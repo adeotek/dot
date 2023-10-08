@@ -13,6 +13,7 @@ namespace Adeotek.DevOpsTools.Commands;
 internal abstract class ContainerBaseCommand<TSettings> 
     : CommandBase<TSettings> where TSettings : ContainerSettings
 {
+    protected bool IsDryRun => _settings?.DryRun ?? false;
     protected abstract void ExecuteContainerCommand(ContainerConfig config);
 
     protected override int ExecuteCommand(CommandContext context, TSettings settings)
@@ -68,15 +69,15 @@ internal abstract class ContainerBaseCommand<TSettings>
         switch (e.Type)
         {
             case DockerCliEventType.Command:
-                if (!IsVerbose)
+                if (!IsVerbose && !IsDryRun)
                 {
                     break;
                 }
                 PrintSeparator();
                 AnsiConsole.Write(new CustomComposer()
-                    .Style("aqua", e.Data.GetValueOrDefault("cmd") ?? "?")
+                    .Style("purple", e.Data.GetValueOrDefault("cmd") ?? "?")
                     .Space()
-                    .Style("purple", e.Data.GetValueOrDefault("args") ?? "?").LineBreak());
+                    .Style("aqua", e.Data.GetValueOrDefault("args") ?? "?").LineBreak());
                 break;
             case DockerCliEventType.Message:
                 var level = e.Data.GetValueOrDefault("level") ?? "";
