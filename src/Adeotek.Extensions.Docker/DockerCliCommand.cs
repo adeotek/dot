@@ -65,7 +65,7 @@ public class DockerCliCommand : ShellCommand
     public DockerCliCommand AddVolumeArg(string source, string destination, bool isReadonly = false) => 
         AddArg($"-v {source}:{destination}{(isReadonly ? ":ro" : "")}");
     
-    public DockerCliCommand AddVolumesArgs(VolumeConfig[] volumes)
+    public DockerCliCommand AddVolumesArgs(IEnumerable<VolumeConfig> volumes)
     {
         foreach (var volume in volumes)
         {

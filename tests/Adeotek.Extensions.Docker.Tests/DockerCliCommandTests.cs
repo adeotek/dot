@@ -7,7 +7,7 @@ public class DockerCliCommandTests
 {
     private readonly IShellProcess _shellProcessMock;
     private readonly DockerCliCommand _sut;
-
+    
     public DockerCliCommandTests()
     {
         var provider = TestHelpers.GetShellProcessProvider(out _shellProcessMock);

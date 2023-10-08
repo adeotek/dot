@@ -26,13 +26,23 @@ public class DockerManager
     {
         _dockerCli.ClearArgsAndReset()
             .AddArg("container")
-            .AddArg("ls")
-            .AddArg("--all")
-            .AddFilterArg(name);
+            .AddArg("inspect")
+            .AddArg("--format \"{{lower .Name}}\"")
+            .AddArg(name);
         LogCommand();
         _dockerCli.Execute();
         LogExitCode();
-        return _dockerCli.IsSuccess(name);
+        if (_dockerCli.IsSuccess(name))
+        {
+            return true;
+        }
+
+        if (_dockerCli.IsError(name))
+        {
+            return false;
+        }
+        
+        throw new DockerCliException("container inspect", 1, $"Unable to inspect container '{name}'!");
     }
     
     public bool CreateContainer(ContainerConfig config, bool dryRun = false)
@@ -55,9 +65,18 @@ public class DockerManager
         }
         _dockerCli.Execute();
         LogExitCode();
-        return _dockerCli.ExitCode == 0
-               || _dockerCli.StdOutput.Count == 1
-               || string.IsNullOrEmpty(_dockerCli.StdOutput.FirstOrDefault());
+        if (_dockerCli is { ExitCode: 0, StdOutput.Count: 1 }
+            && !string.IsNullOrEmpty(_dockerCli.StdOutput.FirstOrDefault()))
+        {
+            return true;
+        }
+
+        if (_dockerCli.IsError(config.PrimaryName))
+        {
+            return false;
+        }
+        
+        throw new DockerCliException("run", 1, $"Unable to create container '{config.PrimaryName}'!");
     }
     
     public void StopContainer(string containerName, bool dryRun = false)
@@ -145,7 +164,7 @@ public class DockerManager
         LogCommand();
         _dockerCli.Execute();
         LogExitCode();
-        return _dockerCli.IsSuccess(volumeName, true);
+        return _dockerCli.IsSuccess(volumeName);
     }
 
     public void CreateVolume(string volumeName, bool dryRun = false)
@@ -255,12 +274,18 @@ public class DockerManager
         }
         _dockerCli.Execute();
         LogExitCode();
-        if (_dockerCli.ExitCode != 0 
-            || _dockerCli.StdOutput.Count != 1
-            || string.IsNullOrEmpty(_dockerCli.StdOutput.FirstOrDefault()))
+        if (_dockerCli is { ExitCode: 0, StdOutput.Count: 1 }
+            && !string.IsNullOrEmpty(_dockerCli.StdOutput.FirstOrDefault()))
         {
-            throw new DockerCliException("network create", 1, $"Unable to create docker network '{network.Name}'!");
+            return;
         }
+
+        if (_dockerCli.IsError($"network with name {network.Name} already exists", true))
+        {
+            return;
+        }
+        
+        throw new DockerCliException("network create", 1, $"Unable to create docker network '{network.Name}'!");
     }
     
     public void RemoveNetwork(string networkName, bool dryRun = false)
@@ -298,18 +323,18 @@ public class DockerManager
         LogCommand();
         _dockerCli.Execute();
         LogExitCode();
-        if (_dockerCli.ExitCode != 0
-            || !_dockerCli.StdOutput.Exists(e => 
+        if (_dockerCli.ExitCode == 0
+            && _dockerCli.StdOutput.Exists(e =>
                 e.Contains($"Status: Downloaded newer image for {fullImageName}")
                 || e.Contains($"Status: Image is up to date for {fullImageName}")))
         {
-            throw new DockerCliException("pull", _dockerCli.ExitCode, $"Unable to pull image '{fullImageName}'!");
+            return _dockerCli.StdOutput
+                       .FirstOrDefault(e => e.StartsWith("Digest: "))
+                       ?.Replace("Digest: ", "")
+                   ?? "";            
         }
         
-        return _dockerCli.StdOutput
-                   .FirstOrDefault(e => e.StartsWith("Digest: "))
-                   ?.Replace("Digest: ", "")
-               ?? "";
+        throw new DockerCliException("pull", _dockerCli.ExitCode, $"Unable to pull image '{fullImageName}'!");
     }
     
     public string GetContainerImageId(string containerName)
@@ -322,18 +347,13 @@ public class DockerManager
         LogCommand();
         _dockerCli.Execute();
         LogExitCode();
-        if (_dockerCli.IsError() || _dockerCli.StdOutput.Count != 1)
+        if (_dockerCli.IsSuccess() && _dockerCli.StdOutput.Count == 1
+            && _dockerCli.StdOutput.First().StartsWith("sha256:"))
         {
-            throw new DockerCliException("container inspect", 1, $"Unable to inspect container '{containerName}'!");
+            return _dockerCli.StdOutput.First();
         }
     
-        var result = _dockerCli.StdOutput.First();
-        if (result.StartsWith("sha256:"))
-        {
-            return result;
-        }
-    
-        throw new DockerCliException("container inspect", 1, $"Unable to obtain image ID for container '{containerName}'!");
+        throw new DockerCliException("container inspect", 1, $"Unable to inspect container '{containerName}'!");
     }
 
     public string GetImageId(string image, string? tag = null)
@@ -347,18 +367,13 @@ public class DockerManager
         LogCommand();
         _dockerCli.Execute();
         LogExitCode();
-        if (_dockerCli.IsError() || _dockerCli.StdOutput.Count != 1)
+        if (_dockerCli.IsSuccess() && _dockerCli.StdOutput.Count == 1
+                                   && _dockerCli.StdOutput.First().StartsWith("sha256:"))
         {
-            throw new DockerCliException("image inspect", 1, $"Unable to inspect image '{fullImageName}'!");
-        }
-
-        var result = _dockerCli.StdOutput.First();
-        if (result.StartsWith("sha256:"))
-        {
-            return result;
+            return _dockerCli.StdOutput.First();
         }
         
-        throw new DockerCliException("image inspect", 1, $"Unable to obtain image ID for '{fullImageName}'!");
+        throw new DockerCliException("image inspect", 1, $"Unable to inspect image '{fullImageName}'!");
     }
     #endregion
 
