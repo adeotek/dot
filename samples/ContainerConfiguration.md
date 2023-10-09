@@ -39,9 +39,9 @@ dot container config sample /path/to/target_file.json --format json
 - `Container` [unsigned int] **required** : Port number in the container.
 
 **Volume**:
-- `Source` [string] **required** : Docker volume name if `IsMapping` is `false`, or a path on the host `IsMapping` is `true`. 
+- `Source` [string] **required** : Docker volume name if `IsBind` is `false`, or a path on the host `IsBind` is `true`. 
 - `Destination` [string] **required** : Path inside the container. 
-- `IsMapping` [boolean] *optional* : Indicates if a path on the host will be used instead of a Docker volume. (defaults to `true` if omitted)
+- `IsBind` [boolean] *optional* : Indicates if a path on the host will be used instead of a Docker volume (bind volume). (defaults to `true` if omitted)
 - `AutoCreate` [boolean] *optional* : If `true` the Docker Volume or the path on the host will be automatically created, if missing. (defaults to `true` if omitted)
 
 **NetworkConfig**:
