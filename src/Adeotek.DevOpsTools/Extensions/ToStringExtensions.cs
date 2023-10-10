@@ -85,7 +85,7 @@ internal static class AnsiConsolePrintExtensions
             composer.Repeat(SubValuePrefix, NameLength - 1).Space()
                 .Style(SpecialValueColor, port.Source)
                 .Text(MappingSeparator).Style(ValueColor, port.Destination).Text(" (")
-                .Style(port.IsMapping ? "green" : "red",$"IsMapping={(port.IsMapping ? "Yes" : "No")}").Text(" | ")
+                .Style(port.IsBind ? "green" : "red",$"IsBind={(port.IsBind ? "Yes" : "No")}").Text(" | ")
                 .Style(port.IsReadonly ? "green" : "red",$"IsReadonly={(port.IsReadonly ? "Yes" : "No")}").Text(" | ")
                 .Style(port.AutoCreate ? "green" : "red",$"AutoCreate={(port.AutoCreate ? "Yes" : "No")}")
                 .Text(")").LineBreak();

@@ -12,11 +12,11 @@ Ports:
 Volumes:
   - Source: /opt/nginx/data
     Destination: /data
-    IsMapping: true
+    IsBind: true
     AutoCreate: true
   - Source: sys--nginx-ssl
     Destination: /ssl
-    IsMapping: false
+    IsBind: false
     AutoCreate: true
 EnvVars:
   TZ: Europe/Bucharest

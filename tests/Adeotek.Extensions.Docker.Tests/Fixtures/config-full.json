@@ -19,14 +19,14 @@
     {
       "Source": "/path/on/host/data",
       "Destination": "/path/in/container/data",
-      "IsMapping": true,
+      "IsBind": true,
       "IsReadonly": false,
       "AutoCreate": false
     },
     {
       "Source": "<docker-volume-name>",
       "Destination": "/path/in/container/data",
-      "IsMapping": false,
+      "IsBind": false,
       "IsReadonly": false,
       "AutoCreate": true
     }

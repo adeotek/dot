@@ -505,9 +505,9 @@ public class DockerManager
             StopAndRemoveContainer(config.BackupName, dryRun);
         }
     
-        foreach (var volume in config.Volumes.Where(e => e is { AutoCreate: true, IsMapping: false }))
+        foreach (var volume in config.Volumes.Where(e => e is { AutoCreate: true, IsBind: false }))
         {
-            if (volume.IsMapping)
+            if (volume.IsBind)
             {
                 continue;
             }
@@ -523,7 +523,7 @@ public class DockerManager
     
     public bool CheckVolume(VolumeConfig volume, bool dryRun = false)
     {
-        if (volume.IsMapping)
+        if (volume.IsBind)
         {
             if (Path.Exists(volume.Source))
             {

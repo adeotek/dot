@@ -124,14 +124,14 @@ public class DockerConfigManager
                 {
                     Source = "/path/on/host/data",
                     Destination = "/path/in/container/data",
-                    IsMapping = true,
+                    IsBind = true,
                     AutoCreate = false
                 },
                 new()
                 {
                     Source = "<docker-volume-name>",
                     Destination = "/path/in/container/data",
-                    IsMapping = false,
+                    IsBind = false,
                     AutoCreate = true
                 }
             },
