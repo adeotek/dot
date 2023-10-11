@@ -10,4 +10,9 @@ public class GlobalSettings : CommandSettings
     [CommandOption("--verbose")]
     [DefaultValue(false)]
     public bool Verbose { get; init; }
+    
+    [Description("Don't output any messages except errors\n(only outputs 0/1 depending if anything got changed or not)")]
+    [CommandOption("-s|--silent")]
+    [DefaultValue(false)]
+    public bool Silent { get; init; }
 }

@@ -23,17 +23,19 @@ internal abstract class CommandBase<TSettings> : Command<TSettings> where TSetti
     protected readonly string _standardColor = "turquoise4";
     protected readonly string _successColor = "green";
     protected string? _errOutputColor = "red";
+    protected bool MadeChanges;
     protected TSettings? _settings;
     protected bool IsVerbose => _settings?.Verbose ?? false;
+    protected bool IsSilent => _settings?.Silent ?? false;
     
     protected abstract int ExecuteCommand(CommandContext context, TSettings settings);
     
     public override int Execute([NotNull] CommandContext context, [NotNull] TSettings settings)
     {
+        _settings = settings;
         try
         {
             PrintStart();
-            _settings = settings;
             var exitCode = ExecuteCommand(context, settings);
             PrintDone();
             return exitCode;
@@ -74,6 +76,11 @@ internal abstract class CommandBase<TSettings> : Command<TSettings> where TSetti
     
     protected virtual void PrintMessage(string message, string? color = null, bool separator = false, bool skipLineBreak = false)
     {
+        if (IsSilent)
+        {
+            return;
+        }
+        
         if (separator)
         {
             PrintSeparator();
@@ -90,6 +97,11 @@ internal abstract class CommandBase<TSettings> : Command<TSettings> where TSetti
     
     protected virtual void PrintSeparator(bool big = false, bool addEmptyLine = false)
     {
+        if (IsSilent)
+        {
+            return;
+        }
+        
         var composer = new CustomComposer()
             .Repeat("gray", big ? '=' : '-', _separatorLength).LineBreak();
         if (addEmptyLine)
@@ -101,6 +113,11 @@ internal abstract class CommandBase<TSettings> : Command<TSettings> where TSetti
     
     protected virtual void PrintStart()
     {
+        if (IsSilent)
+        {
+            return;
+        }
+        
         AnsiConsole.Write(new CustomComposer()
             .Text("Running ").Style("purple", "DOT Container Tool").Space()
             .Style("green", $"v{_version}").LineBreak()
@@ -109,8 +126,15 @@ internal abstract class CommandBase<TSettings> : Command<TSettings> where TSetti
     
     protected virtual void PrintDone(int exitCode = 0)
     {
+        var madeChanges = MadeChanges ? "1" : "0";
+        if (IsSilent)
+        {
+            AnsiConsole.Write(exitCode == 0 ? madeChanges : "-1");
+            return;
+        }
+        
         AnsiConsole.Write(new CustomComposer()
             .Repeat("gray", '=', _separatorLength).LineBreak()
-            .Style(exitCode == 0 ? "purple" : "gray", "DONE.").LineBreak().LineBreak());
+            .Style(exitCode == 0 ? "purple" : "gray", $"DONE [{madeChanges}]").LineBreak().LineBreak());
     }
 }
