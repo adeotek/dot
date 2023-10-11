@@ -269,13 +269,12 @@ public class DockerManagerTests
     }
     
     [Fact]
-    public void StopContainer_WithExisting_ExpectSuccess()
+    public void StopContainer_WithExisting_ReturnsTrue()
     {
         const string containerName = "test-container-mock";
         var sut = GetDockerManager(out var shellProcessMock);
         string? cmd = null;
         string? args = null;
-        string? exitCode = null;
         
         sut.OnDockerCliEvent += (_, e) =>
         {
@@ -283,21 +282,20 @@ public class DockerManagerTests
             {
                 cmd = e.Data.GetValueOrDefault("cmd");
                 args = e.Data.GetValueOrDefault("args");
-                exitCode = e.Data.GetValueOrDefault("exit");
             }
         };
 
         ShellProcessMockSendStdOutput(shellProcessMock, new[] { containerName });
         
-        sut.StopContainer(containerName);
+        var result = sut.StopContainer(containerName);
         
+        Assert.True(result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal($"stop {containerName}", args);
-        Assert.Equal("0", exitCode);
     }
     
     [Fact]
-    public void StopContainer_WithMissing_LogsWarning()
+    public void StopContainer_WithMissing_ReturnsFalse()
     {
         const string containerName = "test-container-mock";
         var sut = GetDockerManager(out var shellProcessMock);
@@ -325,8 +323,9 @@ public class DockerManagerTests
             $"Error response from daemon: No such container: {containerName}"
         });
         
-        sut.StopContainer(containerName);
+        var result = sut.StopContainer(containerName);
         
+        Assert.False(result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal($"stop {containerName}", args);
         Assert.Equal($"Container '{containerName}' not found!", message);
@@ -352,7 +351,7 @@ public class DockerManagerTests
 
         ShellProcessMockSendErrOutput(shellProcessMock, new[] { DockerGenericError });
         
-        var action = () => sut.StopContainer(containerName);
+        var action = () => { sut.StopContainer(containerName); };
         
         Assert.Throws<DockerCliException>(action);
         Assert.Equal(CliCommand, cmd);
@@ -360,13 +359,12 @@ public class DockerManagerTests
     }
     
     [Fact]
-    public void RemoveContainer_WithExisting_ExpectSuccess()
+    public void RemoveContainer_WithExisting_ReturnsTrue()
     {
         const string containerName = "test-container-mock";
         var sut = GetDockerManager(out var shellProcessMock);
         string? cmd = null;
         string? args = null;
-        string? exitCode = null;
         
         sut.OnDockerCliEvent += (_, e) =>
         {
@@ -374,21 +372,20 @@ public class DockerManagerTests
             {
                 cmd = e.Data.GetValueOrDefault("cmd");
                 args = e.Data.GetValueOrDefault("args");
-                exitCode = e.Data.GetValueOrDefault("exit");
             }
         };
 
         ShellProcessMockSendStdOutput(shellProcessMock, new[] { containerName });
         
-        sut.RemoveContainer(containerName);
+        var result = sut.RemoveContainer(containerName);
         
+        Assert.True(result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal($"rm {containerName}", args);
-        Assert.Equal("0", exitCode);
     }
     
     [Fact]
-    public void RemoveContainer_WithMissing_LogsWarning()
+    public void RemoveContainer_WithMissing_ReturnsFalse()
     {
         const string containerName = "test-container-mock";
         var sut = GetDockerManager(out var shellProcessMock);
@@ -416,8 +413,9 @@ public class DockerManagerTests
             $"Error response from daemon: No such container: {containerName}"
         });
         
-        sut.RemoveContainer(containerName);
+        var result = sut.RemoveContainer(containerName);
         
+        Assert.False(result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal($"rm {containerName}", args);
         Assert.Equal($"Container '{containerName}' not found!", message);
@@ -443,7 +441,7 @@ public class DockerManagerTests
         
         ShellProcessMockSendErrOutput(shellProcessMock, new[] { DockerGenericError });
         
-        var action = () => sut.RemoveContainer(containerName);
+        var action = () => { sut.RemoveContainer(containerName); };
         
         Assert.Throws<DockerCliException>(action);
         Assert.Equal(CliCommand, cmd);
@@ -451,14 +449,13 @@ public class DockerManagerTests
     }
     
     [Fact]
-    public void RenameContainer_WithExisting_ExpectSuccess()
+    public void RenameContainer_WithExisting_ReturnsTrue()
     {
         const string containerName = "test-container-mock";
         var containerNewName = "new-test-container-mock";
         var sut = GetDockerManager(out var shellProcessMock);
         string? cmd = null;
         string? args = null;
-        string? exitCode = null;
         
         sut.OnDockerCliEvent += (_, e) =>
         {
@@ -466,21 +463,20 @@ public class DockerManagerTests
             {
                 cmd = e.Data.GetValueOrDefault("cmd");
                 args = e.Data.GetValueOrDefault("args");
-                exitCode = e.Data.GetValueOrDefault("exit");
             }
         };
         
         ShellProcessMockSendStdOutput(shellProcessMock, new[] { containerName });
         
-        sut.RenameContainer(containerName, containerNewName);
+        var result = sut.RenameContainer(containerName, containerNewName);
         
+        Assert.True(result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal($"rename {containerName} {containerNewName}", args);
-        Assert.Equal("0", exitCode);
     }
     
     [Fact]
-    public void RenameContainer_WithMissing_LogsWarning()
+    public void RenameContainer_WithMissing_ReturnsFalse()
     {
         const string containerName = "test-container-mock";
         var containerNewName = "new-test-container-mock";
@@ -509,8 +505,9 @@ public class DockerManagerTests
             $"Error response from daemon: No such container: {containerName}"
         });
         
-        sut.RenameContainer(containerName, containerNewName);
+        var result = sut.RenameContainer(containerName, containerNewName);
         
+        Assert.False(result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal($"rename {containerName} {containerNewName}", args);
         Assert.Equal($"Container '{containerName}' not found!", message);
@@ -537,7 +534,7 @@ public class DockerManagerTests
 
         ShellProcessMockSendErrOutput(shellProcessMock, new[] { DockerGenericError });
         
-        var action = () => sut.RenameContainer(containerName, containerNewName);
+        var action = () => { sut.RenameContainer(containerName, containerNewName); };
         
         Assert.Throws<DockerCliException>(action);
         Assert.Equal(CliCommand, cmd);
@@ -604,7 +601,7 @@ public class DockerManagerTests
     }
     
     [Fact]
-    public void CreateVolume_WithExistingOrMissing_ExpectSuccess()
+    public void CreateVolume_WithExistingOrMissing_ReturnsTrue()
     {
         const string volumeName = "test-docker-volume-mock";
         var sut = GetDockerManager(out var shellProcessMock);
@@ -622,8 +619,9 @@ public class DockerManagerTests
 
         ShellProcessMockSendStdOutput(shellProcessMock, new[] { volumeName });
         
-        sut.CreateVolume(volumeName);
+        var result = sut.CreateVolume(volumeName);
         
+        Assert.True(result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal($"volume create {volumeName}", args);
     }
@@ -647,7 +645,7 @@ public class DockerManagerTests
     
         ShellProcessMockSendErrOutput(shellProcessMock, new[] { DockerGenericError });
         
-        var action = () => sut.CreateVolume(volumeName);
+        var action = () => { sut.CreateVolume(volumeName); };
         
         Assert.Throws<DockerCliException>(action);
         Assert.Equal(CliCommand, cmd);
@@ -655,13 +653,12 @@ public class DockerManagerTests
     }
     
     [Fact]
-    public void RemoveVolume_WithExisting_ExpectSuccess()
+    public void RemoveVolume_WithExisting_ReturnsTrue()
     {
         const string volumeName = "test-docker-volume-mock";
         var sut = GetDockerManager(out var shellProcessMock);
         string? cmd = null;
         string? args = null;
-        string? exitCode = null;
         
         sut.OnDockerCliEvent += (_, e) =>
         {
@@ -669,21 +666,20 @@ public class DockerManagerTests
             {
                 cmd = e.Data.GetValueOrDefault("cmd");
                 args = e.Data.GetValueOrDefault("args");
-                exitCode = e.Data.GetValueOrDefault("exit");
             }
         };
 
         ShellProcessMockSendStdOutput(shellProcessMock, new[] { volumeName });
         
-        sut.RemoveVolume(volumeName);
+        var result = sut.RemoveVolume(volumeName);
         
+        Assert.True(result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal($"volume rm {volumeName}", args);
-        Assert.Equal("0", exitCode);
     }
     
     [Fact]
-    public void RemoveVolume_WithMissing_LogsWarning()
+    public void RemoveVolume_WithMissing_ReturnsFalse()
     {
         const string volumeName = "test-docker-volume-mock";
         var sut = GetDockerManager(out var shellProcessMock);
@@ -711,8 +707,9 @@ public class DockerManagerTests
             $"Error response from daemon: get {volumeName}: no such volume"
         });
         
-        sut.RemoveVolume(volumeName);
+        var result = sut.RemoveVolume(volumeName);
         
+        Assert.False(result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal($"volume rm {volumeName}", args);
         Assert.Equal($"Volume '{volumeName}' not found!", message);
@@ -738,7 +735,7 @@ public class DockerManagerTests
         
         ShellProcessMockSendErrOutput(shellProcessMock, new[] { DockerGenericError });
         
-        var action = () => sut.RemoveVolume(volumeName);
+        var action = () => { sut.RemoveVolume(volumeName); };
         
         Assert.Throws<DockerCliException>(action);
         Assert.Equal(CliCommand, cmd);
@@ -805,7 +802,7 @@ public class DockerManagerTests
     }
     
     [Fact]
-    public void CreateNetwork_WithMissing_ExpectSuccess()
+    public void CreateNetwork_WithMissing_ReturnsTrue()
     {
         var network = DockerConfigManager.GetSampleConfig().Network 
                       ?? throw new NullReferenceException("NetworkConfig");
@@ -828,14 +825,15 @@ public class DockerManagerTests
             "newly_created_docker_network_id"
         });
         
-        sut.CreateNetwork(network);
+        var result = sut.CreateNetwork(network);
         
+        Assert.True(result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal(expectedArgs, args);
     }
     
     [Fact]
-    public void CreateNetwork_WithExisting_ExpectSuccess()
+    public void CreateNetwork_WithExisting_ReturnsFalse()
     {
         var network = DockerConfigManager.GetSampleConfig().Network 
                       ?? throw new NullReferenceException("NetworkConfig");
@@ -858,8 +856,9 @@ public class DockerManagerTests
             $"Error response from daemon: network with name {network.Name} already exists"
         });
         
-        sut.CreateNetwork(network);
+        var result = sut.CreateNetwork(network);
         
+        Assert.False(result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal(expectedArgs, args);
     }
@@ -885,7 +884,7 @@ public class DockerManagerTests
     
         ShellProcessMockSendErrOutput(shellProcessMock, new[] { DockerGenericError });
         
-        var action = () => sut.CreateNetwork(network);
+        var action = () => { sut.CreateNetwork(network); };
         
         Assert.Throws<DockerCliException>(action);
         Assert.Equal(CliCommand, cmd);
@@ -893,13 +892,12 @@ public class DockerManagerTests
     }
     
     [Fact]
-    public void RemoveNetwork_WithExisting_ExpectSuccess()
+    public void RemoveNetwork_WithExisting_ReturnsTrue()
     {
         const string networkName = "test-docker-network-mock";
         var sut = GetDockerManager(out var shellProcessMock);
         string? cmd = null;
         string? args = null;
-        string? exitCode = null;
         
         sut.OnDockerCliEvent += (_, e) =>
         {
@@ -907,21 +905,20 @@ public class DockerManagerTests
             {
                 cmd = e.Data.GetValueOrDefault("cmd");
                 args = e.Data.GetValueOrDefault("args");
-                exitCode = e.Data.GetValueOrDefault("exit");
             }
         };
 
         ShellProcessMockSendStdOutput(shellProcessMock, new[] { networkName });
         
-        sut.RemoveNetwork(networkName);
+        var result = sut.RemoveNetwork(networkName);
         
+        Assert.True(result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal($"network rm {networkName}", args);
-        Assert.Equal("0", exitCode);
     }
     
     [Fact]
-    public void RemoveNetwork_WithMissing_LogsWarning()
+    public void RemoveNetwork_WithMissing_ReturnsFalse()
     {
         const string networkName = "test-docker-network-mock";
         var sut = GetDockerManager(out var shellProcessMock);
@@ -949,8 +946,9 @@ public class DockerManagerTests
             $"Error response from daemon: network {networkName} not found"
         });
         
-        sut.RemoveNetwork(networkName);
+        var result = sut.RemoveNetwork(networkName);
         
+        Assert.False(result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal($"network rm {networkName}", args);
         Assert.Equal($"Network '{networkName}' not found!", message);
@@ -976,7 +974,7 @@ public class DockerManagerTests
         
         ShellProcessMockSendErrOutput(shellProcessMock, new[] { DockerGenericError });
         
-        var action = () => sut.RemoveNetwork(networkName);
+        var action = () => { sut.RemoveNetwork(networkName); };
         
         Assert.Throws<DockerCliException>(action);
         Assert.Equal(CliCommand, cmd);
@@ -984,12 +982,11 @@ public class DockerManagerTests
     }
     
     [Fact]
-    public void PullImage_WithMissing_ReturnsImageId()
+    public void PullImage_WithMissing_ReturnsTrue()
     {
         const string imageName = "test-image-mock:latest";
         const string imageTag = "latest";
         var sut = GetDockerManager(out var shellProcessMock);
-        var expectedResult = "sha256:some-docker-image-id-hash";
         string? cmd = null;
         string? args = null;
         
@@ -1010,7 +1007,7 @@ public class DockerManagerTests
             "b123b001: Pull complete",
             "c123b001: Pull complete",
             "d123b001: Pull complete",
-            $"Digest: {expectedResult}",
+            "Digest: sha256:some-docker-image-id-hash",
             $"Status: Downloaded newer image for {imageName}:{imageTag}",
             $"docker.io/library/{imageName}:{imageTag}",
             ""
@@ -1018,18 +1015,17 @@ public class DockerManagerTests
 
         var result = sut.PullImage(imageName, imageTag);
         
-        Assert.Equal(expectedResult, result);
+        Assert.True(result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal($"pull {imageName}:{imageTag}", args);
     }
     
     [Fact]
-    public void PullImage_WithExisting_ReturnsImageId()
+    public void PullImage_WithExisting_ReturnsFalse()
     {
         const string imageName = "test-image-mock:latest";
         const string imageTag = "latest";
         var sut = GetDockerManager(out var shellProcessMock);
-        var expectedResult = "sha256:some-docker-image-id-hash";
         string? cmd = null;
         string? args = null;
         
@@ -1045,7 +1041,7 @@ public class DockerManagerTests
         ShellProcessMockSendStdOutput(shellProcessMock, new[]
         {
             $"latest: Pulling from library/{imageName}",
-            $"Digest: {expectedResult}",
+            "Digest: sha256:some-docker-image-id-hash",
             $"Status: Image is up to date for {imageName}:{imageTag}",
             $"docker.io/library/{imageName}:{imageTag}",
             ""
@@ -1053,7 +1049,7 @@ public class DockerManagerTests
 
         var result = sut.PullImage(imageName, imageTag);
         
-        Assert.Equal(expectedResult, result);
+        Assert.False(result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal($"pull {imageName}:{imageTag}", args);
     }

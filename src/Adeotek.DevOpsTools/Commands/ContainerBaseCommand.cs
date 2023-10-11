@@ -69,7 +69,7 @@ internal abstract class ContainerBaseCommand<TSettings>
         switch (e.Type)
         {
             case DockerCliEventType.Command:
-                if (!IsVerbose && !IsDryRun)
+                if (IsSilent || (!IsVerbose && !IsDryRun))
                 {
                     break;
                 }
@@ -80,6 +80,10 @@ internal abstract class ContainerBaseCommand<TSettings>
                     .Style("aqua", e.Data.GetValueOrDefault("args") ?? "?").LineBreak());
                 break;
             case DockerCliEventType.Message:
+                if (IsSilent)
+                {
+                    break;
+                }
                 var level = e.Data.GetValueOrDefault("level") ?? "";
                 if (IsVerbose && level == "msg")
                 {
@@ -90,7 +94,7 @@ internal abstract class ContainerBaseCommand<TSettings>
                     .LineBreak());
                 break;
             case DockerCliEventType.StdOutput:
-                if (!IsVerbose)
+                if (IsSilent || !IsVerbose)
                 {
                     break;        
                 }
@@ -102,6 +106,11 @@ internal abstract class ContainerBaseCommand<TSettings>
                     break;        
                 }
                 var data = e.DataToString(Environment.NewLine, "_._");
+                if (IsSilent)
+                {
+                    AnsiConsole.Write(data);
+                    break;
+                }
                 if (!string.IsNullOrEmpty(_errOutputColor))
                 {
                     AnsiConsole.MarkupLineInterpolated($"[yellow](!)[/] [{_errOutputColor}]{data}[/]");
