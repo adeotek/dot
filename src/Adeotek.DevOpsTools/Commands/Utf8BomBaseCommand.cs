@@ -113,7 +113,7 @@ internal abstract class Utf8BomBaseCommand<TSettings>
         {
             var content = File.ReadAllText(file, _utf8NoBom);
             File.WriteAllText(file, content, _utf8WithBom);
-            MadeChanges = true;
+            Changes++;
         }
         PrintFileResult(1, file, fileEncoding, dryRun);
     }
@@ -131,7 +131,7 @@ internal abstract class Utf8BomBaseCommand<TSettings>
         {
             var content = File.ReadAllText(file, _utf8WithBom);
             File.WriteAllText(file, content, _utf8NoBom);
-            MadeChanges = true;
+            Changes++;
         }
         PrintFileResult(-1, file, fileEncoding, dryRun);
     }

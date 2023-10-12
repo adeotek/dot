@@ -95,7 +95,7 @@ public class DockerManagerTests
     }
 
     [Fact]
-    public void CreateContainer_WithMissing_ReturnsTrue()
+    public void CreateContainer_WithMissing_ReturnsOne()
     {
         var config = DockerConfigManager.GetSampleConfig();
         var expectedArgs = GetCreateContainerArgs(config);
@@ -116,13 +116,13 @@ public class DockerManagerTests
         
         var result = sut.CreateContainer(config);
         
-        Assert.True(result);
+        Assert.Equal(1, result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal(expectedArgs, args);
     }
     
     [Fact]
-    public void CreateContainer_WithExisting_ReturnsFalse()
+    public void CreateContainer_WithExisting_ReturnsZero()
     {
         var config = DockerConfigManager.GetSampleConfig();
         var expectedArgs = GetCreateContainerArgs(config);
@@ -146,7 +146,7 @@ public class DockerManagerTests
         
         var result = sut.CreateContainer(config);
         
-        Assert.False(result);
+        Assert.Equal(0, result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal(expectedArgs, args);
     }
@@ -179,7 +179,7 @@ public class DockerManagerTests
     }
 
     [Fact]
-    public void StartContainer_WithExisting_ReturnTrue()
+    public void StartContainer_WithExisting_ReturnOne()
     {
         const string containerName = "test-container-mock";
         var sut = GetDockerManager(out var shellProcessMock);
@@ -199,13 +199,13 @@ public class DockerManagerTests
         
         var result = sut.StartContainer(containerName);
 
-        Assert.True(result);
+        Assert.Equal(1, result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal($"start {containerName}", args);
     }
     
     [Fact]
-    public void StartContainer_WithMissing_ReturnsFalse()
+    public void StartContainer_WithMissing_ReturnsZero()
     {
         const string containerName = "test-container-mock";
         var sut = GetDockerManager(out var shellProcessMock);
@@ -235,7 +235,7 @@ public class DockerManagerTests
         
         var result = sut.StartContainer(containerName);
         
-        Assert.False(result);
+        Assert.Equal(0, result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal($"start {containerName}", args);
         Assert.Equal($"Container '{containerName}' not found!", message);
@@ -269,7 +269,7 @@ public class DockerManagerTests
     }
     
     [Fact]
-    public void StopContainer_WithExisting_ReturnsTrue()
+    public void StopContainer_WithExisting_ReturnsOne()
     {
         const string containerName = "test-container-mock";
         var sut = GetDockerManager(out var shellProcessMock);
@@ -289,13 +289,13 @@ public class DockerManagerTests
         
         var result = sut.StopContainer(containerName);
         
-        Assert.True(result);
+        Assert.Equal(1, result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal($"stop {containerName}", args);
     }
     
     [Fact]
-    public void StopContainer_WithMissing_ReturnsFalse()
+    public void StopContainer_WithMissing_ReturnsZero()
     {
         const string containerName = "test-container-mock";
         var sut = GetDockerManager(out var shellProcessMock);
@@ -325,7 +325,7 @@ public class DockerManagerTests
         
         var result = sut.StopContainer(containerName);
         
-        Assert.False(result);
+        Assert.Equal(0, result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal($"stop {containerName}", args);
         Assert.Equal($"Container '{containerName}' not found!", message);
@@ -359,7 +359,7 @@ public class DockerManagerTests
     }
     
     [Fact]
-    public void RemoveContainer_WithExisting_ReturnsTrue()
+    public void RemoveContainer_WithExisting_ReturnsOne()
     {
         const string containerName = "test-container-mock";
         var sut = GetDockerManager(out var shellProcessMock);
@@ -379,13 +379,13 @@ public class DockerManagerTests
         
         var result = sut.RemoveContainer(containerName);
         
-        Assert.True(result);
+        Assert.Equal(1, result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal($"rm {containerName}", args);
     }
     
     [Fact]
-    public void RemoveContainer_WithMissing_ReturnsFalse()
+    public void RemoveContainer_WithMissing_ReturnsZero()
     {
         const string containerName = "test-container-mock";
         var sut = GetDockerManager(out var shellProcessMock);
@@ -415,7 +415,7 @@ public class DockerManagerTests
         
         var result = sut.RemoveContainer(containerName);
         
-        Assert.False(result);
+        Assert.Equal(0, result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal($"rm {containerName}", args);
         Assert.Equal($"Container '{containerName}' not found!", message);
@@ -449,7 +449,7 @@ public class DockerManagerTests
     }
     
     [Fact]
-    public void RenameContainer_WithExisting_ReturnsTrue()
+    public void RenameContainer_WithExisting_ReturnsOne()
     {
         const string containerName = "test-container-mock";
         var containerNewName = "new-test-container-mock";
@@ -470,13 +470,13 @@ public class DockerManagerTests
         
         var result = sut.RenameContainer(containerName, containerNewName);
         
-        Assert.True(result);
+        Assert.Equal(1, result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal($"rename {containerName} {containerNewName}", args);
     }
     
     [Fact]
-    public void RenameContainer_WithMissing_ReturnsFalse()
+    public void RenameContainer_WithMissing_ReturnsZero()
     {
         const string containerName = "test-container-mock";
         var containerNewName = "new-test-container-mock";
@@ -507,7 +507,7 @@ public class DockerManagerTests
         
         var result = sut.RenameContainer(containerName, containerNewName);
         
-        Assert.False(result);
+        Assert.Equal(0, result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal($"rename {containerName} {containerNewName}", args);
         Assert.Equal($"Container '{containerName}' not found!", message);
@@ -601,7 +601,7 @@ public class DockerManagerTests
     }
     
     [Fact]
-    public void CreateVolume_WithExistingOrMissing_ReturnsTrue()
+    public void CreateVolume_WithExistingOrMissing_ReturnsOne()
     {
         const string volumeName = "test-docker-volume-mock";
         var sut = GetDockerManager(out var shellProcessMock);
@@ -621,7 +621,7 @@ public class DockerManagerTests
         
         var result = sut.CreateVolume(volumeName);
         
-        Assert.True(result);
+        Assert.Equal(1, result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal($"volume create {volumeName}", args);
     }
@@ -653,7 +653,7 @@ public class DockerManagerTests
     }
     
     [Fact]
-    public void RemoveVolume_WithExisting_ReturnsTrue()
+    public void RemoveVolume_WithExisting_ReturnsOne()
     {
         const string volumeName = "test-docker-volume-mock";
         var sut = GetDockerManager(out var shellProcessMock);
@@ -673,13 +673,13 @@ public class DockerManagerTests
         
         var result = sut.RemoveVolume(volumeName);
         
-        Assert.True(result);
+        Assert.Equal(1, result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal($"volume rm {volumeName}", args);
     }
     
     [Fact]
-    public void RemoveVolume_WithMissing_ReturnsFalse()
+    public void RemoveVolume_WithMissing_ReturnsZero()
     {
         const string volumeName = "test-docker-volume-mock";
         var sut = GetDockerManager(out var shellProcessMock);
@@ -709,7 +709,7 @@ public class DockerManagerTests
         
         var result = sut.RemoveVolume(volumeName);
         
-        Assert.False(result);
+        Assert.Equal(0, result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal($"volume rm {volumeName}", args);
         Assert.Equal($"Volume '{volumeName}' not found!", message);
@@ -802,7 +802,7 @@ public class DockerManagerTests
     }
     
     [Fact]
-    public void CreateNetwork_WithMissing_ReturnsTrue()
+    public void CreateNetwork_WithMissing_ReturnsOne()
     {
         var network = DockerConfigManager.GetSampleConfig().Network 
                       ?? throw new NullReferenceException("NetworkConfig");
@@ -827,13 +827,13 @@ public class DockerManagerTests
         
         var result = sut.CreateNetwork(network);
         
-        Assert.True(result);
+        Assert.Equal(1, result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal(expectedArgs, args);
     }
     
     [Fact]
-    public void CreateNetwork_WithExisting_ReturnsFalse()
+    public void CreateNetwork_WithExisting_ReturnsZero()
     {
         var network = DockerConfigManager.GetSampleConfig().Network 
                       ?? throw new NullReferenceException("NetworkConfig");
@@ -858,7 +858,7 @@ public class DockerManagerTests
         
         var result = sut.CreateNetwork(network);
         
-        Assert.False(result);
+        Assert.Equal(0, result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal(expectedArgs, args);
     }
@@ -892,7 +892,7 @@ public class DockerManagerTests
     }
     
     [Fact]
-    public void RemoveNetwork_WithExisting_ReturnsTrue()
+    public void RemoveNetwork_WithExisting_ReturnsOne()
     {
         const string networkName = "test-docker-network-mock";
         var sut = GetDockerManager(out var shellProcessMock);
@@ -912,13 +912,13 @@ public class DockerManagerTests
         
         var result = sut.RemoveNetwork(networkName);
         
-        Assert.True(result);
+        Assert.Equal(1, result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal($"network rm {networkName}", args);
     }
     
     [Fact]
-    public void RemoveNetwork_WithMissing_ReturnsFalse()
+    public void RemoveNetwork_WithMissing_ReturnsZero()
     {
         const string networkName = "test-docker-network-mock";
         var sut = GetDockerManager(out var shellProcessMock);
@@ -948,7 +948,7 @@ public class DockerManagerTests
         
         var result = sut.RemoveNetwork(networkName);
         
-        Assert.False(result);
+        Assert.Equal(0, result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal($"network rm {networkName}", args);
         Assert.Equal($"Network '{networkName}' not found!", message);

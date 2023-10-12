@@ -23,7 +23,7 @@ internal abstract class CommandBase<TSettings> : Command<TSettings> where TSetti
     protected readonly string _standardColor = "turquoise4";
     protected readonly string _successColor = "green";
     protected string? _errOutputColor = "red";
-    protected bool MadeChanges;
+    protected int Changes;
     protected TSettings? _settings;
     protected bool IsVerbose => _settings?.Verbose ?? false;
     protected bool IsSilent => _settings?.Silent ?? false;
@@ -126,15 +126,16 @@ internal abstract class CommandBase<TSettings> : Command<TSettings> where TSetti
     
     protected virtual void PrintDone(int exitCode = 0)
     {
-        var madeChanges = MadeChanges ? "1" : "0";
         if (IsSilent)
         {
-            AnsiConsole.Write(exitCode == 0 ? madeChanges : "-1");
+            AnsiConsole.Write(exitCode == 0 ? Changes.ToString() : "-1");
             return;
         }
         
         AnsiConsole.Write(new CustomComposer()
             .Repeat("gray", '=', _separatorLength).LineBreak()
-            .Style(exitCode == 0 ? "purple" : "gray", $"DONE [{madeChanges}]").LineBreak().LineBreak());
+            .Style(exitCode == 0 ? "purple" : "gray", "DONE").Space()
+            .Style(Changes > 0 ? _successColor : _standardColor, $"[Changes:{Changes}]")
+            .LineBreak().LineBreak());
     }
 }

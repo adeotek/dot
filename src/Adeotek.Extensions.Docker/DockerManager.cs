@@ -45,7 +45,7 @@ public class DockerManager
         throw new DockerCliException("container inspect", 1, $"Unable to inspect container '{name}'!");
     }
     
-    public bool CreateContainer(ContainerConfig config, bool dryRun = false)
+    public int CreateContainer(ContainerConfig config, bool dryRun = false)
     {
         _dockerCli.ClearArgsAndReset()
             .AddArg("run")
@@ -61,25 +61,25 @@ public class DockerManager
         LogCommand();
         if (dryRun)
         {
-            return true;
+            return 0;
         }
         _dockerCli.Execute();
         LogExitCode();
         if (_dockerCli is { ExitCode: 0, StdOutput.Count: 1 }
             && !string.IsNullOrEmpty(_dockerCli.StdOutput.FirstOrDefault()))
         {
-            return true;
+            return 1;
         }
 
         if (_dockerCli.IsError(config.PrimaryName))
         {
-            return false;
+            return 0;
         }
         
         throw new DockerCliException("run", 1, $"Unable to create container '{config.PrimaryName}'!");
     }
     
-    public bool StartContainer(string containerName, bool dryRun = false)
+    public int StartContainer(string containerName, bool dryRun = false)
     {
         _dockerCli.ClearArgsAndReset()
             .AddArg("start")
@@ -87,13 +87,13 @@ public class DockerManager
         LogCommand();
         if (dryRun)
         {
-            return true;
+            return 0;
         }
         _dockerCli.Execute();
         LogExitCode();
         if (_dockerCli.IsSuccess(containerName, true))
         {
-            return true;
+            return 1;
         }
         
         if (!_dockerCli.IsError($"Error response from daemon: No such container: {containerName}", true))
@@ -102,10 +102,10 @@ public class DockerManager
         }
             
         LogMessage($"Container '{containerName}' not found!", "warn");
-        return false;
+        return 0;
     }
     
-    public bool StopContainer(string containerName, bool dryRun = false)
+    public int StopContainer(string containerName, bool dryRun = false)
     {
         _dockerCli.ClearArgsAndReset()
             .AddArg("stop")
@@ -113,13 +113,13 @@ public class DockerManager
         LogCommand();
         if (dryRun)
         {
-            return false;
+            return 0;
         }
         _dockerCli.Execute();
         LogExitCode();
         if (_dockerCli.IsSuccess(containerName, true))
         {
-            return true;
+            return 1;
         }
         
         if (!_dockerCli.IsError($"Error response from daemon: No such container: {containerName}", true))
@@ -128,10 +128,10 @@ public class DockerManager
         }
             
         LogMessage($"Container '{containerName}' not found!", "warn");
-        return false;
+        return 0;
     }
     
-    public bool RemoveContainer(string containerName, bool dryRun = false)
+    public int RemoveContainer(string containerName, bool dryRun = false)
     {
         _dockerCli.ClearArgsAndReset()
             .AddArg("rm")
@@ -139,13 +139,13 @@ public class DockerManager
         LogCommand();
         if (dryRun)
         {
-            return false;
+            return 0;
         }
         _dockerCli.Execute();
         LogExitCode();
         if (_dockerCli.IsSuccess(containerName, true))
         {
-            return true;
+            return 1;
         }
 
         if (!_dockerCli.IsError($"Error response from daemon: No such container: {containerName}", true))
@@ -154,10 +154,10 @@ public class DockerManager
         }
 
         LogMessage($"Container '{containerName}' not found!", "warn");
-        return false;
+        return 0;
     }
     
-    public bool RenameContainer(string currentName, string newName, bool dryRun = false)
+    public int RenameContainer(string currentName, string newName, bool dryRun = false)
     {
         _dockerCli.ClearArgsAndReset()
             .AddArg("rename")
@@ -166,13 +166,13 @@ public class DockerManager
         LogCommand();
         if (dryRun)
         {
-            return false;
+            return 0;
         }
         _dockerCli.Execute();
         LogExitCode();
         if (_dockerCli.IsSuccess())
         {
-            return true;
+            return 1;
         }
 
         if (!_dockerCli.IsError($"Error response from daemon: No such container: {currentName}", true))
@@ -181,7 +181,7 @@ public class DockerManager
         }
 
         LogMessage($"Container '{currentName}' not found!", "warn");
-        return false;
+        return 0;
     }
 
     public bool VolumeExists(string volumeName)
@@ -196,7 +196,7 @@ public class DockerManager
         return _dockerCli.IsSuccess(volumeName);
     }
 
-    public bool CreateVolume(string volumeName, bool dryRun = false)
+    public int CreateVolume(string volumeName, bool dryRun = false)
     {
         _dockerCli.ClearArgsAndReset()
             .AddArg("volume")
@@ -205,7 +205,7 @@ public class DockerManager
         LogCommand();
         if (dryRun)
         {
-            return false;
+            return 0;
         }
         
         _dockerCli.Execute();
@@ -215,21 +215,22 @@ public class DockerManager
             throw new DockerCliException("volume create", 1, $"Unable to create docker volume '{volumeName}'!");
         }
 
-        return true;
+        return 1;
     }
 
-    public bool CreateMappedVolume(VolumeConfig volume, bool dryRun = false)
+    public int CreateMappedVolume(VolumeConfig volume, bool dryRun = false)
     {
-        var madeChanges = false;
+        var changes = 0;
         LogCommand("mkdir", volume.Source);
         if (!dryRun)
         {
             Directory.CreateDirectory(volume.Source);
-            madeChanges = true;
+            changes++;
         }
+        
         if (ShellCommand.IsWindowsPlatform)
         {
-            return madeChanges;
+            return changes;
         }
 
         var bashCommand = ShellCommand.GetShellCommandInstance(
@@ -242,7 +243,7 @@ public class DockerManager
         LogCommand(bashCommand.ProcessFile, bashCommand.ProcessArguments);
         if (dryRun)
         {
-            return false;
+            return 0;
         }
         bashCommand.Execute();
         LogExitCode(bashCommand.ExitCode, bashCommand.ProcessFile, bashCommand.ProcessArguments);
@@ -251,10 +252,10 @@ public class DockerManager
             throw new ShellCommandException(1, $"Unable to set group 'docker' for '{volume.Source}' directory!");
         }
 
-        return true;
+        return 1;
     }
     
-    public bool RemoveVolume(string volumeName, bool dryRun = false)
+    public int RemoveVolume(string volumeName, bool dryRun = false)
     {
         _dockerCli.ClearArgsAndReset()
             .AddArg("volume")
@@ -263,13 +264,13 @@ public class DockerManager
         LogCommand();
         if (dryRun)
         {
-            return false;
+            return 0;
         }
         _dockerCli.Execute();
         LogExitCode();
         if (_dockerCli.IsSuccess(volumeName, true))
         {
-            return true;
+            return 1;
         }
 
         if (!_dockerCli.IsError($"Error response from daemon: get {volumeName}: no such volume", true))
@@ -278,7 +279,7 @@ public class DockerManager
         }
 
         LogMessage($"Volume '{volumeName}' not found!", "warn");
-        return false;
+        return 0;
     }
     
     public bool NetworkExists(string networkName)
@@ -293,7 +294,7 @@ public class DockerManager
         return _dockerCli.IsSuccess(networkName);
     }
 
-    public bool CreateNetwork(NetworkConfig network, bool dryRun = false)
+    public int CreateNetwork(NetworkConfig network, bool dryRun = false)
     {
         _dockerCli.ClearArgsAndReset()
             .AddArg("network")
@@ -306,25 +307,25 @@ public class DockerManager
         LogCommand();
         if (dryRun)
         {
-            return false;
+            return 0;
         }
         _dockerCli.Execute();
         LogExitCode();
         if (_dockerCli is { ExitCode: 0, StdOutput.Count: 1 }
             && !string.IsNullOrEmpty(_dockerCli.StdOutput.FirstOrDefault()))
         {
-            return true;
+            return 1;
         }
 
         if (_dockerCli.IsError($"network with name {network.Name} already exists", true))
         {
-            return false;
+            return 0;
         }
         
         throw new DockerCliException("network create", 1, $"Unable to create docker network '{network.Name}'!");
     }
     
-    public bool RemoveNetwork(string networkName, bool dryRun = false)
+    public int RemoveNetwork(string networkName, bool dryRun = false)
     {
         _dockerCli.ClearArgsAndReset()
             .AddArg("network")
@@ -333,13 +334,13 @@ public class DockerManager
         LogCommand();
         if (dryRun)
         {
-            return false;
+            return 0;
         }
         _dockerCli.Execute();
         LogExitCode();
         if (_dockerCli.IsSuccess(networkName, true))
         {
-            return true;
+            return 1;
         }
 
         if (!_dockerCli.IsError($"Error response from daemon: network {networkName} not found", true))
@@ -348,7 +349,7 @@ public class DockerManager
         }
 
         LogMessage($"Network '{networkName}' not found!", "warn");
-        return false;
+        return 0;
     }
     
     public bool PullImage(string image, string? tag = null)
@@ -413,119 +414,100 @@ public class DockerManager
     #endregion
 
     #region Composed methods (untestable)
-    public bool CheckAndCreateContainer(ContainerConfig config, bool dryRun = false)
-    {
-        var madeChanges = CreateNetworkIfMissing(config.Network, dryRun);
+    public int CheckAndCreateContainer(ContainerConfig config, bool dryRun = false) =>
+        CreateNetworkIfMissing(config.Network, dryRun)
+        + config.Volumes.Sum(volume => CreateVolumeIfMissing(volume, dryRun))
+        + CreateContainer(config, dryRun);
 
-        madeChanges = config.Volumes
-            .Aggregate(madeChanges, (current, volume) => CreateVolumeIfMissing(volume, dryRun) || current);
-
-        return CreateContainer(config, dryRun) || madeChanges;
-    }
-    
-    public bool UpgradeContainer(ContainerConfig config, bool replace = false, bool force = false, bool dryRun = false)
+    public int UpgradeContainer(ContainerConfig config, bool replace = false, bool force = false, bool dryRun = false)
     {
         if (!CheckIfNewVersionExists(config))
         {
             if (!force)
             {
                 LogMessage("No newer version found, nothing to do.", "msg");
-                return false;    
+                return 0;    
             }
             LogMessage("No newer version found, forcing container recreation!", "warn");
         }
 
-        var madeChanges = replace 
+        var changes = replace 
             ? StopAndRemoveContainer(config.PrimaryName, dryRun) 
             : DemoteContainer(config, dryRun);
     
-        madeChanges = CheckAndCreateContainer(config, dryRun) || madeChanges;
+        changes += CheckAndCreateContainer(config, dryRun);
         if (dryRun)
         {
             LogMessage("Container create finished.", "msg");
             LogMessage("Dry run: No changes were made!", "warn");
-            return madeChanges;
+            return changes;
         }
         
         LogMessage("Container updated successfully!", "msg");
-        return madeChanges;
+        return changes;
     }
     
-    public bool StopAndRemoveContainer(string containerName, bool dryRun = false)
-    {
-        var madeChanges = StopContainer(containerName, dryRun);
-        return RemoveContainer(containerName, dryRun) || madeChanges;
-    }
-    
-    public bool StopAndRenameContainer(string currentName, string newName, bool dryRun = false)
-    {
-        var madeChanges = StopContainer(currentName, dryRun);
-        return RenameContainer(currentName, newName, dryRun) || madeChanges;
-    }
-    
-    public bool DemoteContainer(ContainerConfig config, bool dryRun = false)
-    {
-        var madeChanges = true;
-        if (ContainerExists(config.BackupName))
-        {
-            madeChanges = StopAndRemoveContainer(config.BackupName, dryRun);
-        }
-    
-        return StopAndRenameContainer(config.PrimaryName, config.BackupName, dryRun)
-            || madeChanges;
-    }
+    public int StopAndRemoveContainer(string containerName, bool dryRun = false) =>
+        StopContainer(containerName, dryRun)
+        + RemoveContainer(containerName, dryRun);
 
-    public bool DowngradeContainer(ContainerConfig config, bool dryRun = false)
+    public int StopAndRenameContainer(string currentName, string newName, bool dryRun = false) =>
+        StopContainer(currentName, dryRun)
+        + RenameContainer(currentName, newName, dryRun);
+
+    public int DemoteContainer(ContainerConfig config, bool dryRun = false) =>
+        (ContainerExists(config.BackupName) 
+            ? StopAndRemoveContainer(config.BackupName, dryRun) 
+            : 0)
+        + StopAndRenameContainer(config.PrimaryName, config.BackupName, dryRun);
+
+    public int DowngradeContainer(ContainerConfig config, bool dryRun = false)
     {
         if (!ContainerExists(config.BackupName))
         {
             throw new DockerCliException("downgrade", 1, "Backup container is missing!");
         }
 
-        var madeChanges = false;
-        if (ContainerExists(config.PrimaryName))
-        {
-            madeChanges = StopAndRemoveContainer(config.PrimaryName, dryRun);    
-        }
-        
-        madeChanges = RenameContainer(config.BackupName, config.PrimaryName, dryRun)
-            || madeChanges;
-        return StartContainer(config.PrimaryName, dryRun) || madeChanges;
+        return (ContainerExists(config.PrimaryName)
+               ? StopAndRemoveContainer(config.PrimaryName, dryRun)
+               : 0)
+           + RenameContainer(config.BackupName, config.PrimaryName, dryRun)
+           + StartContainer(config.PrimaryName, dryRun);
     }
     
-    public bool PurgeContainer(ContainerConfig config, bool purge = false, bool dryRun = false)
+    public int PurgeContainer(ContainerConfig config, bool purge = false, bool dryRun = false)
     {
-        var madeChanges = StopAndRemoveContainer(config.PrimaryName, dryRun);
+        var changes = StopAndRemoveContainer(config.PrimaryName, dryRun);
         if (!purge)
         {
-            return madeChanges;
+            return changes;
         }
     
         if (ContainerExists(config.BackupName))
         {
             LogMessage("Backup container found, removing it.");
-            madeChanges = StopAndRemoveContainer(config.BackupName, dryRun) || madeChanges;
+            changes += StopAndRemoveContainer(config.BackupName, dryRun);
         }
 
-        madeChanges = config.Volumes
+        changes += config.Volumes
             .Where(e => e is { AutoCreate: true, IsBind: false })
-            .Aggregate(madeChanges, (current, volume) => RemoveVolume(volume.Source, dryRun) || current);
+            .Sum(volume => RemoveVolume(volume.Source, dryRun));
 
         if (config.Network is not null && !config.Network.IsShared)
         {
-            madeChanges = RemoveNetwork(config.Network.Name, dryRun) || madeChanges;
+            changes += RemoveNetwork(config.Network.Name, dryRun);
         }
 
-        return madeChanges;
+        return changes;
     }
 
-    public bool CreateVolumeIfMissing(VolumeConfig volume, bool dryRun = false)
+    public int CreateVolumeIfMissing(VolumeConfig volume, bool dryRun = false)
     {
         if (volume.IsBind)
         {
             if (Path.Exists(volume.Source))
             {
-                return false;
+                return 0;
             }
     
             if (!volume.AutoCreate)
@@ -538,7 +520,7 @@ public class DockerManager
         
         if (VolumeExists(volume.Source))
         {
-            return false;
+            return 0;
         }
     
         if (!volume.AutoCreate)
@@ -549,14 +531,14 @@ public class DockerManager
         return CreateVolume(volume.Source, dryRun);
     }
 
-    public bool CreateNetworkIfMissing(NetworkConfig? network, bool dryRun = false)
+    public int CreateNetworkIfMissing(NetworkConfig? network, bool dryRun = false)
     {
-        if (network is null || string.IsNullOrEmpty(network.Name))
+        if (network is null || string.IsNullOrEmpty(network.Name) || NetworkExists(network.Name))
         {
-            return false;
+            return 0;
         }
 
-        return !NetworkExists(network.Name) && CreateNetwork(network, dryRun);
+        return CreateNetwork(network, dryRun);
     }
     
     public bool CheckIfNewVersionExists(ContainerConfig config)
