@@ -247,7 +247,7 @@ public class DockerManager
         }
         bashCommand.Execute();
         LogExitCode(bashCommand.ExitCode, bashCommand.ProcessFile, bashCommand.ProcessArguments);
-        if (!bashCommand.IsSuccess(volume.Source))
+        if (!bashCommand.IsSuccess())
         {
             throw new ShellCommandException(1, $"Unable to set group 'docker' for '{volume.Source}' directory!");
         }
