@@ -411,6 +411,32 @@ public class DockerManager
         
         throw new DockerCliException("image inspect", 1, $"Unable to inspect image '{fullImageName}'!");
     }
+
+    public bool ArchiveDirectory(string targetDirectory, string archiveFile, bool dryRun = false)
+    {
+        var shellCommand = ShellCommand.GetShellCommandInstance(
+                shell: ShellCommand.NoShell,
+                command: ShellCommand.IsWindowsPlatform? "tar.exe" : "tar",
+                onStdOutput: CommandStdOutputHandler,
+                onErrOutput: CommandErrOutputHandler)
+            .AddArg($"--directory={Directory.GetParent(targetDirectory)}")
+            .AddArg("-pczf")
+            .AddArg(archiveFile)
+            .AddArg(Path.GetFileName(targetDirectory));
+        LogCommand(shellCommand.ProcessFile, shellCommand.ProcessArguments);
+        if (dryRun)
+        {
+            return false;
+        }
+        shellCommand.Execute();
+        LogExitCode(shellCommand.ExitCode, shellCommand.ProcessFile, shellCommand.ProcessArguments);
+        if (!shellCommand.IsSuccess())
+        {
+            throw new ShellCommandException(1, $"Unable to archive directory '{targetDirectory}' into '{archiveFile}'!");
+        }
+
+        return true;
+    }
     #endregion
 
     #region Composed methods (untestable)
