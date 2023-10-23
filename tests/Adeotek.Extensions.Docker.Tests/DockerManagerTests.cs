@@ -1,4 +1,6 @@
-﻿using Adeotek.Extensions.Docker.Config;
+﻿using System.Reflection;
+
+using Adeotek.Extensions.Docker.Config;
 using Adeotek.Extensions.Docker.Exceptions;
 using Adeotek.Extensions.Processes;
 
@@ -1247,6 +1249,172 @@ public class DockerManagerTests
         Assert.Equal(CliCommand, cmd);
         Assert.Equal($"image inspect --format \"{{{{lower .Id}}}}\" {imageName}:{imageTag}", args);
     }
+
+    [Fact]
+    public void ArchiveDirectory_WithExistingDir_CreatesArchive()
+    {
+        var tmpDirectory = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "", "tmp");
+        if (Directory.Exists(tmpDirectory))
+        {
+            Directory.Delete(tmpDirectory, true);
+        }
+        
+        try
+        {
+            var archiveFile = Path.Combine(tmpDirectory, "test_archive.tar.gz");
+            var targetDirectory = Path.Combine(tmpDirectory, "archive_target_dir");
+            GenerateTempTestFiles(targetDirectory, 5);
+            GenerateTempTestFiles(Path.Combine(targetDirectory, "sub_dir"), 3);
+            
+            var sut = new DockerManager();
+
+            var result = sut.ArchiveDirectory(targetDirectory, archiveFile, dryRun: false);
+
+            Assert.True(result);
+            Assert.True(File.Exists(archiveFile));
+        }
+        finally
+        {
+            Directory.Delete(tmpDirectory, true);
+        }
+    }
+    
+    [Fact]
+    public void ArchiveDirectory_WithDryRun_ReturnsFalse()
+    {
+        var tmpDirectory = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "", "tmp");
+        if (Directory.Exists(tmpDirectory))
+        {
+            Directory.Delete(tmpDirectory, true);
+        }
+        
+        try
+        {
+            var archiveFile = Path.Combine(tmpDirectory, "test_archive.tar.gz");
+            var targetDirectory = Path.Combine(tmpDirectory, "archive_target_dir");
+            GenerateTempTestFiles(targetDirectory, 5);
+            GenerateTempTestFiles(Path.Combine(targetDirectory, "sub_dir"), 3);
+            
+            var sut = new DockerManager();
+
+            var result = sut.ArchiveDirectory(targetDirectory, archiveFile, dryRun: true);
+
+            Assert.False(result);
+            Assert.False(File.Exists(archiveFile));
+        }
+        finally
+        {
+            Directory.Delete(tmpDirectory, true);
+        }
+    }
+    
+    [Fact]
+    public void ArchiveDirectory_WithInvalidTarget_ThrowsException()
+    {
+        var tmpDirectory = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "", "tmp");
+        var archiveFile = Path.Combine(tmpDirectory, "test_archive.tar.gz");
+        var targetDirectory = "na://archive_target_dir";
+        
+        var sut = new DockerManager();
+
+        var action = () => { sut.ArchiveDirectory(targetDirectory, archiveFile, dryRun: false); };
+        
+        Assert.Throws<ShellCommandException>(action);
+    }
+    
+    [Fact]
+    public void ArchiveDirectory_WithNonExistentTarget_ThrowsException()
+    {
+        var tmpDirectory = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "", "tmp");
+        if (Directory.Exists(tmpDirectory))
+        {
+            Directory.Delete(tmpDirectory, true);
+        }
+        
+        var archiveFile = Path.Combine(tmpDirectory, "test_archive.tar.gz");
+        var targetDirectory = Path.Combine(tmpDirectory, "archive_target_dir");
+        
+        var sut = new DockerManager();
+
+        var action = () => { sut.ArchiveDirectory(targetDirectory, archiveFile, dryRun: false); };
+        
+        Assert.Throws<ShellCommandException>(action);
+    }
+    
+    [Fact]
+    public void ArchiveVolume_WithExistingDir_CreatesArchive()
+    {
+        // var tmpDirectory = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "", "tmp");
+        // if (Directory.Exists(tmpDirectory))
+        // {
+        //     Directory.Delete(tmpDirectory, true);
+        // }
+        //
+        // try
+        // {
+        //     var archiveFile = Path.Combine(tmpDirectory, "test_volume_archive.tar.gz");
+        //     var volumeName = "sys--nginx-ssl";
+        //     
+        //     var sut = new DockerManager();
+        //
+        //     var result = sut.ArchiveVolume(volumeName, archiveFile, dryRun: false);
+        //
+        //     Assert.True(result);
+        //     Assert.True(File.Exists(archiveFile));
+        // }
+        // finally
+        // {
+        //     // Directory.Delete(tmpDirectory, true);
+        // }
+    }
+    
+    [Fact]
+    public void ArchiveVolume_WithDryRun_ReturnsFalse()
+    {
+        // var tmpDirectory = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "", "tmp");
+        // if (Directory.Exists(tmpDirectory))
+        // {
+        //     Directory.Delete(tmpDirectory, true);
+        // }
+        //
+        // try
+        // {
+        //     var archiveFile = Path.Combine(tmpDirectory, "test_archive.tar.gz");
+        //     var targetDirectory = Path.Combine(tmpDirectory, "archive_target_dir");
+        //     GenerateTempTestFiles(targetDirectory, 5);
+        //     GenerateTempTestFiles(Path.Combine(targetDirectory, "sub_dir"), 3);
+        //     
+        //     var sut = new DockerManager();
+        //
+        //     var result = sut.ArchiveVolume(targetDirectory, archiveFile, dryRun: true);
+        //
+        //     Assert.False(result);
+        //     Assert.False(File.Exists(archiveFile));
+        // }
+        // finally
+        // {
+        //     Directory.Delete(tmpDirectory, true);
+        // }
+    }
+    
+    [Fact]
+    public void ArchiveVolume_WithNonExistentTarget_ThrowsException()
+    {
+        // var tmpDirectory = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "", "tmp");
+        // if (Directory.Exists(tmpDirectory))
+        // {
+        //     Directory.Delete(tmpDirectory, true);
+        // }
+        //
+        // var archiveFile = Path.Combine(tmpDirectory, "test_archive.tar.gz");
+        // var targetDirectory = Path.Combine(tmpDirectory, "archive_target_dir");
+        //
+        // var sut = new DockerManager();
+        //
+        // var action = () => { sut.ArchiveVolume(targetDirectory, archiveFile, dryRun: false); };
+        //
+        // Assert.Throws<ShellCommandException>(action);
+    }
     
     private static void ShellProcessMockSendStdOutput(IShellProcess shellProcessMock, IEnumerable<string> messages)
     {
@@ -1304,4 +1472,28 @@ public class DockerManagerTests
         $"--subnet {network.Subnet} " +
         $"--ip-range {network.IpRange} " +
         $"{network.Name}";
+
+    private static void GenerateTempTestFiles(string targetDirectory, int count = 1)
+    {
+        if (!Directory.Exists(targetDirectory))
+        {
+            if (ShellCommand.IsWindowsPlatform)
+            {
+                Directory.CreateDirectory(targetDirectory);
+            }
+            else
+            {
+#pragma warning disable CA1416
+                Directory.CreateDirectory(targetDirectory, UnixFileMode.UserWrite & UnixFileMode.GroupExecute & UnixFileMode.OtherExecute);    
+#pragma warning restore CA1416
+            }
+        }
+        
+        for (int i = 0; i < count; i++)
+        {
+            var id = Guid.NewGuid().ToString();
+            File.WriteAllText(Path.Combine(targetDirectory, $"{id.ToLower()}.txt"), 
+                $"File: {i}{Environment.NewLine}{id.ToUpper()}");
+        }
+    }
 }

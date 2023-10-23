@@ -437,6 +437,37 @@ public class DockerManager
 
         return true;
     }
+    
+    public bool ArchiveVolume(string volumeName, string archiveFile, bool dryRun = false)
+    {
+        var tempVolumeSource = Directory.GetParent(archiveFile)?.ToString()
+            ?? throw new DockerCliException("run", 1, $"Invalid archive file path/name: {Directory.GetParent(archiveFile)}");
+        
+        _dockerCli.ClearArgsAndReset()
+            .AddArg("run")
+            .AddArg("--rm")
+            .AddVolumeArg(volumeName, "/source-volume", true)
+            .AddVolumeArg(tempVolumeSource, "/backup")
+            .AddArg("debian:12")
+            .AddArg("tar")
+            .AddArg("-C /source-volume")
+            .AddArg("-pczf")
+            .AddArg($"/backup/{Path.GetFileName(archiveFile)}")
+            .AddArg(".");
+        LogCommand();
+        if (dryRun)
+        {
+            return false;
+        }
+        _dockerCli.Execute();
+        LogExitCode();
+        if (_dockerCli.IsSuccess())
+        {
+            return true;
+        }
+
+        throw new ShellCommandException(1, $"Unable to archive volume '{volumeName}' into '{archiveFile}'!");
+    }
     #endregion
 
     #region Composed methods (untestable)
