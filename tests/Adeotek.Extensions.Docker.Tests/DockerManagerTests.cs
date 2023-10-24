@@ -1344,76 +1344,111 @@ public class DockerManagerTests
     [Fact]
     public void ArchiveVolume_WithExistingDir_CreatesArchive()
     {
-        // var tmpDirectory = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "", "tmp");
-        // if (Directory.Exists(tmpDirectory))
-        // {
-        //     Directory.Delete(tmpDirectory, true);
-        // }
-        //
-        // try
-        // {
-        //     var archiveFile = Path.Combine(tmpDirectory, "test_volume_archive.tar.gz");
-        //     var volumeName = "sys--nginx-ssl";
-        //     
-        //     var sut = new DockerManager();
-        //
-        //     var result = sut.ArchiveVolume(volumeName, archiveFile, dryRun: false);
-        //
-        //     Assert.True(result);
-        //     Assert.True(File.Exists(archiveFile));
-        // }
-        // finally
-        // {
-        //     // Directory.Delete(tmpDirectory, true);
-        // }
+        var archiveFilePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "";
+        var archiveFileName = "test_volume_archive.tar.gz";
+        var archiveFile = Path.Combine(archiveFilePath, archiveFileName);
+        var volumeName = "sys--nginx-ssl";
+        var expectedArgs = "run --rm " +
+                           $"-v {volumeName}:/source-volume:ro " +
+                           $"-v {archiveFilePath}:/backup " +
+                           "debian:12 " +
+                           "tar " +
+                           "-C /source-volume " +
+                           $"-pczf /backup/{archiveFileName} " +
+                           ".";
+        var sut = GetDockerManager(out var shellProcessMock);
+        string? cmd = null;
+        string? args = null;
+        
+        sut.OnDockerCliEvent += (_, e) =>
+        {
+            if (e is { Type: DockerCliEventType.Command, Data.Count: 2 })
+            {
+                cmd = e.Data.GetValueOrDefault("cmd");
+                args = e.Data.GetValueOrDefault("args");
+            }
+        };
+
+        shellProcessMock.StartAndWaitForExit().Returns(0);
+        
+        var result = sut.ArchiveVolume(volumeName, archiveFile, dryRun: false);
+        
+        Assert.True(result);
+        Assert.Equal(CliCommand, cmd);
+        Assert.Equal(expectedArgs, args);
     }
     
     [Fact]
     public void ArchiveVolume_WithDryRun_ReturnsFalse()
     {
-        // var tmpDirectory = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "", "tmp");
-        // if (Directory.Exists(tmpDirectory))
-        // {
-        //     Directory.Delete(tmpDirectory, true);
-        // }
-        //
-        // try
-        // {
-        //     var archiveFile = Path.Combine(tmpDirectory, "test_archive.tar.gz");
-        //     var targetDirectory = Path.Combine(tmpDirectory, "archive_target_dir");
-        //     GenerateTempTestFiles(targetDirectory, 5);
-        //     GenerateTempTestFiles(Path.Combine(targetDirectory, "sub_dir"), 3);
-        //     
-        //     var sut = new DockerManager();
-        //
-        //     var result = sut.ArchiveVolume(targetDirectory, archiveFile, dryRun: true);
-        //
-        //     Assert.False(result);
-        //     Assert.False(File.Exists(archiveFile));
-        // }
-        // finally
-        // {
-        //     Directory.Delete(tmpDirectory, true);
-        // }
+        var archiveFilePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "";
+        var archiveFileName = "test_volume_archive.tar.gz";
+        var archiveFile = Path.Combine(archiveFilePath, archiveFileName);
+        var volumeName = "sys--nginx-ssl";
+        var expectedArgs = "run --rm " +
+                           $"-v {volumeName}:/source-volume:ro " +
+                           $"-v {archiveFilePath}:/backup " +
+                           "debian:12 " +
+                           "tar " +
+                           "-C /source-volume " +
+                           $"-pczf /backup/{archiveFileName} " +
+                           ".";
+        var sut = GetDockerManager(out var shellProcessMock);
+        string? cmd = null;
+        string? args = null;
+        
+        sut.OnDockerCliEvent += (_, e) =>
+        {
+            if (e is { Type: DockerCliEventType.Command, Data.Count: 2 })
+            {
+                cmd = e.Data.GetValueOrDefault("cmd");
+                args = e.Data.GetValueOrDefault("args");
+            }
+        };
+
+        var result = sut.ArchiveVolume(volumeName, archiveFile, dryRun: true);
+
+        shellProcessMock.Received(0).StartAndWaitForExit();
+        Assert.False(result);
+        Assert.Equal(CliCommand, cmd);
+        Assert.Equal(expectedArgs, args);
     }
     
     [Fact]
-    public void ArchiveVolume_WithNonExistentTarget_ThrowsException()
+    public void ArchiveVolume_WithNonZeroCliResponse_ThrowsException()
     {
-        // var tmpDirectory = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "", "tmp");
-        // if (Directory.Exists(tmpDirectory))
-        // {
-        //     Directory.Delete(tmpDirectory, true);
-        // }
-        //
-        // var archiveFile = Path.Combine(tmpDirectory, "test_archive.tar.gz");
-        // var targetDirectory = Path.Combine(tmpDirectory, "archive_target_dir");
-        //
-        // var sut = new DockerManager();
-        //
-        // var action = () => { sut.ArchiveVolume(targetDirectory, archiveFile, dryRun: false); };
-        //
-        // Assert.Throws<ShellCommandException>(action);
+        var archiveFilePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "";
+        var archiveFileName = "test_volume_archive.tar.gz";
+        var archiveFile = Path.Combine(archiveFilePath, archiveFileName);
+        var volumeName = "sys--nginx-ssl";
+        var expectedArgs = "run --rm " +
+                           $"-v {volumeName}:/source-volume:ro " +
+                           $"-v {archiveFilePath}:/backup " +
+                           "debian:12 " +
+                           "tar " +
+                           "-C /source-volume " +
+                           $"-pczf /backup/{archiveFileName} " +
+                           ".";
+        var sut = GetDockerManager(out var shellProcessMock);
+        string? cmd = null;
+        string? args = null;
+        
+        sut.OnDockerCliEvent += (_, e) =>
+        {
+            if (e is { Type: DockerCliEventType.Command, Data.Count: 2 })
+            {
+                cmd = e.Data.GetValueOrDefault("cmd");
+                args = e.Data.GetValueOrDefault("args");
+            }
+        };
+        
+        shellProcessMock.StartAndWaitForExit().Returns(1);
+
+        var action = (() => { sut.ArchiveVolume(volumeName, archiveFile, dryRun: false); });
+
+        Assert.Throws<DockerCliException>(action);
+        Assert.Equal(CliCommand, cmd);
+        Assert.Equal(expectedArgs, args);
     }
     
     private static void ShellProcessMockSendStdOutput(IShellProcess shellProcessMock, IEnumerable<string> messages)

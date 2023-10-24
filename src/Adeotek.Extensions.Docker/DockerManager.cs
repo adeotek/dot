@@ -441,7 +441,7 @@ public class DockerManager
     public bool ArchiveVolume(string volumeName, string archiveFile, bool dryRun = false)
     {
         var tempVolumeSource = Directory.GetParent(archiveFile)?.ToString()
-            ?? throw new DockerCliException("run", 1, $"Invalid archive file path/name: {Directory.GetParent(archiveFile)}");
+            ?? throw new ShellCommandException( 1, $"Invalid archive file path/name: {Directory.GetParent(archiveFile)}");
         
         _dockerCli.ClearArgsAndReset()
             .AddArg("run")
@@ -466,7 +466,7 @@ public class DockerManager
             return true;
         }
 
-        throw new ShellCommandException(1, $"Unable to archive volume '{volumeName}' into '{archiveFile}'!");
+        throw new DockerCliException("run", 1, $"Unable to archive volume '{volumeName}' into '{archiveFile}'!");
     }
     #endregion
 
