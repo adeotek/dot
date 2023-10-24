@@ -11,13 +11,18 @@ internal sealed class ContainerUpSettings : ContainerSettings
     [DefaultValue(false)]
     public bool Upgrade { get; init; }
     
-    [Description("Replace existing container, instead of demoting it to 'backup'\nTo be used together with the '--update' option")]
+    [Description("Replace existing container, instead of demoting it to 'previous'\nOnly works together with the '--update' option")]
     [CommandOption("-r|--replace")]
     [DefaultValue(false)]
     public bool Replace { get; init; }
     
-    [Description("Force container recreation (update), even if the container is on the latest image\nTo be used together with the '--update' option")]
+    [Description("Force container recreation (update), even if the container is on the latest image\nOnly works together with the '--update' option")]
     [CommandOption("-f|--force")]
     [DefaultValue(false)]
     public bool Force { get; init; }
+    
+    [Description("Backup container volumes when updating\nOnly works together with the '--update' option)")]
+    [CommandOption("-b|--backup")]
+    [DefaultValue(false)]
+    public bool Backup { get; init; }
 }

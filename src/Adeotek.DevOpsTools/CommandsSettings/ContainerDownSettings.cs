@@ -15,4 +15,9 @@ internal sealed class ContainerDownSettings : ContainerSettings
     [CommandOption("-p|--purge")]
     [DefaultValue(false)]
     public bool Purge { get; init; }
+    
+    [Description("Backup container volumes, before doing any changes")]
+    [CommandOption("-b|--backup")]
+    [DefaultValue(false)]
+    public bool Backup { get; init; }
 }

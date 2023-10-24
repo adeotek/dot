@@ -49,6 +49,7 @@ The subcommands allows for the creation/update/removal of containers, based on c
 
 - `up` - Create/Update Docker containers based on YAML/JSON configuration files
 - `down` - Remove Docker containers based on YAML/JSON configuration files
+- `backup` - Backup Docker containers volumes based on YAML/JSON configuration files
 - `config` - YAML/JSON configuration files generator/checker
    - `validate` - Validate existing YAML/JSON configuration file
    - `sample` - Generate new sample YAML/JSON configuration file
