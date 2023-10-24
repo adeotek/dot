@@ -1254,17 +1254,29 @@ public class DockerManagerTests
     public void ArchiveDirectory_WithExistingDir_CreatesArchive()
     {
         var tmpDirectory = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "", "tmp");
-        var archiveFile = Path.Combine(tmpDirectory, $"test_archive_{DateTime.UtcNow:yyyyMMddHHmmss}.tar.gz");
-        var targetDirectory = Path.Combine(tmpDirectory, "archive_target_dir");
-        GenerateTempTestFiles(targetDirectory, 5);
-        GenerateTempTestFiles(Path.Combine(targetDirectory, "sub_dir"), 3);
+        if (Directory.Exists(tmpDirectory))
+        {
+            Directory.Delete(tmpDirectory, true);
+        }
         
-        var sut = new DockerManager();
+        try
+        {
+            var archiveFile = Path.Combine(tmpDirectory, "test_archive.tar.gz");
+            var targetDirectory = Path.Combine(tmpDirectory, "archive_target_dir");
+            GenerateTempTestFiles(targetDirectory, 5);
+            GenerateTempTestFiles(Path.Combine(targetDirectory, "sub_dir"), 3);
+            
+            var sut = new DockerManager();
 
-        var result = sut.ArchiveDirectory(targetDirectory, archiveFile, dryRun: false);
+            var result = sut.ArchiveDirectory(targetDirectory, archiveFile, dryRun: false);
 
-        Assert.True(result);
-        Assert.True(File.Exists(archiveFile));
+            Assert.True(result);
+            Assert.True(File.Exists(archiveFile));
+        }
+        finally
+        {
+            Directory.Delete(tmpDirectory, true);
+        }
     }
     
     [Fact]
@@ -1465,16 +1477,7 @@ public class DockerManagerTests
     {
         if (!Directory.Exists(targetDirectory))
         {
-            if (ShellCommand.IsWindowsPlatform)
-            {
-                Directory.CreateDirectory(targetDirectory);
-            }
-            else
-            {
-#pragma warning disable CA1416
-                Directory.CreateDirectory(targetDirectory, UnixFileMode.UserWrite & UnixFileMode.GroupExecute & UnixFileMode.OtherExecute);    
-#pragma warning restore CA1416
-            }
+            Directory.CreateDirectory(targetDirectory);
         }
         
         for (int i = 0; i < count; i++)
