@@ -17,7 +17,7 @@ internal class ContainerConfigValidateCommand : CommandBase<ContainerConfigValid
             hasErrors = true;
             PrintMessage("`Image` cannot be empty, nor contain any spaces!", _errorColor);
         }
-        if (string.IsNullOrEmpty(config.BaseName) || config.BaseName.Contains(' '))
+        if (string.IsNullOrEmpty(config.Name) || config.Name.Contains(' '))
         {
             hasErrors = true;
             PrintMessage("`BaseName` cannot be empty, nor contain any spaces!", _errorColor);
@@ -25,8 +25,8 @@ internal class ContainerConfigValidateCommand : CommandBase<ContainerConfigValid
 
         if ((config.Tag?.Contains(' ') ?? false)
             || (config.NamePrefix?.Contains(' ') ?? false)
-            || (config.PrimarySuffix?.Contains(' ') ?? false)
-            || (config.BackupSuffix?.Contains(' ') ?? false))
+            || (config.CurrentSuffix?.Contains(' ') ?? false)
+            || (config.PreviousSuffix?.Contains(' ') ?? false))
         {
             hasErrors = true;
             PrintMessage("`Image` cannot be empty!", _errorColor);

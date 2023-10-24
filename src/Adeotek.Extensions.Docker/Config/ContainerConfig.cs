@@ -11,9 +11,9 @@ public class ContainerConfig
     public string? Tag { get; set; }
     // Container Name
     public string? NamePrefix { get; set; }
-    public string BaseName { get; set; } = default!;
-    public string? PrimarySuffix { get; set; }
-    public string? BackupSuffix { get; set; }
+    public string Name { get; set; } = default!;
+    public string? CurrentSuffix { get; set; }
+    public string? PreviousSuffix { get; set; }
     // Ports
     public PortMapping[] Ports { get; set; } = Array.Empty<PortMapping>();
     // Volumes
@@ -30,7 +30,7 @@ public class ContainerConfig
     [JsonIgnore] [YamlIgnore]
     public string FullImageName => $"{Image}:{ImageTag}";
     [JsonIgnore] [YamlIgnore]
-    public string PrimaryName => $"{NamePrefix}{BaseName}{PrimarySuffix}";
+    public string CurrentName => $"{NamePrefix}{Name}{CurrentSuffix}";
     [JsonIgnore] [YamlIgnore]
-    public string BackupName => $"{NamePrefix}{BaseName}{BackupSuffix}";
+    public string PreviousName => $"{NamePrefix}{Name}{PreviousSuffix}";
 }

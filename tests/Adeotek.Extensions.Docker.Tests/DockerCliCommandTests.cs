@@ -220,7 +220,7 @@ public class DockerCliCommandTests
         ContainerConfig config = new()
         {
             Image = "SomeImage",
-            BaseName = "some-name",
+            Name = "some-name",
             Network = new NetworkConfig
             {
                 Name = "test-network",
@@ -248,7 +248,7 @@ public class DockerCliCommandTests
         ContainerConfig config = new()
         {
             Image = "SomeImage",
-            BaseName = "some-name",
+            Name = "some-name",
             Network = null
         };
         

@@ -23,9 +23,9 @@ dot container config sample /path/to/target_file.json --format json
 - `Image` [string] **required** : Docker image. (without a tag)
 - `Tag` [string] *optional* : Docker image tag. (defaults to `latest` if null/omitted)
 - `NamePrefix` [string] *optional* : Container (both primary and demoted) name prefix. (will not be used if null/omitted)
-- `BaseName` [string] *optional* : Container name.
-- `PrimarySuffix` [string] *optional* : Container (primary) name suffix. (will not be used if null/missing)
-- `BackupSuffix` [string] *optional* : Demoted container (backup container) name suffix. (will not be used if null/omitted)
+- `Name` [string] *optional* : Container name.
+- `CurrentSuffix` [string] *optional* : Current container name suffix. (will not be used if null/missing)
+- `PreviousSuffix` [string] *optional* : Previous (demoted) container name suffix. (will not be used if null/omitted)
 - `Ports` [array(PortMapping)] *optional* : The list of port mappings to be set for the container. (see **PortMapping** below)
 - `Volumes` [array(Volume)] *optional* : The list of volumes to be set for the container. (see **Volume** below)
 - `EnvVars` [dictionary(key-value)] *optional* : The list of environment variable with their values to be set for the container.

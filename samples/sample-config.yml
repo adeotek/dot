@@ -1,9 +1,9 @@
 Image: nginx
 Tag: latest
 NamePrefix: sys--
-BaseName: nginx-proxy
-PrimarySuffix:
-BackupSuffix: -bak
+Name: nginx-proxy
+CurrentSuffix:
+PreviousSuffix: -bak
 Ports:
   - Host: 8080
     Container: 80

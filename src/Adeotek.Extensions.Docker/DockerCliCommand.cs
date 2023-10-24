@@ -103,11 +103,11 @@ public class DockerCliCommand : ShellCommand
         }
         if (config.Network.Hostname != "")
         {
-            AddArg($"--hostname={config.Network.Hostname ?? config.PrimaryName}");
+            AddArg($"--hostname={config.Network.Hostname ?? config.CurrentName}");
         }
         if (config.Network.Alias != "")
         {
-            AddArg($"--network-alias={config.Network.Alias ?? config.BaseName}");
+            AddArg($"--network-alias={config.Network.Alias ?? config.Name}");
         }
 
         return this;

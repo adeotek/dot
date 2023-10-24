@@ -13,13 +13,13 @@ internal sealed class ContainerDownCommand : ContainerBaseCommand<ContainerDownS
         var dockerManager = GetDockerManager();
         if (Downgrade)
         {
-            if (!dockerManager.ContainerExists(config.BackupName))
+            if (!dockerManager.ContainerExists(config.PreviousName))
             {
-                PrintMessage($"Backup container '{config.BackupName}' not fond, rollback not possible!", _warningColor);
+                PrintMessage($"Previous container '{config.PreviousName}' not fond, rollback not possible!", _warningColor);
                 return;
             }
 
-            PrintMessage("Backup container found, downgrading.");
+            PrintMessage("Previous container found, downgrading.");
             Changes += dockerManager.DowngradeContainer(config, IsDryRun);
             if (IsDryRun)
             {
@@ -33,7 +33,7 @@ internal sealed class ContainerDownCommand : ContainerBaseCommand<ContainerDownS
             return;
         }
         
-        if (dockerManager.ContainerExists(config.PrimaryName))
+        if (dockerManager.ContainerExists(config.CurrentName))
         {
             PrintMessage("Container found, removing it.");
             Changes += dockerManager.PurgeContainer(config, Purge, IsDryRun);

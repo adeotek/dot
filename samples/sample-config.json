@@ -2,9 +2,9 @@
   "Image": "nginx",
   "Tag": "1.24.0",
   "NamePrefix": "sys--",
-  "BaseName": "nginx-proxy",
-  "PrimarySuffix": null,
-  "BackupSuffix": "-bak",
+  "Name": "nginx-proxy",
+  "CurrentSuffix": null,
+  "PreviousSuffix": "-bak",
   "Ports": [
     {
       "Host": 8080,

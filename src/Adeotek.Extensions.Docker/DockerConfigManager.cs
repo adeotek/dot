@@ -110,9 +110,9 @@ public class DockerConfigManager
             Image = "<image-name>",
             Tag = "<image-tag>",
             NamePrefix = "<optional-container-name-prefix>",
-            BaseName = "<base-container-name>",
-            PrimarySuffix = "<optional-container-name-suffix>",
-            BackupSuffix = "<optional-demoted-container-name-suffix>",
+            Name = "<base-container-name>",
+            CurrentSuffix = "<optional-container-name-suffix>",
+            PreviousSuffix = "<optional-demoted-container-name-suffix>",
             Ports = new PortMapping[]
             {
                 new() { Host = 8080, Container = 80 }, 

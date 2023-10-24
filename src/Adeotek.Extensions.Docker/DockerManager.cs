@@ -50,7 +50,7 @@ public class DockerManager
         _dockerCli.ClearArgsAndReset()
             .AddArg("run")
             .AddArg("-d")
-            .AddArg($"--name={config.PrimaryName}")
+            .AddArg($"--name={config.CurrentName}")
             .AddPortsArgs(config.Ports)
             .AddVolumesArgs(config.Volumes)
             .AddEnvVarsArgs(config.EnvVars)
@@ -71,12 +71,12 @@ public class DockerManager
             return 1;
         }
 
-        if (_dockerCli.IsError(config.PrimaryName))
+        if (_dockerCli.IsError(config.CurrentName))
         {
             return 0;
         }
         
-        throw new DockerCliException("run", 1, $"Unable to create container '{config.PrimaryName}'!");
+        throw new DockerCliException("run", 1, $"Unable to create container '{config.CurrentName}'!");
     }
     
     public int StartContainer(string containerName, bool dryRun = false)
@@ -489,7 +489,7 @@ public class DockerManager
         }
 
         var changes = replace 
-            ? StopAndRemoveContainer(config.PrimaryName, dryRun) 
+            ? StopAndRemoveContainer(config.CurrentName, dryRun) 
             : DemoteContainer(config, dryRun);
     
         changes += CheckAndCreateContainer(config, dryRun);
@@ -513,37 +513,37 @@ public class DockerManager
         + RenameContainer(currentName, newName, dryRun);
 
     public int DemoteContainer(ContainerConfig config, bool dryRun = false) =>
-        (ContainerExists(config.BackupName) 
-            ? StopAndRemoveContainer(config.BackupName, dryRun) 
+        (ContainerExists(config.PreviousName) 
+            ? StopAndRemoveContainer(config.PreviousName, dryRun) 
             : 0)
-        + StopAndRenameContainer(config.PrimaryName, config.BackupName, dryRun);
+        + StopAndRenameContainer(config.CurrentName, config.PreviousName, dryRun);
 
     public int DowngradeContainer(ContainerConfig config, bool dryRun = false)
     {
-        if (!ContainerExists(config.BackupName))
+        if (!ContainerExists(config.PreviousName))
         {
-            throw new DockerCliException("downgrade", 1, "Backup container is missing!");
+            throw new DockerCliException("downgrade", 1, "Previous container is missing!");
         }
 
-        return (ContainerExists(config.PrimaryName)
-               ? StopAndRemoveContainer(config.PrimaryName, dryRun)
+        return (ContainerExists(config.CurrentName)
+               ? StopAndRemoveContainer(config.CurrentName, dryRun)
                : 0)
-           + RenameContainer(config.BackupName, config.PrimaryName, dryRun)
-           + StartContainer(config.PrimaryName, dryRun);
+           + RenameContainer(config.PreviousName, config.CurrentName, dryRun)
+           + StartContainer(config.CurrentName, dryRun);
     }
     
     public int PurgeContainer(ContainerConfig config, bool purge = false, bool dryRun = false)
     {
-        var changes = StopAndRemoveContainer(config.PrimaryName, dryRun);
+        var changes = StopAndRemoveContainer(config.CurrentName, dryRun);
         if (!purge)
         {
             return changes;
         }
     
-        if (ContainerExists(config.BackupName))
+        if (ContainerExists(config.PreviousName))
         {
-            LogMessage("Backup container found, removing it.");
-            changes += StopAndRemoveContainer(config.BackupName, dryRun);
+            LogMessage("Previous container found, removing it.");
+            changes += StopAndRemoveContainer(config.PreviousName, dryRun);
         }
 
         changes += config.Volumes
@@ -602,7 +602,7 @@ public class DockerManager
     {
         PullImage(config.Image, config.ImageTag);
         var imageId = GetImageId(config.Image, config.ImageTag);
-        var containerImageId = GetContainerImageId(config.PrimaryName);
+        var containerImageId = GetContainerImageId(config.CurrentName);
         return !string.IsNullOrEmpty(imageId) 
             && !imageId.Equals(containerImageId, StringComparison.InvariantCultureIgnoreCase);
     }

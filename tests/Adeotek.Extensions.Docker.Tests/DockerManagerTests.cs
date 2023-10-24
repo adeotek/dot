@@ -143,7 +143,7 @@ public class DockerManagerTests
     
         ShellProcessMockSendErrOutput(shellProcessMock, new[]
         {
-            $"docker: Error response from daemon: Conflict. The container name \"/{config.PrimaryName}\" is already in use by container"
+            $"docker: Error response from daemon: Conflict. The container name \"/{config.CurrentName}\" is already in use by container"
         });
         
         var result = sut.CreateContainer(config);
@@ -1489,7 +1489,7 @@ public class DockerManagerTests
 
     private static string GetCreateContainerArgs(ContainerConfig config) =>
         "run -d " +
-        $"--name={config.NamePrefix}{config.BaseName}{config.PrimarySuffix} " +
+        $"--name={config.NamePrefix}{config.Name}{config.CurrentSuffix} " +
         $"-p {config.Ports[0].Host}:{config.Ports[0].Container} " +
         $"-p {config.Ports[1].Host}:{config.Ports[1].Container} " +
         $"-v {config.Volumes[0].Source}:{config.Volumes[0].Destination} " +
