@@ -2,9 +2,9 @@
   "Image": "nginx",
   "Tag": "1.24.0",
   "NamePrefix": "sys--",
-  "BaseName": "nginx-proxy",
-  "PrimarySuffix": null,
-  "BackupSuffix": "-bak",
+  "Name": "nginx-proxy",
+  "CurrentSuffix": null,
+  "PreviousSuffix": "-bak",
   "Ports": [
     {
       "Host": 8080,
@@ -33,13 +33,16 @@
     "TZ": "Europe/Bucharest"
   },
   "Network": {
-    "Name": "services-shared-net",
-    "Subnet": "172.21.1.1/24",
-    "IpRange": "172.21.1.1/26",
-    "IpAddress": "172.21.1.10",
+    "Name": "services-dedicated-net",
+    "Subnet": "172.20.1.1/24",
+    "IpRange": "172.20.1.1/26",
+    "IpAddress": "172.20.1.10",
     "Hostname": null,
     "Alias": null,
     "IsShared": false
+  },
+  "ExtraHosts": {
+    "host.docker.internal": "host-gateway"
   },
   "Restart": "unless-stopped"
 }

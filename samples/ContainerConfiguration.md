@@ -23,15 +23,18 @@ dot container config sample /path/to/target_file.json --format json
 - `Image` [string] **required** : Docker image. (without a tag)
 - `Tag` [string] *optional* : Docker image tag. (defaults to `latest` if null/omitted)
 - `NamePrefix` [string] *optional* : Container (both primary and demoted) name prefix. (will not be used if null/omitted)
-- `BaseName` [string] *optional* : Container name.
-- `PrimarySuffix` [string] *optional* : Container (primary) name suffix. (will not be used if null/missing)
-- `BackupSuffix` [string] *optional* : Demoted container (backup container) name suffix. (will not be used if null/omitted)
+- `Name` [string] *optional* : Container name.
+- `CurrentSuffix` [string] *optional* : Current container name suffix. (will not be used if null/missing)
+- `PreviousSuffix` [string] *optional* : Previous (demoted) container name suffix. (will not be used if null/omitted)
 - `Ports` [array(PortMapping)] *optional* : The list of port mappings to be set for the container. (see **PortMapping** below)
 - `Volumes` [array(Volume)] *optional* : The list of volumes to be set for the container. (see **Volume** below)
 - `EnvVars` [dictionary(key-value)] *optional* : The list of environment variable with their values to be set for the container.
   - `Key` [string] **required** : The name of the environment variable.
   - `Value` [string] **required** : The value of the environment variable.
 - `Network` [object(NetworkConfig)] *optional* : Container network configuration. (see **NetworkConfig** below)
+- `ExtraHosts` [dictionary(key-value)] *optional* : A list of extra entries in the container's /etc/hosts.
+  - `Key` [string] **required** : The key represents the host name.
+  - `Value` [string] **required** : The value is the target IP address (this supports a special `host-gateway` value that resolves to the internal IP address of the host).
 - `Restart` [string] *optional* : Container restart policy. The allowed values are: `always`, `on-failure` and `unless-stopped` (defaults to `unless-stopped` if null/omitted)
 
 **PortMapping**:

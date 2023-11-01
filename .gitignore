@@ -476,5 +476,9 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# VS Code
+.vscode
+
 # JetBrains
 .idea
+.fleet

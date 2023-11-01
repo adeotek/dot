@@ -50,11 +50,12 @@ public class DockerManager
         _dockerCli.ClearArgsAndReset()
             .AddArg("run")
             .AddArg("-d")
-            .AddArg($"--name={config.PrimaryName}")
+            .AddArg($"--name={config.CurrentName}")
             .AddPortsArgs(config.Ports)
             .AddVolumesArgs(config.Volumes)
             .AddEnvVarsArgs(config.EnvVars)
             .AddNetworkArgs(config)
+            .AddExtraHostsArgs(config.ExtraHosts)
             .AddRestartArg(config.Restart)
             .AddArg(config.FullImageName);
         
@@ -71,12 +72,12 @@ public class DockerManager
             return 1;
         }
 
-        if (_dockerCli.IsError(config.PrimaryName))
+        if (_dockerCli.IsError(config.CurrentName))
         {
             return 0;
         }
         
-        throw new DockerCliException("run", 1, $"Unable to create container '{config.PrimaryName}'!");
+        throw new DockerCliException("run", 1, $"Unable to create container '{config.CurrentName}'!");
     }
     
     public int StartContainer(string containerName, bool dryRun = false)
@@ -218,7 +219,7 @@ public class DockerManager
         return 1;
     }
 
-    public int CreateMappedVolume(VolumeConfig volume, bool dryRun = false)
+    public int CreateBindVolume(VolumeConfig volume, bool dryRun = false)
     {
         var changes = 0;
         LogCommand("mkdir", volume.Source);
@@ -247,7 +248,7 @@ public class DockerManager
         }
         bashCommand.Execute();
         LogExitCode(bashCommand.ExitCode, bashCommand.ProcessFile, bashCommand.ProcessArguments);
-        if (!bashCommand.IsSuccess(volume.Source))
+        if (!bashCommand.IsSuccess())
         {
             throw new ShellCommandException(1, $"Unable to set group 'docker' for '{volume.Source}' directory!");
         }
@@ -345,7 +346,7 @@ public class DockerManager
 
         if (!_dockerCli.IsError($"Error response from daemon: network {networkName} not found", true))
         {
-            throw new DockerCliException("volume rm", 1, $"Unable to remove volume '{networkName}'!");
+            throw new DockerCliException("volume rm", 1, $"Unable to remove network '{networkName}'!");
         }
 
         LogMessage($"Network '{networkName}' not found!", "warn");
@@ -411,6 +412,63 @@ public class DockerManager
         
         throw new DockerCliException("image inspect", 1, $"Unable to inspect image '{fullImageName}'!");
     }
+
+    public bool ArchiveDirectory(string targetDirectory, string archiveFile, bool dryRun = false)
+    {
+        var shellCommand = ShellCommand.GetShellCommandInstance(
+                shell: ShellCommand.NoShell,
+                command: ShellCommand.IsWindowsPlatform? "tar.exe" : "tar",
+                onStdOutput: CommandStdOutputHandler,
+                onErrOutput: CommandErrOutputHandler)
+            .AddArg($"--directory={Directory.GetParent(targetDirectory)}")
+            .AddArg("-pczf")
+            .AddArg(archiveFile)
+            .AddArg(Path.GetFileName(targetDirectory));
+        LogCommand(shellCommand.ProcessFile, shellCommand.ProcessArguments);
+        if (dryRun)
+        {
+            return false;
+        }
+        shellCommand.Execute();
+        LogExitCode(shellCommand.ExitCode, shellCommand.ProcessFile, shellCommand.ProcessArguments);
+        if (!shellCommand.IsSuccess())
+        {
+            throw new ShellCommandException(1, $"Unable to archive directory '{targetDirectory}' into '{archiveFile}'!");
+        }
+
+        return true;
+    }
+    
+    public bool ArchiveVolume(string volumeName, string archiveFile, bool dryRun = false)
+    {
+        var tempVolumeSource = Directory.GetParent(archiveFile)?.ToString()
+            ?? throw new ShellCommandException( 1, $"Invalid archive file path/name: {Directory.GetParent(archiveFile)}");
+        
+        _dockerCli.ClearArgsAndReset()
+            .AddArg("run")
+            .AddArg("--rm")
+            .AddVolumeArg(volumeName, "/source-volume", true)
+            .AddVolumeArg(tempVolumeSource, "/backup")
+            .AddArg("debian:12")
+            .AddArg("tar")
+            .AddArg("-C /source-volume")
+            .AddArg("-pczf")
+            .AddArg($"/backup/{Path.GetFileName(archiveFile)}")
+            .AddArg(".");
+        LogCommand();
+        if (dryRun)
+        {
+            return false;
+        }
+        _dockerCli.Execute();
+        LogExitCode();
+        if (_dockerCli.IsSuccess())
+        {
+            return true;
+        }
+
+        throw new DockerCliException("run", 1, $"Unable to archive volume '{volumeName}' into '{archiveFile}'!");
+    }
     #endregion
 
     #region Composed methods (untestable)
@@ -432,7 +490,7 @@ public class DockerManager
         }
 
         var changes = replace 
-            ? StopAndRemoveContainer(config.PrimaryName, dryRun) 
+            ? StopAndRemoveContainer(config.CurrentName, dryRun) 
             : DemoteContainer(config, dryRun);
     
         changes += CheckAndCreateContainer(config, dryRun);
@@ -456,37 +514,37 @@ public class DockerManager
         + RenameContainer(currentName, newName, dryRun);
 
     public int DemoteContainer(ContainerConfig config, bool dryRun = false) =>
-        (ContainerExists(config.BackupName) 
-            ? StopAndRemoveContainer(config.BackupName, dryRun) 
+        (ContainerExists(config.PreviousName) 
+            ? StopAndRemoveContainer(config.PreviousName, dryRun) 
             : 0)
-        + StopAndRenameContainer(config.PrimaryName, config.BackupName, dryRun);
+        + StopAndRenameContainer(config.CurrentName, config.PreviousName, dryRun);
 
     public int DowngradeContainer(ContainerConfig config, bool dryRun = false)
     {
-        if (!ContainerExists(config.BackupName))
+        if (!ContainerExists(config.PreviousName))
         {
-            throw new DockerCliException("downgrade", 1, "Backup container is missing!");
+            throw new DockerCliException("downgrade", 1, "Previous container is missing!");
         }
 
-        return (ContainerExists(config.PrimaryName)
-               ? StopAndRemoveContainer(config.PrimaryName, dryRun)
+        return (ContainerExists(config.CurrentName)
+               ? StopAndRemoveContainer(config.CurrentName, dryRun)
                : 0)
-           + RenameContainer(config.BackupName, config.PrimaryName, dryRun)
-           + StartContainer(config.PrimaryName, dryRun);
+           + RenameContainer(config.PreviousName, config.CurrentName, dryRun)
+           + StartContainer(config.CurrentName, dryRun);
     }
     
     public int PurgeContainer(ContainerConfig config, bool purge = false, bool dryRun = false)
     {
-        var changes = StopAndRemoveContainer(config.PrimaryName, dryRun);
+        var changes = StopAndRemoveContainer(config.CurrentName, dryRun);
         if (!purge)
         {
             return changes;
         }
     
-        if (ContainerExists(config.BackupName))
+        if (ContainerExists(config.PreviousName))
         {
-            LogMessage("Backup container found, removing it.");
-            changes += StopAndRemoveContainer(config.BackupName, dryRun);
+            LogMessage("Previous container found, removing it.");
+            changes += StopAndRemoveContainer(config.PreviousName, dryRun);
         }
 
         changes += config.Volumes
@@ -515,7 +573,7 @@ public class DockerManager
                 throw new DockerCliException("create container", 1, $"Docker volume '{volume.Source}' is missing or cannot be created!");
             }
 
-            return CreateMappedVolume(volume, dryRun);
+            return CreateBindVolume(volume, dryRun);
         }
         
         if (VolumeExists(volume.Source))
@@ -545,7 +603,7 @@ public class DockerManager
     {
         PullImage(config.Image, config.ImageTag);
         var imageId = GetImageId(config.Image, config.ImageTag);
-        var containerImageId = GetContainerImageId(config.PrimaryName);
+        var containerImageId = GetContainerImageId(config.CurrentName);
         return !string.IsNullOrEmpty(imageId) 
             && !imageId.Equals(containerImageId, StringComparison.InvariantCultureIgnoreCase);
     }

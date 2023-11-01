@@ -1,4 +1,6 @@
-﻿using Adeotek.Extensions.Docker.Config;
+﻿using System.Reflection;
+
+using Adeotek.Extensions.Docker.Config;
 using Adeotek.Extensions.Docker.Exceptions;
 using Adeotek.Extensions.Processes;
 
@@ -141,7 +143,7 @@ public class DockerManagerTests
     
         ShellProcessMockSendErrOutput(shellProcessMock, new[]
         {
-            $"docker: Error response from daemon: Conflict. The container name \"/{config.PrimaryName}\" is already in use by container"
+            $"docker: Error response from daemon: Conflict. The container name \"/{config.CurrentName}\" is already in use by container"
         });
         
         var result = sut.CreateContainer(config);
@@ -1247,6 +1249,207 @@ public class DockerManagerTests
         Assert.Equal(CliCommand, cmd);
         Assert.Equal($"image inspect --format \"{{{{lower .Id}}}}\" {imageName}:{imageTag}", args);
     }
+
+    [Fact]
+    public void ArchiveDirectory_WithExistingDir_CreatesArchive()
+    {
+        var tmpDirectory = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "", "tmp");
+        if (Directory.Exists(tmpDirectory))
+        {
+            Directory.Delete(tmpDirectory, true);
+        }
+        
+        try
+        {
+            var archiveFile = Path.Combine(tmpDirectory, "test_archive.tar.gz");
+            var targetDirectory = Path.Combine(tmpDirectory, "archive_target_dir");
+            GenerateTempTestFiles(targetDirectory, 5);
+            GenerateTempTestFiles(Path.Combine(targetDirectory, "sub_dir"), 3);
+            
+            var sut = new DockerManager();
+
+            var result = sut.ArchiveDirectory(targetDirectory, archiveFile, dryRun: false);
+
+            Assert.True(result);
+            Assert.True(File.Exists(archiveFile));
+        }
+        finally
+        {
+            Directory.Delete(tmpDirectory, true);
+        }
+    }
+    
+    [Fact]
+    public void ArchiveDirectory_WithDryRun_ReturnsFalse()
+    {
+        var tmpDirectory = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "", "tmp");
+        if (Directory.Exists(tmpDirectory))
+        {
+            Directory.Delete(tmpDirectory, true);
+        }
+        
+        try
+        {
+            var archiveFile = Path.Combine(tmpDirectory, "test_archive.tar.gz");
+            var targetDirectory = Path.Combine(tmpDirectory, "archive_target_dir");
+            GenerateTempTestFiles(targetDirectory, 5);
+            GenerateTempTestFiles(Path.Combine(targetDirectory, "sub_dir"), 3);
+            
+            var sut = new DockerManager();
+
+            var result = sut.ArchiveDirectory(targetDirectory, archiveFile, dryRun: true);
+
+            Assert.False(result);
+            Assert.False(File.Exists(archiveFile));
+        }
+        finally
+        {
+            Directory.Delete(tmpDirectory, true);
+        }
+    }
+    
+    [Fact]
+    public void ArchiveDirectory_WithInvalidTarget_ThrowsException()
+    {
+        var tmpDirectory = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "", "tmp");
+        var archiveFile = Path.Combine(tmpDirectory, "test_archive.tar.gz");
+        var targetDirectory = "na://archive_target_dir";
+        
+        var sut = new DockerManager();
+
+        var action = () => { sut.ArchiveDirectory(targetDirectory, archiveFile, dryRun: false); };
+        
+        Assert.Throws<ShellCommandException>(action);
+    }
+    
+    [Fact]
+    public void ArchiveDirectory_WithNonExistentTarget_ThrowsException()
+    {
+        var tmpDirectory = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "", "tmp");
+        if (Directory.Exists(tmpDirectory))
+        {
+            Directory.Delete(tmpDirectory, true);
+        }
+        
+        var archiveFile = Path.Combine(tmpDirectory, "test_archive.tar.gz");
+        var targetDirectory = Path.Combine(tmpDirectory, "archive_target_dir");
+        
+        var sut = new DockerManager();
+
+        var action = () => { sut.ArchiveDirectory(targetDirectory, archiveFile, dryRun: false); };
+        
+        Assert.Throws<ShellCommandException>(action);
+    }
+    
+    [Fact]
+    public void ArchiveVolume_WithExistingDir_CreatesArchive()
+    {
+        var archiveFilePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "";
+        var archiveFileName = "test_volume_archive.tar.gz";
+        var archiveFile = Path.Combine(archiveFilePath, archiveFileName);
+        var volumeName = "sys--nginx-ssl";
+        var expectedArgs = "run --rm " +
+                           $"-v {volumeName}:/source-volume:ro " +
+                           $"-v {archiveFilePath}:/backup " +
+                           "debian:12 " +
+                           "tar " +
+                           "-C /source-volume " +
+                           $"-pczf /backup/{archiveFileName} " +
+                           ".";
+        var sut = GetDockerManager(out var shellProcessMock);
+        string? cmd = null;
+        string? args = null;
+        
+        sut.OnDockerCliEvent += (_, e) =>
+        {
+            if (e is { Type: DockerCliEventType.Command, Data.Count: 2 })
+            {
+                cmd = e.Data.GetValueOrDefault("cmd");
+                args = e.Data.GetValueOrDefault("args");
+            }
+        };
+
+        shellProcessMock.StartAndWaitForExit().Returns(0);
+        
+        var result = sut.ArchiveVolume(volumeName, archiveFile, dryRun: false);
+        
+        Assert.True(result);
+        Assert.Equal(CliCommand, cmd);
+        Assert.Equal(expectedArgs, args);
+    }
+    
+    [Fact]
+    public void ArchiveVolume_WithDryRun_ReturnsFalse()
+    {
+        var archiveFilePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "";
+        var archiveFileName = "test_volume_archive.tar.gz";
+        var archiveFile = Path.Combine(archiveFilePath, archiveFileName);
+        var volumeName = "sys--nginx-ssl";
+        var expectedArgs = "run --rm " +
+                           $"-v {volumeName}:/source-volume:ro " +
+                           $"-v {archiveFilePath}:/backup " +
+                           "debian:12 " +
+                           "tar " +
+                           "-C /source-volume " +
+                           $"-pczf /backup/{archiveFileName} " +
+                           ".";
+        var sut = GetDockerManager(out var shellProcessMock);
+        string? cmd = null;
+        string? args = null;
+        
+        sut.OnDockerCliEvent += (_, e) =>
+        {
+            if (e is { Type: DockerCliEventType.Command, Data.Count: 2 })
+            {
+                cmd = e.Data.GetValueOrDefault("cmd");
+                args = e.Data.GetValueOrDefault("args");
+            }
+        };
+
+        var result = sut.ArchiveVolume(volumeName, archiveFile, dryRun: true);
+
+        shellProcessMock.Received(0).StartAndWaitForExit();
+        Assert.False(result);
+        Assert.Equal(CliCommand, cmd);
+        Assert.Equal(expectedArgs, args);
+    }
+    
+    [Fact]
+    public void ArchiveVolume_WithNonZeroCliResponse_ThrowsException()
+    {
+        var archiveFilePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "";
+        var archiveFileName = "test_volume_archive.tar.gz";
+        var archiveFile = Path.Combine(archiveFilePath, archiveFileName);
+        var volumeName = "sys--nginx-ssl";
+        var expectedArgs = "run --rm " +
+                           $"-v {volumeName}:/source-volume:ro " +
+                           $"-v {archiveFilePath}:/backup " +
+                           "debian:12 " +
+                           "tar " +
+                           "-C /source-volume " +
+                           $"-pczf /backup/{archiveFileName} " +
+                           ".";
+        var sut = GetDockerManager(out var shellProcessMock);
+        string? cmd = null;
+        string? args = null;
+        
+        sut.OnDockerCliEvent += (_, e) =>
+        {
+            if (e is { Type: DockerCliEventType.Command, Data.Count: 2 })
+            {
+                cmd = e.Data.GetValueOrDefault("cmd");
+                args = e.Data.GetValueOrDefault("args");
+            }
+        };
+        
+        shellProcessMock.StartAndWaitForExit().Returns(1);
+
+        var action = (() => { sut.ArchiveVolume(volumeName, archiveFile, dryRun: false); });
+
+        Assert.Throws<DockerCliException>(action);
+        Assert.Equal(CliCommand, cmd);
+        Assert.Equal(expectedArgs, args);
+    }
     
     private static void ShellProcessMockSendStdOutput(IShellProcess shellProcessMock, IEnumerable<string> messages)
     {
@@ -1286,7 +1489,7 @@ public class DockerManagerTests
 
     private static string GetCreateContainerArgs(ContainerConfig config) =>
         "run -d " +
-        $"--name={config.NamePrefix}{config.BaseName}{config.PrimarySuffix} " +
+        $"--name={config.NamePrefix}{config.Name}{config.CurrentSuffix} " +
         $"-p {config.Ports[0].Host}:{config.Ports[0].Container} " +
         $"-p {config.Ports[1].Host}:{config.Ports[1].Container} " +
         $"-v {config.Volumes[0].Source}:{config.Volumes[0].Destination} " +
@@ -1296,6 +1499,8 @@ public class DockerManagerTests
         $"--network={config.Network?.Name} --ip={config.Network?.IpAddress} " +
         $"--hostname={config.Network?.Hostname} " +
         $"--network-alias={config.Network?.Alias} " +
+        $"--add-host {config.ExtraHosts.First().Key}:{config.ExtraHosts.First().Value} " +
+        $"--add-host {config.ExtraHosts.Skip(1).First().Key}:{config.ExtraHosts.Skip(1).First().Value} " +
         $"--restart={config.Restart} " +
         $"{config.Image}:{config.Tag}";
 
@@ -1304,4 +1509,19 @@ public class DockerManagerTests
         $"--subnet {network.Subnet} " +
         $"--ip-range {network.IpRange} " +
         $"{network.Name}";
+
+    private static void GenerateTempTestFiles(string targetDirectory, int count = 1)
+    {
+        if (!Directory.Exists(targetDirectory))
+        {
+            Directory.CreateDirectory(targetDirectory);
+        }
+        
+        for (int i = 0; i < count; i++)
+        {
+            var id = Guid.NewGuid().ToString();
+            File.WriteAllText(Path.Combine(targetDirectory, $"{id.ToLower()}.txt"), 
+                $"File: {i}{Environment.NewLine}{id.ToUpper()}");
+        }
+    }
 }

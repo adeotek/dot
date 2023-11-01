@@ -1,9 +1,9 @@
 Image: nginx
 Tag: latest
 NamePrefix: sys--
-BaseName: nginx-proxy
-PrimarySuffix:
-BackupSuffix: -bak
+Name: nginx-proxy
+CurrentSuffix:
+PreviousSuffix: -bak
 Ports:
   - Host: 8080
     Container: 80
@@ -21,11 +21,13 @@ Volumes:
 EnvVars:
   TZ: Europe/Bucharest
 Network:
-  Name: services-shared-net
-  Subnet: 172.21.1.1/24
-  IpRange: 172.21.1.1/26
-  IpAddress: 172.21.1.10
+  Name: services-dedicated-net
+  Subnet: 172.20.1.1/24
+  IpRange: 172.20.1.1/26
+  IpAddress: 172.20.1.10
   Hostname:
   Alias:
   IsShared: false
+ExtraHosts:
+  host.docker.internal: host-gateway
 Restart: unless-stopped

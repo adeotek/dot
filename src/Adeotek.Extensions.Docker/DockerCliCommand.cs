@@ -103,13 +103,25 @@ public class DockerCliCommand : ShellCommand
         }
         if (config.Network.Hostname != "")
         {
-            AddArg($"--hostname={config.Network.Hostname ?? config.PrimaryName}");
+            AddArg($"--hostname={config.Network.Hostname ?? config.CurrentName}");
         }
         if (config.Network.Alias != "")
         {
-            AddArg($"--network-alias={config.Network.Alias ?? config.BaseName}");
+            AddArg($"--network-alias={config.Network.Alias ?? config.Name}");
         }
 
+        return this;
+    }
+    
+    public DockerCliCommand AddExtraHostArg(string name, string value) => 
+        AddArg($"--add-host {name}:{value}");
+    
+    public DockerCliCommand AddExtraHostsArgs(Dictionary<string, string> envVars)
+    {
+        foreach ((string name, string value) in envVars)
+        {
+            AddExtraHostArg(name, value);
+        }
         return this;
     }
 }

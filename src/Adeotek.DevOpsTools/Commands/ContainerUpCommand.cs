@@ -12,7 +12,7 @@ internal sealed class ContainerUpCommand : ContainerBaseCommand<ContainerUpSetti
     protected override void ExecuteContainerCommand(ContainerConfig config)
     {
         var dockerManager = GetDockerManager();
-        if (dockerManager.ContainerExists(config.PrimaryName))
+        if (dockerManager.ContainerExists(config.CurrentName))
         {
             if (!Upgrade)
             {

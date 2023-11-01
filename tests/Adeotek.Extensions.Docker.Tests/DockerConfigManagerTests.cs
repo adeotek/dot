@@ -23,8 +23,8 @@ public class DockerConfigManagerTests
         
         Assert.NotNull(result.FullImageName);
         Assert.NotEqual(string.Empty, result.FullImageName.Trim());
-        Assert.NotNull(result.PrimaryName);
-        Assert.NotEqual(string.Empty, result.PrimaryName.Trim());
+        Assert.NotNull(result.CurrentName);
+        Assert.NotEqual(string.Empty, result.CurrentName.Trim());
     }
     
     [Theory]

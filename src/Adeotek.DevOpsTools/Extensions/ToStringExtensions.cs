@@ -22,14 +22,14 @@ internal static class AnsiConsolePrintExtensions
     {
         var composer = new CustomComposer()
             .Style(SpecialColor, "[ContainerConfig]").LineBreak()
-            .Text("ContainerName:", NameLength).Style(SpecialValueColor, config.PrimaryName).LineBreak()
+            .Text("ContainerName:", NameLength).Style(SpecialValueColor, config.CurrentName).LineBreak()
             .Text("FullImageName:", NameLength).Style(SpecialValueColor, config.FullImageName).LineBreak()
             .Style(LabelColor, "Image:", NameLength).Style(ValueColor, config.Image).LineBreak()
             .Style(LabelColor, "Tag:", NameLength).Style(ValueColor, config.Tag ?? Null).LineBreak()
             .Style(LabelColor, "NamePrefix:", NameLength).Style(ValueColor, config.NamePrefix ?? Null).LineBreak()
-            .Style(LabelColor, "BaseName:", NameLength).Style(ValueColor, config.BaseName).LineBreak()
-            .Style(LabelColor, "PrimarySuffix:", NameLength).Style(ValueColor, config.PrimarySuffix ?? Null).LineBreak()
-            .Style(LabelColor, "BackupSuffix:", NameLength).Style(ValueColor, config.BackupSuffix ?? Null).LineBreak()
+            .Style(LabelColor, "Name:", NameLength).Style(ValueColor, config.Name).LineBreak()
+            .Style(LabelColor, "CurrentSuffix:", NameLength).Style(ValueColor, config.CurrentSuffix ?? Null).LineBreak()
+            .Style(LabelColor, "PreviousSuffix:", NameLength).Style(ValueColor, config.PreviousSuffix ?? Null).LineBreak()
             .Style(LabelColor, "Ports:").LineBreak().AddConfigPorts(config.Ports)
             .Style(LabelColor, "Volumes:").LineBreak().AddConfigVolumes(config.Volumes)
             .Style(LabelColor, "EnvVars:").LineBreak().AddConfigEnvVars(config.EnvVars)
@@ -46,6 +46,7 @@ internal static class AnsiConsolePrintExtensions
             .Style(LabelColor, "Hostname:", NameLength - SubValueIndent).Style(ValueColor, config.Network?.Hostname ?? Null).LineBreak()
             .Repeat(SubValuePrefix, SubValueIndent)
             .Style(LabelColor, "Alias:", NameLength - SubValueIndent).Style(ValueColor, config.Network?.Alias ?? Null).LineBreak()
+            .Style(LabelColor, "ExtraHosts:").LineBreak().AddConfigExtraHosts(config.ExtraHosts)
             .Style(LabelColor, "Restart:", NameLength).Style(ValueColor, config.Restart ?? Null).LineBreak();
 
         AnsiConsole.Write(composer);
@@ -108,6 +109,25 @@ internal static class AnsiConsolePrintExtensions
             composer.Repeat(SubValuePrefix, NameLength - 1).Space()
                 .Style(SpecialValueColor, key)
                 .Text("=").Style(ValueColor, value).LineBreak();
+        }
+
+        return composer;
+    }
+    
+    internal static CustomComposer AddConfigExtraHosts(this CustomComposer composer, Dictionary<string, string> extraHosts)
+    {
+        if (extraHosts.Count == 0)
+        {
+            composer.Repeat(SubValuePrefix, NameLength - 1).Space()
+                .Style(ValueColor, "[None]").LineBreak();
+            return composer;
+        }
+        
+        foreach ((string key, string value) in extraHosts)
+        {
+            composer.Repeat(SubValuePrefix, NameLength - 1).Space()
+                .Style(SpecialValueColor, key)
+                .Text(":").Style(ValueColor, value).LineBreak();
         }
 
         return composer;

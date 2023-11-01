@@ -1,6 +1,6 @@
 Image: <image-name>
 NamePrefix: <optional-container-name-prefix>
-BaseName: <base-container-name>
+Name: <base-container-name>
 Ports:
   - Host: 8080
     Container: 80
@@ -11,3 +11,5 @@ EnvVars:
   TZ: UTC
 Network:
   Name: <docker-network-name>
+ExtraHosts:
+  host.docker.internal: host-gateway
