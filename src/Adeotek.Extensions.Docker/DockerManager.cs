@@ -219,7 +219,7 @@ public class DockerManager
         return 1;
     }
 
-    public int CreateMappedVolume(VolumeConfig volume, bool dryRun = false)
+    public int CreateBindVolume(VolumeConfig volume, bool dryRun = false)
     {
         var changes = 0;
         LogCommand("mkdir", volume.Source);
@@ -573,7 +573,7 @@ public class DockerManager
                 throw new DockerCliException("create container", 1, $"Docker volume '{volume.Source}' is missing or cannot be created!");
             }
 
-            return CreateMappedVolume(volume, dryRun);
+            return CreateBindVolume(volume, dryRun);
         }
         
         if (VolumeExists(volume.Source))
