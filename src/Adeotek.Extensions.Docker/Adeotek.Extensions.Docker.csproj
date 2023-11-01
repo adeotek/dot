@@ -9,7 +9,7 @@
     <Product>AdeoTEK Extensions Docker</Product>
     <Authors>George Benjamin-Schonberger</Authors>
     <Copyright>George Benjamin-Schonberger 2023</Copyright>
-    <Version>0.1.2</Version>
+    <Version>0.1.6</Version>
   </PropertyGroup>
 
   <ItemGroup>

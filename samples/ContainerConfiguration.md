@@ -32,6 +32,9 @@ dot container config sample /path/to/target_file.json --format json
   - `Key` [string] **required** : The name of the environment variable.
   - `Value` [string] **required** : The value of the environment variable.
 - `Network` [object(NetworkConfig)] *optional* : Container network configuration. (see **NetworkConfig** below)
+- `ExtraHosts` [dictionary(key-value)] *optional* : A list of extra entries in the container's /etc/hosts.
+  - `Key` [string] **required** : The key represents the host name.
+  - `Value` [string] **required** : The value is the target IP address (this supports a special `host-gateway` value that resolves to the internal IP address of the host).
 - `Restart` [string] *optional* : Container restart policy. The allowed values are: `always`, `on-failure` and `unless-stopped` (defaults to `unless-stopped` if null/omitted)
 
 **PortMapping**:

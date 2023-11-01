@@ -55,6 +55,7 @@ public class DockerManager
             .AddVolumesArgs(config.Volumes)
             .AddEnvVarsArgs(config.EnvVars)
             .AddNetworkArgs(config)
+            .AddExtraHostsArgs(config.ExtraHosts)
             .AddRestartArg(config.Restart)
             .AddArg(config.FullImageName);
         
@@ -345,7 +346,7 @@ public class DockerManager
 
         if (!_dockerCli.IsError($"Error response from daemon: network {networkName} not found", true))
         {
-            throw new DockerCliException("volume rm", 1, $"Unable to remove volume '{networkName}'!");
+            throw new DockerCliException("volume rm", 1, $"Unable to remove network '{networkName}'!");
         }
 
         LogMessage($"Network '{networkName}' not found!", "warn");

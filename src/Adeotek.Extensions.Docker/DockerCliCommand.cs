@@ -112,4 +112,16 @@ public class DockerCliCommand : ShellCommand
 
         return this;
     }
+    
+    public DockerCliCommand AddExtraHostArg(string name, string value) => 
+        AddArg($"--add-host {name}:{value}");
+    
+    public DockerCliCommand AddExtraHostsArgs(Dictionary<string, string> envVars)
+    {
+        foreach ((string name, string value) in envVars)
+        {
+            AddExtraHostArg(name, value);
+        }
+        return this;
+    }
 }

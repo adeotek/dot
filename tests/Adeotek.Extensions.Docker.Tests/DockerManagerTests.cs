@@ -1499,6 +1499,8 @@ public class DockerManagerTests
         $"--network={config.Network?.Name} --ip={config.Network?.IpAddress} " +
         $"--hostname={config.Network?.Hostname} " +
         $"--network-alias={config.Network?.Alias} " +
+        $"--add-host {config.ExtraHosts.First().Key}:{config.ExtraHosts.First().Value} " +
+        $"--add-host {config.ExtraHosts.Skip(1).First().Key}:{config.ExtraHosts.Skip(1).First().Value} " +
         $"--restart={config.Restart} " +
         $"{config.Image}:{config.Tag}";
 

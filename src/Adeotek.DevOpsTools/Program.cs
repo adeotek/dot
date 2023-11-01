@@ -22,8 +22,6 @@ app.Configure(config =>
             .WithDescription("Create/Update Docker containers");
         ct.AddCommand<ContainerDownCommand>("down")
             .WithDescription("Remove Docker containers");
-        ct.AddCommand<ContainerDownCommand>("backup")
-            .WithDescription("Backup Docker container volumes");
         ct.AddBranch("config", cfg =>
         {
             cfg.SetDescription("Validate/Generate Docker containers config files");

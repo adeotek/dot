@@ -22,6 +22,8 @@ public class ContainerConfig
     public Dictionary<string, string> EnvVars { get; set; } = new();
     // Network
     public NetworkConfig? Network { get; set; }
+    // Extra hosts entries
+    public Dictionary<string, string> ExtraHosts { get; set; } = new();
     // Misc
     public string? Restart { get; set; }
     // Computed
