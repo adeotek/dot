@@ -48,5 +48,14 @@
     "host.docker.internal": "host-gateway",
     "some.other.docker.container": "172.17.0.11"
   },
-  "Restart": "<optional-restart-mode (default: unless-stopped)>"
+  "Restart": "<optional-restart-mode (default: unless-stopped)>",
+  "Command": "<container-startup-command>",
+  "CommandArgs": [
+    "--some-arg=123",
+    "--flag-arg"
+  ],
+  "RunCommandOptions": [
+    "-it",
+    "<any-docker-run-option>"
+  ]
 }

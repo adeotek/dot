@@ -46,6 +46,27 @@ public class DockerCliCommand : ShellCommand
     
     public DockerCliCommand AddFilterArg(string value, string? key = null) => 
         AddArg($"--filter {key ?? "name"}={value}");
+
+    public DockerCliCommand AddRunCommandOptionsArgs(string[] runCommandOptions) =>
+        runCommandOptions.Length == 0 
+            ? AddArg("-d")
+            : AddArg(string.Join(' ', runCommandOptions).Trim());
+    
+    public DockerCliCommand AddStartupCommandArgs(ContainerConfig config)
+    {
+        if (string.IsNullOrEmpty(config.Command))
+        {
+            return this;
+        }
+
+        AddArg(config.Command);
+        if (config.CommandArgs.Length > 0)
+        {
+            AddArg(string.Join(' ', config.CommandArgs).Trim());
+        }
+        
+        return this;
+    }
     
     public DockerCliCommand AddRestartArg(string? restart) => 
         restart == "" ? this : AddArg($"--restart={restart ?? "unless-stopped"}");

@@ -124,6 +124,34 @@ public class DockerManagerTests
     }
     
     [Fact]
+    public void CreateContainer_WithMissingAndNoStartupCommand_ReturnsOne()
+    {
+        var config = DockerConfigManager.GetSampleConfig();
+        config.Command = null;
+        var expectedArgs = GetCreateContainerArgs(config);
+        var sut = GetDockerManager(out var shellProcessMock);
+        string? cmd = null;
+        string? args = null;
+        
+        sut.OnDockerCliEvent += (_, e) =>
+        {
+            if (e is { Type: DockerCliEventType.Command, Data.Count: 2 })
+            {
+                cmd = e.Data.GetValueOrDefault("cmd");
+                args = e.Data.GetValueOrDefault("args");
+            }
+        };
+
+        ShellProcessMockSendStdOutput(shellProcessMock, new[] { "newly_created_container_id" });
+        
+        var result = sut.CreateContainer(config);
+        
+        Assert.Equal(1, result);
+        Assert.Equal(CliCommand, cmd);
+        Assert.Equal(expectedArgs, args);
+    }
+    
+    [Fact]
     public void CreateContainer_WithExisting_ReturnsZero()
     {
         var config = DockerConfigManager.GetSampleConfig();
@@ -1488,7 +1516,8 @@ public class DockerManagerTests
     }
 
     private static string GetCreateContainerArgs(ContainerConfig config) =>
-        "run -d " +
+        "run " +
+        (config.RunCommandOptions.Length > 0 ? string.Join(' ',config.RunCommandOptions).Trim() : "-d") + " " +
         $"--name={config.NamePrefix}{config.Name}{config.CurrentSuffix} " +
         $"-p {config.Ports[0].Host}:{config.Ports[0].Container} " +
         $"-p {config.Ports[1].Host}:{config.Ports[1].Container} " +
@@ -1502,7 +1531,8 @@ public class DockerManagerTests
         $"--add-host {config.ExtraHosts.First().Key}:{config.ExtraHosts.First().Value} " +
         $"--add-host {config.ExtraHosts.Skip(1).First().Key}:{config.ExtraHosts.Skip(1).First().Value} " +
         $"--restart={config.Restart} " +
-        $"{config.Image}:{config.Tag}";
+        $"{config.Image}:{config.Tag}" +
+        (!string.IsNullOrEmpty(config.Command) ? $" {config.Command} {string.Join(' ',config.CommandArgs).Trim()}" : "");
 
     private static string GetNetworkCreateArgs(NetworkConfig network) =>
         "network create -d bridge --attachable " +
