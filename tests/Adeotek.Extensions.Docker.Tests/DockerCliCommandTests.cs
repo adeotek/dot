@@ -65,6 +65,88 @@ public class DockerCliCommandTests
     }
     
     [Fact]
+    public void AddRunCommandOptionsArgs_WithNoOptions_SetArgsDefaultOption()
+    {
+        var expectedValue = "-d";
+
+        var result = _sut.ClearArgs()
+            .AddArg("--some-argument")
+            .AddRunCommandOptionsArgs(Array.Empty<string>());
+        
+        Assert.Equal(typeof(DockerCliCommand), result.GetType());
+        Assert.Equal(expectedValue, _sut.Args[1]);
+    }
+    
+    [Fact]
+    public void AddRunCommandOptionsArgs_WithTwoOptions_SetOptionsArgs()
+    {
+        var expectedValue = "-it -m 128";
+
+        var result = _sut.ClearArgs()
+            .AddArg("--some-argument")
+            .AddRunCommandOptionsArgs(new [] { "-it", "-m 128" });
+        
+        Assert.Equal(typeof(DockerCliCommand), result.GetType());
+        Assert.Equal(expectedValue, _sut.Args[1]);
+    }
+    
+    [Fact]
+    public void AddStartupCommandArgs_WithoutCommand_DoNotSetCommandArgs()
+    {
+        ContainerConfig config = new()
+        {
+            Command = null,
+            CommandArgs = new [] { "--verbose" }
+        };
+
+        var result = _sut.ClearArgs()
+            .AddArg("--some-argument")
+            .AddStartupCommandArgs(config);
+        
+        Assert.Equal(typeof(DockerCliCommand), result.GetType());
+        Assert.Single(_sut.Args);
+    }
+    
+    [Fact]
+    public void AddStartupCommandArgs_WithNoOptions_SetArgsDefaultOption()
+    {
+        ContainerConfig config = new()
+        {
+            Command = "serve"
+        };
+        var expectedValue = "serve";
+
+        var result = _sut.ClearArgs()
+            .AddArg("--some-argument")
+            .AddStartupCommandArgs(config);
+        
+        Assert.Equal(typeof(DockerCliCommand), result.GetType());
+        Assert.Equal(2, _sut.Args.Length);
+        Assert.Equal(expectedValue, _sut.Args[1]);
+    }
+    
+    [Fact]
+    public void AddStartupCommandArgs_WithTwoOptions_SetOptionsArgs()
+    {
+        ContainerConfig config = new()
+        {
+            Command = "serve",
+            CommandArgs = new [] { "-v", "--debug" }
+        };
+        var expectedCommandArg = "serve";
+        var expectedCommandArgsArg = "-v --debug";
+
+        var result = _sut.ClearArgs()
+            .AddArg("--some-argument")
+            .AddStartupCommandArgs(config);
+        
+        Assert.Equal(typeof(DockerCliCommand), result.GetType());
+        Assert.Equal(3, _sut.Args.Length);
+        Assert.Equal(expectedCommandArg, _sut.Args[1]);
+        Assert.Equal(expectedCommandArgsArg, _sut.Args[2]);
+    }
+    
+    [Fact]
     public void AddPortArg_SetArgsDictValue()
     {
         var expectedValue = "-p 1234:9876";

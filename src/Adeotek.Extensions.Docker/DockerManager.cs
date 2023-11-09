@@ -49,7 +49,7 @@ public class DockerManager
     {
         _dockerCli.ClearArgsAndReset()
             .AddArg("run")
-            .AddArg("-d")
+            .AddRunCommandOptionsArgs(config.RunCommandOptions)
             .AddArg($"--name={config.CurrentName}")
             .AddPortsArgs(config.Ports)
             .AddVolumesArgs(config.Volumes)
@@ -57,7 +57,8 @@ public class DockerManager
             .AddNetworkArgs(config)
             .AddExtraHostsArgs(config.ExtraHosts)
             .AddRestartArg(config.Restart)
-            .AddArg(config.FullImageName);
+            .AddArg(config.FullImageName)
+            .AddStartupCommandArgs(config);
         
         LogCommand();
         if (dryRun)
