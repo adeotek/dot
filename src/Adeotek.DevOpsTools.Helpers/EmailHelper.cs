@@ -40,7 +40,7 @@ public static class EmailHelper
             From = new MailAddress(config.FromAddress, config.FromLabel)
         };
         message.To.Add(new MailAddress(config.ToAddress));
-        message.Subject = config.Subject ?? string.Empty;
+        message.Subject = config.MessageSubject ?? string.Empty;
         message.Priority = MailPriority.High;
         message.IsBodyHtml = true;
         message.Body = messageBody;

@@ -40,5 +40,12 @@ app.Configure(config =>
         bom.AddCommand<Utf8BomRemoveCommand>("remove")
             .WithDescription("Add UTF8 Signature (BOM) from files");
     });
+    
+    config.AddBranch("email", email =>
+    {
+        email.SetDescription("Email tools");
+        email.AddCommand<EmailSendCommand>("send")
+            .WithDescription("Send an email message based on a configuration file or provided options");
+    });
 });
 return app.Run(args);

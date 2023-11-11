@@ -64,5 +64,12 @@ This tool allows for adding/removing/checking the BOM (Byte Order Mark) signatur
 - `add` - Add BOM (Byte Order Mark) to any UTF-8 files that do not have it
 - `remove` - Remove BOM (Byte Order Mark) from any UTF-8 files that have it
 
-In order to only check the BOM existence, without changing it, use the `add`/`remove` subcommands together with the `--dry-run` option. 
+To only check if BOM is present, without changing it, use the `add`/`remove` subcommands together with the `--dry-run` option. 
 
+### `email`
+
+Email tools.
+
+#### Subcommands
+
+- `send` - Send an email message based on a configuration file or provided options

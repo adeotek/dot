@@ -119,7 +119,7 @@ internal abstract class CommandBase<TSettings> : Command<TSettings> where TSetti
         }
         
         AnsiConsole.Write(new CustomComposer()
-            .Text("Running ").Style("purple", "DOT Container Tool").Space()
+            .Text("Running ").Style("purple", "dot - DevOps Tools").Space()
             .Style("green", $"v{_version}").LineBreak()
             .Repeat("gray", '=', _separatorLength).LineBreak());
     }

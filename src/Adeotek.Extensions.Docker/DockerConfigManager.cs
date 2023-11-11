@@ -1,10 +1,9 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 
+using Adeotek.Extensions.ConfigFiles;
 using Adeotek.Extensions.Docker.Config;
-using Adeotek.Extensions.Docker.Exceptions;
 
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -12,72 +11,10 @@ using YamlDotNet.Serialization.NamingConventions;
 namespace Adeotek.Extensions.Docker;
 
 [ExcludeFromCodeCoverage]
-public class DockerConfigManager
+public static class DockerConfigManager
 {
-    public static ContainerConfig LoadContainerConfig(string? configFile)
-    {
-        if (string.IsNullOrEmpty(configFile))
-        {
-            throw new DockerConfigException("Null or empty config file name", configFile);
-        }
-
-        if (!File.Exists(configFile))
-        {
-            throw new DockerConfigException("The config file does not exist", configFile);
-        }
-        
-        var configContent = File.ReadAllText(configFile, Encoding.UTF8);
-        if (string.IsNullOrEmpty(configContent))
-        {
-            throw new DockerConfigException("The config file is empty!", configFile);
-        }
-
-        if (Path.GetExtension(configFile).ToLower() == ".json")
-        {
-            return LoadContainerConfigFromJsonString(configContent);
-        }
-
-        if ((new [] {".yaml", ".yml"}).Contains(Path.GetExtension(configFile).ToLower()))
-        {
-            return LoadContainerConfigFromYamlString(configContent);
-        }
-
-        throw new DockerConfigException("The config file is not in a valid format", configFile);
-    }
-
-    public static ContainerConfig LoadContainerConfigFromJsonString(string data)
-    {
-        try
-        {
-            return JsonSerializer.Deserialize<ContainerConfig>(data, 
-                    new JsonSerializerOptions { AllowTrailingCommas = true })
-                ?? throw new DockerConfigException("Unable to deserialize JSON config data");
-        }
-        catch (DockerConfigException)
-        {
-            throw;
-        }
-        catch (Exception e)
-        {
-            throw new DockerConfigException("Config data is not in a valid JSON format", null, e);
-        }
-    }
-    
-    public static ContainerConfig LoadContainerConfigFromYamlString(string data)
-    {
-        try
-        {
-            return new DeserializerBuilder()
-                .WithNamingConvention(PascalCaseNamingConvention.Instance) 
-                .Build()
-                .Deserialize<ContainerConfig>(data)
-                   ?? throw new DockerConfigException("Unable to deserialize YAML config data");
-        }
-        catch (Exception e)
-        {
-            throw new DockerConfigException("Config data is not in a valid YAML format", null, e);
-        }
-    }
+    public static ContainerConfig LoadContainerConfig(string? configFile) => 
+        ConfigManager.LoadConfig<ContainerConfig>(configFile);
     
     public static string GetSerializedSampleConfig(string format)
     {
@@ -101,7 +38,7 @@ public class DockerConfigManager
         }
         catch (Exception e)
         {
-            throw new DockerConfigException("Config data is not in a valid YAML format", null, e);
+            throw new ConfigFileException("Config data is not in a valid YAML format", null, e);
         }
     }
 
