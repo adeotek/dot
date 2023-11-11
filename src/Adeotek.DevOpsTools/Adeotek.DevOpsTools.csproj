@@ -33,6 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Adeotek.DevOpsTools.Helpers\Adeotek.DevOpsTools.Helpers.csproj" />
     <ProjectReference Include="..\Adeotek.Extensions.Docker\Adeotek.Extensions.Docker.csproj" />
     <ProjectReference Include="..\Adeotek.Extensions.Processes\Adeotek.Extensions.Processes.csproj" />
   </ItemGroup>
