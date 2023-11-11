@@ -11,7 +11,7 @@ using Spectre.Console.Cli;
 
 namespace Adeotek.DevOpsTools.Commands;
 
-internal class EmailSendCommand : CommandBase<EmailSettings>
+internal class EmailSendCommand : CommandBase<EmailSendSettings>
 {
     private const int NameLength = 18;
     private const string LabelColor = "gray";
@@ -19,7 +19,9 @@ internal class EmailSendCommand : CommandBase<EmailSettings>
     private const string SpecialValueColor = "turquoise4";
     private const string SpecialColor = "teal";
     
-    protected override int ExecuteCommand(CommandContext context, EmailSettings settings)
+    protected override string CommandName => "email";
+    
+    protected override int ExecuteCommand(CommandContext context, EmailSendSettings settings)
     {
         try
         {
@@ -58,71 +60,71 @@ internal class EmailSendCommand : CommandBase<EmailSettings>
         }
     }
 
-    private static EmailConfig GetConfiguration(EmailSettings settings) =>
-        !string.IsNullOrEmpty(settings.ConfigFile)
-            ? LoadConfiguration(settings)
+    private static EmailConfig GetConfiguration(EmailSendSettings sendSettings) =>
+        !string.IsNullOrEmpty(sendSettings.ConfigFile)
+            ? LoadConfiguration(sendSettings)
             : new EmailConfig
             {
-                FromAddress = settings.FromAddress ?? throw new ArgumentException("Invalid option", nameof(settings.FromAddress)),
-                ToAddress = settings.ToAddress ?? throw new ArgumentException("Invalid option", nameof(settings.ToAddress)),
-                MessageSubject = settings.MessageSubject ?? throw new ArgumentException("Invalid option", nameof(settings.MessageSubject)),
-                MessageBody = settings.MessageBody ?? throw new ArgumentException("Invalid option", nameof(settings.MessageBody)),
-                ReadBodyFromFile = settings.ReadBodyFromFile ?? false,
+                FromAddress = sendSettings.FromAddress ?? throw new ArgumentException("Invalid option", nameof(sendSettings.FromAddress)),
+                ToAddress = sendSettings.ToAddress ?? throw new ArgumentException("Invalid option", nameof(sendSettings.ToAddress)),
+                MessageSubject = sendSettings.MessageSubject ?? throw new ArgumentException("Invalid option", nameof(sendSettings.MessageSubject)),
+                MessageBody = sendSettings.MessageBody ?? throw new ArgumentException("Invalid option", nameof(sendSettings.MessageBody)),
+                ReadBodyFromFile = sendSettings.ReadBodyFromFile ?? false,
                 SmtpConfig = new SmtpConfig
                 {
-                    Host = settings.SmtpHost ?? throw new ArgumentException("Invalid option", nameof(settings.SmtpHost)),
-                    Port = settings.SmtpPort ?? 25,
-                    User = settings.SmtpUser,
-                    Password = settings.SmtpPassword,
-                    UseSsl = settings.UseSsl ?? false
+                    Host = sendSettings.SmtpHost ?? throw new ArgumentException("Invalid option", nameof(sendSettings.SmtpHost)),
+                    Port = sendSettings.SmtpPort ?? 25,
+                    User = sendSettings.SmtpUser,
+                    Password = sendSettings.SmtpPassword,
+                    UseSsl = sendSettings.UseSsl ?? false
                 }
             };
 
-    private static EmailConfig LoadConfiguration(EmailSettings settings)
+    private static EmailConfig LoadConfiguration(EmailSendSettings sendSettings)
     {
-        var config = ConfigManager.LoadConfig<EmailConfig>(settings.ConfigFile);
+        var config = ConfigManager.LoadConfig<EmailConfig>(sendSettings.ConfigFile);
         // Override config file values with command options
-        if (!string.IsNullOrEmpty(settings.FromAddress))
+        if (!string.IsNullOrEmpty(sendSettings.FromAddress))
         {
-            config.FromAddress = settings.FromAddress;
+            config.FromAddress = sendSettings.FromAddress;
         }
-        if (!string.IsNullOrEmpty(settings.ToAddress))
+        if (!string.IsNullOrEmpty(sendSettings.ToAddress))
         {
-            config.ToAddress = settings.ToAddress;
+            config.ToAddress = sendSettings.ToAddress;
         }
-        if (settings.MessageSubject is not null)
+        if (sendSettings.MessageSubject is not null)
         {
-            config.MessageSubject = settings.MessageSubject;
+            config.MessageSubject = sendSettings.MessageSubject;
         }
-        if (!string.IsNullOrEmpty(settings.MessageBody))
+        if (!string.IsNullOrEmpty(sendSettings.MessageBody))
         {
-            config.MessageBody = settings.MessageBody;
+            config.MessageBody = sendSettings.MessageBody;
         }
-        if (settings.ReadBodyFromFile is not null)
+        if (sendSettings.ReadBodyFromFile is not null)
         {
-            config.ReadBodyFromFile = settings.ReadBodyFromFile.Value;
+            config.ReadBodyFromFile = sendSettings.ReadBodyFromFile.Value;
         }
         // Override smtp config file values with command options
-        if (!string.IsNullOrEmpty(settings.SmtpHost))
+        if (!string.IsNullOrEmpty(sendSettings.SmtpHost))
         {
-            config.SmtpConfig.Host = settings.SmtpHost;
+            config.SmtpConfig.Host = sendSettings.SmtpHost;
         }
 
-        if (settings.SmtpPort is not null)
+        if (sendSettings.SmtpPort is not null)
         {
-            config.SmtpConfig.Port = settings.SmtpPort.Value;
+            config.SmtpConfig.Port = sendSettings.SmtpPort.Value;
         }
-        if (settings.SmtpUser is not null)
+        if (sendSettings.SmtpUser is not null)
         {
-            config.SmtpConfig.User = settings.SmtpUser;
+            config.SmtpConfig.User = sendSettings.SmtpUser;
         }
-        if (settings.SmtpPassword is not null)
+        if (sendSettings.SmtpPassword is not null)
         {
-            config.SmtpConfig.Password = settings.SmtpPassword;
+            config.SmtpConfig.Password = sendSettings.SmtpPassword;
         }
-        if (settings.UseSsl is not null)
+        if (sendSettings.UseSsl is not null)
         {
-            config.SmtpConfig.UseSsl = settings.UseSsl.Value;
+            config.SmtpConfig.UseSsl = sendSettings.UseSsl.Value;
         }
         return config;
     }

@@ -5,47 +5,54 @@ using Spectre.Console;
 using Spectre.Console.Cli;
 
 CommandApp app = new();
-app.Configure(config =>
+app.Configure(configurator =>
 {
-    config.SetApplicationName("dot");
-    config.SetHelpProvider(new DefaultHelpProvider(config.Settings));
-    config.SetExceptionHandler(e =>
+    configurator.SetApplicationName("dot");
+    configurator.SetHelpProvider(new DefaultHelpProvider(configurator.Settings));
+    configurator.SetExceptionHandler(e =>
     {
         AnsiConsole.WriteException(e, ExceptionFormats.ShortenEverything);
         return 1;
     });
     
-    config.AddBranch("container", ct =>
+    configurator.AddBranch("container", container =>
     {
-        ct.SetDescription("Manage Docker containers");
-        ct.AddCommand<ContainerUpCommand>("up")
+        container.SetDescription("Manage Docker containers");
+        container.AddCommand<ContainerUpCommand>("up")
             .WithDescription("Create/Update Docker containers");
-        ct.AddCommand<ContainerDownCommand>("down")
+        container.AddCommand<ContainerDownCommand>("down")
             .WithDescription("Remove Docker containers");
-        ct.AddBranch("config", cfg =>
+        container.AddBranch("config", config =>
         {
-            cfg.SetDescription("Validate/Generate Docker containers config files");
-            cfg.AddCommand<ContainerConfigValidateCommand>("validate")
+            config.SetDescription("Validate/Generate Docker containers config files");
+            config.AddCommand<ContainerConfigValidateCommand>("validate")
                 .WithDescription("Validate Docker container config file");
-            cfg.AddCommand<ContainerConfigSampleCommand>("sample")
+            config.AddCommand<ContainerConfigSampleCommand>("sample")
                 .WithDescription("Generate Docker container config sample file");
         });
     });
     
-    config.AddBranch("utf8bom", bom =>
+    configurator.AddBranch("utf8bom", utf8Bom =>
     {
-        bom.SetDescription("Add/Remove/Check BOM (Byte Order Mark) signature of UTF-8 encoded files");
-        bom.AddCommand<Utf8BomAddCommand>("add")
+        utf8Bom.SetDescription("Add/Remove/Check BOM (Byte Order Mark) signature of UTF-8 encoded files");
+        utf8Bom.AddCommand<Utf8BomAddCommand>("add")
             .WithDescription("Add UTF8 Signature (BOM) to files");
-        bom.AddCommand<Utf8BomRemoveCommand>("remove")
+        utf8Bom.AddCommand<Utf8BomRemoveCommand>("remove")
             .WithDescription("Add UTF8 Signature (BOM) from files");
     });
     
-    config.AddBranch("email", email =>
+    configurator.AddBranch("email", email =>
     {
         email.SetDescription("Email tools");
         email.AddCommand<EmailSendCommand>("send")
             .WithDescription("Send an email message based on a configuration file or provided options");
+    });
+    
+    configurator.AddBranch("port", port =>
+    {
+        port.SetDescription("TCP ports testing");
+        port.AddCommand<PortListenCommand>("listen")
+            .WithDescription("Start a listener on the provided TCP port");
     });
 });
 return app.Run(args);

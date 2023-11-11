@@ -7,6 +7,8 @@ namespace Adeotek.DevOpsTools.Commands;
 
 internal class ContainerConfigValidateCommand : CommandBase<ContainerConfigValidateSettings>
 {
+    protected override string CommandName => "container config";
+    
     protected override int ExecuteCommand(CommandContext context, ContainerConfigValidateSettings settings)
     {
         var config = DockerConfigManager.LoadContainerConfig(settings.ConfigFile);

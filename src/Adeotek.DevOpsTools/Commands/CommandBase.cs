@@ -28,6 +28,7 @@ internal abstract class CommandBase<TSettings> : Command<TSettings> where TSetti
     protected bool IsVerbose => _settings?.Verbose ?? false;
     protected bool IsSilent => _settings?.Silent ?? false;
     
+    protected abstract string CommandName { get; }
     protected abstract int ExecuteCommand(CommandContext context, TSettings settings);
     
     public override int Execute([NotNull] CommandContext context, [NotNull] TSettings settings)
@@ -119,7 +120,7 @@ internal abstract class CommandBase<TSettings> : Command<TSettings> where TSetti
         }
         
         AnsiConsole.Write(new CustomComposer()
-            .Text("Running ").Style("purple", "dot - DevOps Tools").Space()
+            .Text("Running ").Style("purple", $"dot {CommandName} tool").Space()
             .Style("green", $"v{_version}").LineBreak()
             .Repeat("gray", '=', _separatorLength).LineBreak());
     }

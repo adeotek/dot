@@ -4,7 +4,7 @@ using Spectre.Console.Cli;
 
 namespace Adeotek.DevOpsTools.CommandsSettings;
 
-public class EmailSettings : GlobalSettings
+public class EmailSendSettings : GlobalSettings
 {
     [Description("Config file (with absolute or relative path)")]
     [CommandOption("-c|--config <value>")]

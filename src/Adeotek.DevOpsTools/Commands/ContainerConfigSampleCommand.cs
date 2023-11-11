@@ -9,6 +9,8 @@ namespace Adeotek.DevOpsTools.Commands;
 
 internal class ContainerConfigSampleCommand : CommandBase<ContainerConfigSampleSettings>
 {
+    protected override string CommandName => "container config";
+    
     protected override int ExecuteCommand(CommandContext context, ContainerConfigSampleSettings settings)
     {
         if (settings.Format?.ToLower() != "yaml" && settings.Format?.ToLower() != "json")

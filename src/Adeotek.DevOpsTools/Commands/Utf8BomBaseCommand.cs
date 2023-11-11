@@ -16,7 +16,9 @@ internal abstract class Utf8BomBaseCommand<TSettings>
     
     protected uint _totalFiles;
     protected uint _affectedFiles;
-    
+
+    protected override string CommandName => "utf8bom";
+
     protected int ProcessTarget(
         bool removeBom,
         string targetPath, 
