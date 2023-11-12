@@ -2,6 +2,7 @@
 using System.Net.Sockets;
 
 using Adeotek.DevOpsTools.CommandsSettings;
+using Adeotek.DevOpsTools.Common;
 using Adeotek.DevOpsTools.Extensions;
 using Adeotek.Extensions.Processes;
 
@@ -12,19 +13,13 @@ namespace Adeotek.DevOpsTools.Commands;
 
 internal class PortListenCommand : CommandBase<PortListenSettings>
 {
-    private const string LabelColor = "gray";
-    private const string ValueColor = "aqua";
-    private const string SpecialValueColor = "turquoise4";
-    private const string SpecialColor = "teal";
-    
-    protected override string CommandName => "port";
+    protected override string CommandName => "port listen";
     
     protected override int ExecuteCommand(CommandContext context, PortListenSettings settings)
     {
         try
         {
             StartListener(settings);
-            // PrintMessage("Email successfully sent!", _successColor, separator: true);
             return 0;
         }
         catch (ShellCommandException e)
@@ -65,29 +60,51 @@ internal class PortListenCommand : CommandBase<PortListenSettings>
         var ipAddress = string.IsNullOrEmpty(settings.IpAddress)
             ? IPAddress.Any
             : IPAddress.Parse(settings.IpAddress);
-        TcpListener listener  = new(ipAddress, settings.Port);
         try
         {
-            var stopListening = false;
+            TcpListener listener  = new(ipAddress, settings.Port);
             Console.CancelKeyPress += (_, e) =>
             {
                 e.Cancel = true;
-                stopListening = true;
+                listener.Stop();
             };
+            
             listener.Start();
-            while (!stopListening)
+            PrintListenerStarted(ipAddress, settings.Port);
+            while (true)
             {
-                PrintMessage($"Listening on port: {settings.Port}", _standardColor);
-                PrintMessage("Press CTRL+C to exit...", _standardColor);
                 var client = listener.AcceptTcpClient();
-                PrintMessage("Client connected!", _successColor);
+                PrintMessage($"{DateTime.Now:s} - Client connected!", _warningColor);
+                Changes++;
                 client.Close();
+            }
+        }
+        catch (SocketException e)
+        {
+            if (e.ErrorCode != 10004)
+            {
+                throw;
             }
         }
         finally
         {
-            listener.Stop();
             PrintMessage("Listener stopped.", _standardColor);
         }
+    }
+    
+    protected virtual void PrintListenerStarted(IPAddress ipAddress, int port)
+    {
+        if (IsSilent)
+        {
+            return;
+        }
+        
+        var composer = new CustomComposer()
+            .Style(_standardColor, "Listening on:").Space()
+            .Style(_successColor, $"{ipAddress}:{port}").LineBreak()
+            .Style(_standardColor, "Press").Space()
+            .Style(_verboseColor, "CTRL+C").Space()
+            .Style(_standardColor, "to exit...").LineBreak();
+        AnsiConsole.Write(composer);
     }
 }

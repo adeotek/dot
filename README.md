@@ -73,3 +73,12 @@ Email tools.
 #### Subcommands
 
 - `send` - Send an email message based on a configuration file or provided options
+
+### `port`
+
+TCP Ports tools.
+
+#### Subcommands
+
+- `listen` - Start a listener on the provided TCP port
+- `probe` - Probe (check if listening) a local or remote TCP port

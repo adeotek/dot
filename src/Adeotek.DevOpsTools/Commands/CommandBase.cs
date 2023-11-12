@@ -29,6 +29,7 @@ internal abstract class CommandBase<TSettings> : Command<TSettings> where TSetti
     protected bool IsSilent => _settings?.Silent ?? false;
     
     protected abstract string CommandName { get; }
+    protected virtual string ResultLabel => "Result";
     protected abstract int ExecuteCommand(CommandContext context, TSettings settings);
     
     public override int Execute([NotNull] CommandContext context, [NotNull] TSettings settings)
@@ -136,7 +137,7 @@ internal abstract class CommandBase<TSettings> : Command<TSettings> where TSetti
         AnsiConsole.Write(new CustomComposer()
             .Repeat("gray", '=', _separatorLength).LineBreak()
             .Style(exitCode == 0 ? "purple" : "gray", "DONE").Space()
-            .Style(Changes > 0 ? _successColor : _standardColor, $"[Changes:{Changes}]")
+            .Style(Changes > 0 ? _successColor : _standardColor, $"[{ResultLabel}:{Changes}]")
             .LineBreak().LineBreak());
     }
 }

@@ -53,6 +53,8 @@ app.Configure(configurator =>
         port.SetDescription("TCP ports testing");
         port.AddCommand<PortListenCommand>("listen")
             .WithDescription("Start a listener on the provided TCP port");
+        port.AddCommand<PortProbeCommand>("probe")
+            .WithDescription("Probe (check if is listening) a local or remote TCP port");
     });
 });
 return app.Run(args);

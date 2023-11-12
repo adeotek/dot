@@ -15,6 +15,7 @@ internal abstract class ContainerBaseCommand<TSettings>
     : CommandBase<TSettings> where TSettings : ContainerSettings
 {
     protected override string CommandName => "container";
+    protected override string ResultLabel => "Changes";
     protected bool IsDryRun => _settings?.DryRun ?? false;
     protected abstract void ExecuteContainerCommand(ContainerConfig config);
 
