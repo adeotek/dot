@@ -103,7 +103,7 @@ internal class PortProbeCommand : CommandBase<PortProbeSettings>
         
         var composer = new CustomComposer()
             .Style(_standardColor, "Connection to").Space()
-            .Style(_verboseColor, $"{host} ({ipAddress})").Space()
+            .Style(_verboseColor, host.Equals(ipAddress.ToString()) ? host : $"{host} ({ipAddress})").Space()
             .Style(_standardColor, "on").Space()
             .Style(_verboseColor, $"{port} [tcp]").Space();
         
@@ -113,7 +113,7 @@ internal class PortProbeCommand : CommandBase<PortProbeSettings>
         }
         else
         {
-            composer.Style(_errorColor, "failed:").LineBreak()
+            composer.Style(_errorColor, "failed").Style(_standardColor, "!").LineBreak()
                 .Style(_errorColor, error).LineBreak();
         }
         
