@@ -2,8 +2,8 @@
 This page contains information about the `container` command configuration files.
 The `container` command supports both YAML and JSON formats for the container configuration.
 
-- YAML sample configuration: [sample-config.yml](./sample-config.yml)
-- JSON sample configuration: [sample-config.json](./sample-config.json)
+- YAML sample configuration: [sample-container-config.yml](./sample-container-config.yml)
+- JSON sample configuration: [sample-container-config.json](./sample-container-config.json)
 
 The `config sample` subcommand can be used to generate a sample configuration into a file or as output into the console.
 

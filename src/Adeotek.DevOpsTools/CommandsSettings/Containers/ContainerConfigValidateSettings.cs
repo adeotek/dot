@@ -2,7 +2,7 @@
 
 using Spectre.Console.Cli;
 
-namespace Adeotek.DevOpsTools.CommandsSettings;
+namespace Adeotek.DevOpsTools.CommandsSettings.Containers;
 
 internal class ContainerConfigValidateSettings : GlobalSettings
 {

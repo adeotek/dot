@@ -1,12 +1,14 @@
-﻿using Adeotek.DevOpsTools.CommandsSettings;
+﻿using Adeotek.DevOpsTools.CommandsSettings.Containers;
 using Adeotek.Extensions.Docker;
 
 using Spectre.Console.Cli;
 
-namespace Adeotek.DevOpsTools.Commands;
+namespace Adeotek.DevOpsTools.Commands.Containers;
 
 internal class ContainerConfigValidateCommand : CommandBase<ContainerConfigValidateSettings>
 {
+    protected override string CommandName => "container config";
+    
     protected override int ExecuteCommand(CommandContext context, ContainerConfigValidateSettings settings)
     {
         var config = DockerConfigManager.LoadContainerConfig(settings.ConfigFile);
@@ -68,6 +70,7 @@ internal class ContainerConfigValidateCommand : CommandBase<ContainerConfigValid
         }
 
         PrintMessage("The config file is valid!", _successColor, IsVerbose);
+        Changes++;
         return 0;
     }
 }

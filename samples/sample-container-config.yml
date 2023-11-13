@@ -32,4 +32,4 @@ ExtraHosts:
   host.docker.internal: host-gateway
 Restart: unless-stopped
 RunCommandOptions:
-  - --memory 1024
+  - -d --memory 256MB

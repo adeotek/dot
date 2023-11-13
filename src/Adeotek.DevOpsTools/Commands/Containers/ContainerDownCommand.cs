@@ -1,10 +1,12 @@
-﻿using Adeotek.DevOpsTools.CommandsSettings;
+﻿using Adeotek.DevOpsTools.CommandsSettings.Containers;
 using Adeotek.Extensions.Docker.Config;
 
-namespace Adeotek.DevOpsTools.Commands;
+namespace Adeotek.DevOpsTools.Commands.Containers;
 
 internal sealed class ContainerDownCommand : ContainerBaseCommand<ContainerDownSettings>
 {
+    protected override string CommandName => "container down";
+    protected override string ResultLabel => "Changes";
     private bool Downgrade => _settings?.Downgrade ?? false;
     private bool Purge => _settings?.Purge ?? false;
     

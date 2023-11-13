@@ -1,0 +1,16 @@
+﻿{
+  "SmtpConfig": {
+    "Host": "<smtp-server-host>",
+    "Port": 25,
+    "User": "<smtp-server-username>",
+    "Password": "<smtp-server-password>",
+    "UseSsl": true,
+    "Timeout": 30000  
+  },
+  "FromAddress": "<from-email-address>",
+  "FromLabel": "<optional-from-label>",
+  "ToAddress": "<to-email-address>",
+  "MessageSubject": "<email-subject>",
+  "MessageBody": "<email-body>",
+  "ReadBodyFromFile": false 
+}

@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Title>AdeoTEK DevOps Tools Helpers</Title>
+    <Description>Helpers for DevOps tools</Description>
+    <Product>AdeoTEK DevOpsTools Helpers</Product>
+    <Authors>George Benjamin-Schonberger</Authors>
+    <Copyright>George Benjamin-Schonberger 2023</Copyright>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
+</Project>

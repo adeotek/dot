@@ -11,7 +11,7 @@
     <Product>AdeoTEK DevOps Tools</Product>
     <Authors>George Benjamin-Schonberger</Authors>
     <Copyright>George Benjamin-Schonberger 2023</Copyright>
-    <Version>0.1.7</Version>
+    <Version>0.2.0</Version>
     <PackageId>Adeotek.DevOpsTools</PackageId>
     <PackageTags>cli,devops,tools,docker</PackageTags>
     <PackageProjectUrl>https://adeotek.github.io/dot/</PackageProjectUrl>
@@ -21,7 +21,7 @@
     <PackageIcon>PackageIcon.png</PackageIcon>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageVersion>0.1.7</PackageVersion>
+    <PackageVersion>0.2.0</PackageVersion>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>dot</ToolCommandName>
   </PropertyGroup>
@@ -33,6 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Adeotek.DevOpsTools.Helpers\Adeotek.DevOpsTools.Helpers.csproj" />
     <ProjectReference Include="..\Adeotek.Extensions.Docker\Adeotek.Extensions.Docker.csproj" />
     <ProjectReference Include="..\Adeotek.Extensions.Processes\Adeotek.Extensions.Processes.csproj" />
   </ItemGroup>
