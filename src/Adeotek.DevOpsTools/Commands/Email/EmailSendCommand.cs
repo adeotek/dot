@@ -1,4 +1,4 @@
-﻿using Adeotek.DevOpsTools.CommandsSettings;
+﻿using Adeotek.DevOpsTools.CommandsSettings.Email;
 using Adeotek.DevOpsTools.Common;
 using Adeotek.DevOpsTools.Extensions;
 using Adeotek.DevOpsTools.Helpers;
@@ -9,7 +9,7 @@ using Adeotek.Extensions.Processes;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-namespace Adeotek.DevOpsTools.Commands;
+namespace Adeotek.DevOpsTools.Commands.Email;
 
 internal class EmailSendCommand : CommandBase<EmailSendSettings>
 {

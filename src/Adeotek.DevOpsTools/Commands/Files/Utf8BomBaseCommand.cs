@@ -1,12 +1,12 @@
 ﻿using System.Text;
 
-using Adeotek.DevOpsTools.CommandsSettings;
+using Adeotek.DevOpsTools.CommandsSettings.Files;
 using Adeotek.DevOpsTools.Common;
 using Adeotek.Extensions.Processes;
 
 using Spectre.Console;
 
-namespace Adeotek.DevOpsTools.Commands;
+namespace Adeotek.DevOpsTools.Commands.Files;
 
 internal abstract class Utf8BomBaseCommand<TSettings> 
     : CommandBase<TSettings> where TSettings : Utf8BomSettings
@@ -16,8 +16,6 @@ internal abstract class Utf8BomBaseCommand<TSettings>
     
     protected uint _totalFiles;
     protected uint _affectedFiles;
-
-    protected override string CommandName => "utf8bom";
 
     protected int ProcessTarget(
         bool removeBom,

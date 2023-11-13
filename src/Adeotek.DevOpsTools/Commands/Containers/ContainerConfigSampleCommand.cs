@@ -1,11 +1,11 @@
-﻿using Adeotek.DevOpsTools.CommandsSettings;
+﻿using Adeotek.DevOpsTools.CommandsSettings.Containers;
 using Adeotek.Extensions.Docker;
 
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Spectre.Console.Json;
 
-namespace Adeotek.DevOpsTools.Commands;
+namespace Adeotek.DevOpsTools.Commands.Containers;
 
 internal class ContainerConfigSampleCommand : CommandBase<ContainerConfigSampleSettings>
 {
@@ -50,6 +50,7 @@ internal class ContainerConfigSampleCommand : CommandBase<ContainerConfigSampleS
             File.WriteAllText(sampleFile, config);
             PrintMessage("Sample config file generated: ", _successColor, IsVerbose, true);
             PrintMessage(sampleFile, _verboseColor);
+            Changes++;
             return 0;
         }
         catch (Exception e)

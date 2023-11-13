@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Net.Sockets;
 
-using Adeotek.DevOpsTools.CommandsSettings;
+using Adeotek.DevOpsTools.CommandsSettings.Networking;
 using Adeotek.DevOpsTools.Common;
 using Adeotek.DevOpsTools.Extensions;
 using Adeotek.Extensions.Processes;
@@ -9,7 +9,7 @@ using Adeotek.Extensions.Processes;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-namespace Adeotek.DevOpsTools.Commands;
+namespace Adeotek.DevOpsTools.Commands.Networking;
 
 internal class PortListenCommand : CommandBase<PortListenSettings>
 {

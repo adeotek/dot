@@ -1,6 +1,6 @@
 ﻿using Adeotek.DevOpsTools.Common;
 using Adeotek.DevOpsTools.Extensions;
-using Adeotek.DevOpsTools.CommandsSettings;
+using Adeotek.DevOpsTools.CommandsSettings.Containers;
 using Adeotek.Extensions.ConfigFiles;
 using Adeotek.Extensions.Docker;
 using Adeotek.Extensions.Docker.Config;
@@ -9,13 +9,11 @@ using Adeotek.Extensions.Docker.Exceptions;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-namespace Adeotek.DevOpsTools.Commands;
+namespace Adeotek.DevOpsTools.Commands.Containers;
 
 internal abstract class ContainerBaseCommand<TSettings> 
     : CommandBase<TSettings> where TSettings : ContainerSettings
 {
-    protected override string CommandName => "container";
-    protected override string ResultLabel => "Changes";
     protected bool IsDryRun => _settings?.DryRun ?? false;
     protected abstract void ExecuteContainerCommand(ContainerConfig config);
 

@@ -1,10 +1,12 @@
-﻿using Adeotek.DevOpsTools.CommandsSettings;
+﻿using Adeotek.DevOpsTools.CommandsSettings.Containers;
 using Adeotek.Extensions.Docker.Config;
 
-namespace Adeotek.DevOpsTools.Commands;
+namespace Adeotek.DevOpsTools.Commands.Containers;
 
 internal sealed class ContainerUpCommand : ContainerBaseCommand<ContainerUpSettings>
 {
+    protected override string CommandName => "container up";
+    protected override string ResultLabel => "Changes";
     private bool Upgrade => _settings?.Upgrade ?? false;
     private bool Replace => _settings?.Replace ?? false;
     private bool Force => _settings?.Force ?? false;

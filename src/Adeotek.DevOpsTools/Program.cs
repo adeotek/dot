@@ -1,4 +1,7 @@
-﻿using Adeotek.DevOpsTools.Commands;
+﻿using Adeotek.DevOpsTools.Commands.Containers;
+using Adeotek.DevOpsTools.Commands.Email;
+using Adeotek.DevOpsTools.Commands.Files;
+using Adeotek.DevOpsTools.Commands.Networking;
 using Adeotek.DevOpsTools.Common;
 
 using Spectre.Console;

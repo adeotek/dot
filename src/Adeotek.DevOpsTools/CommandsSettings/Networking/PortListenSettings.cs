@@ -2,7 +2,7 @@
 
 using Spectre.Console.Cli;
 
-namespace Adeotek.DevOpsTools.CommandsSettings;
+namespace Adeotek.DevOpsTools.CommandsSettings.Networking;
 
 public class PortListenSettings : GlobalSettings
 {

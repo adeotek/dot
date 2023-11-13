@@ -1,9 +1,9 @@
-﻿using Adeotek.DevOpsTools.CommandsSettings;
+﻿using Adeotek.DevOpsTools.CommandsSettings.Containers;
 using Adeotek.Extensions.Docker;
 
 using Spectre.Console.Cli;
 
-namespace Adeotek.DevOpsTools.Commands;
+namespace Adeotek.DevOpsTools.Commands.Containers;
 
 internal class ContainerConfigValidateCommand : CommandBase<ContainerConfigValidateSettings>
 {
@@ -70,6 +70,7 @@ internal class ContainerConfigValidateCommand : CommandBase<ContainerConfigValid
         }
 
         PrintMessage("The config file is valid!", _successColor, IsVerbose);
+        Changes++;
         return 0;
     }
 }
