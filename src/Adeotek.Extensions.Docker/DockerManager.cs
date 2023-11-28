@@ -49,14 +49,16 @@ public class DockerManager
     {
         _dockerCli.ClearArgsAndReset()
             .AddArg("run")
-            .AddArg("-d")
+            .AddRunCommandOptionsArgs(config.RunCommandOptions)
             .AddArg($"--name={config.CurrentName}")
             .AddPortsArgs(config.Ports)
             .AddVolumesArgs(config.Volumes)
             .AddEnvVarsArgs(config.EnvVars)
             .AddNetworkArgs(config)
+            .AddExtraHostsArgs(config.ExtraHosts)
             .AddRestartArg(config.Restart)
-            .AddArg(config.FullImageName);
+            .AddArg(config.FullImageName)
+            .AddStartupCommandArgs(config);
         
         LogCommand();
         if (dryRun)
@@ -218,7 +220,7 @@ public class DockerManager
         return 1;
     }
 
-    public int CreateMappedVolume(VolumeConfig volume, bool dryRun = false)
+    public int CreateBindVolume(VolumeConfig volume, bool dryRun = false)
     {
         var changes = 0;
         LogCommand("mkdir", volume.Source);
@@ -345,7 +347,7 @@ public class DockerManager
 
         if (!_dockerCli.IsError($"Error response from daemon: network {networkName} not found", true))
         {
-            throw new DockerCliException("volume rm", 1, $"Unable to remove volume '{networkName}'!");
+            throw new DockerCliException("volume rm", 1, $"Unable to remove network '{networkName}'!");
         }
 
         LogMessage($"Network '{networkName}' not found!", "warn");
@@ -572,7 +574,7 @@ public class DockerManager
                 throw new DockerCliException("create container", 1, $"Docker volume '{volume.Source}' is missing or cannot be created!");
             }
 
-            return CreateMappedVolume(volume, dryRun);
+            return CreateBindVolume(volume, dryRun);
         }
         
         if (VolumeExists(volume.Source))

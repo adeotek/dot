@@ -1,0 +1,13 @@
+﻿SmtpConfig:
+  Host: <smtp-server-host>
+  Port: 25 # SMTP port
+  User: <smtp-server-username>
+  Password: <smtp-server-password>
+  UseSsl: true # use SSL/TSL
+  Timeout: 30000 # connection timeout in milliseconds
+FromAddress: <from-email-address>
+FromLabel: <optional-from-label>
+ToAddress: <to-email-address>
+MessageSubject: <email-subject>
+MessageBody: <email-body>
+ReadBodyFromFile: false # inline body or read from file

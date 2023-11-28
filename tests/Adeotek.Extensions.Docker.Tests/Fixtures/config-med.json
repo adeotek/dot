@@ -19,5 +19,8 @@
   },
   "Network": {
     "Name": "<docker-network-name>"
+  },
+  "ExtraHosts": {
+    "host.docker.internal": "host-gateway"
   }
 }

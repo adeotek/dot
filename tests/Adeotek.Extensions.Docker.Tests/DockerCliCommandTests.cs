@@ -1,16 +1,14 @@
 ﻿using Adeotek.Extensions.Docker.Config;
-using Adeotek.Extensions.Processes;
 
 namespace Adeotek.Extensions.Docker.Tests;
 
 public class DockerCliCommandTests
 {
-    private readonly IShellProcess _shellProcessMock;
     private readonly DockerCliCommand _sut;
     
     public DockerCliCommandTests()
     {
-        var provider = TestHelpers.GetShellProcessProvider(out _shellProcessMock);
+        var provider = TestHelpers.GetShellProcessProvider(out _);
         _sut = new DockerCliCommand(provider) { Command = "docker" };
     }
 
@@ -64,6 +62,88 @@ public class DockerCliCommandTests
         
         Assert.Equal(typeof(DockerCliCommand), result.GetType());
         Assert.Equal(expectedValue, _sut.Args[1]);
+    }
+    
+    [Fact]
+    public void AddRunCommandOptionsArgs_WithNoOptions_SetArgsDefaultOption()
+    {
+        var expectedValue = "-d";
+
+        var result = _sut.ClearArgs()
+            .AddArg("--some-argument")
+            .AddRunCommandOptionsArgs(Array.Empty<string>());
+        
+        Assert.Equal(typeof(DockerCliCommand), result.GetType());
+        Assert.Equal(expectedValue, _sut.Args[1]);
+    }
+    
+    [Fact]
+    public void AddRunCommandOptionsArgs_WithTwoOptions_SetOptionsArgs()
+    {
+        var expectedValue = "-it -m 128";
+
+        var result = _sut.ClearArgs()
+            .AddArg("--some-argument")
+            .AddRunCommandOptionsArgs(new [] { "-it", "-m 128" });
+        
+        Assert.Equal(typeof(DockerCliCommand), result.GetType());
+        Assert.Equal(expectedValue, _sut.Args[1]);
+    }
+    
+    [Fact]
+    public void AddStartupCommandArgs_WithoutCommand_DoNotSetCommandArgs()
+    {
+        ContainerConfig config = new()
+        {
+            Command = null,
+            CommandArgs = new [] { "--verbose" }
+        };
+
+        var result = _sut.ClearArgs()
+            .AddArg("--some-argument")
+            .AddStartupCommandArgs(config);
+        
+        Assert.Equal(typeof(DockerCliCommand), result.GetType());
+        Assert.Single(_sut.Args);
+    }
+    
+    [Fact]
+    public void AddStartupCommandArgs_WithNoOptions_SetArgsDefaultOption()
+    {
+        ContainerConfig config = new()
+        {
+            Command = "serve"
+        };
+        var expectedValue = "serve";
+
+        var result = _sut.ClearArgs()
+            .AddArg("--some-argument")
+            .AddStartupCommandArgs(config);
+        
+        Assert.Equal(typeof(DockerCliCommand), result.GetType());
+        Assert.Equal(2, _sut.Args.Length);
+        Assert.Equal(expectedValue, _sut.Args[1]);
+    }
+    
+    [Fact]
+    public void AddStartupCommandArgs_WithTwoOptions_SetOptionsArgs()
+    {
+        ContainerConfig config = new()
+        {
+            Command = "serve",
+            CommandArgs = new [] { "-v", "--debug" }
+        };
+        var expectedCommandArg = "serve";
+        var expectedCommandArgsArg = "-v --debug";
+
+        var result = _sut.ClearArgs()
+            .AddArg("--some-argument")
+            .AddStartupCommandArgs(config);
+        
+        Assert.Equal(typeof(DockerCliCommand), result.GetType());
+        Assert.Equal(3, _sut.Args.Length);
+        Assert.Equal(expectedCommandArg, _sut.Args[1]);
+        Assert.Equal(expectedCommandArgsArg, _sut.Args[2]);
     }
     
     [Fact]
@@ -185,7 +265,6 @@ public class DockerCliCommandTests
         Assert.Equal(expectedValue, _sut.Args[1]);
     }
     
-    //AddEnvVarsArgs
     [Fact]
     public void AddEnvVarsArgs_SetArgsDictValues()
     {
@@ -258,5 +337,55 @@ public class DockerCliCommandTests
         
         Assert.Equal(typeof(DockerCliCommand), result.GetType());
         Assert.Single(_sut.Args);
+    }
+    
+    [Fact]
+    public void AddExtraHostArg_WithHostGateway_SetArgsDictValue()
+    {
+        var expectedValue = "--add-host host.docker.internal:host-gateway";
+
+        var result = _sut.ClearArgs()
+            .AddArg("--some-argument")
+            .AddExtraHostArg("host.docker.internal", "host-gateway");
+        
+        Assert.Equal(typeof(DockerCliCommand), result.GetType());
+        Assert.Equal(expectedValue, _sut.Args[1]);
+    }
+    
+    [Fact]
+    public void AddExtraHostArg_WithIp_SetArgsDictValue()
+    {
+        var expectedValue = "--add-host some.host.name:1.2.3.4";
+
+        var result = _sut.ClearArgs()
+            .AddArg("--some-argument")
+            .AddExtraHostArg("some.host.name", "1.2.3.4");
+        
+        Assert.Equal(typeof(DockerCliCommand), result.GetType());
+        Assert.Equal(expectedValue, _sut.Args[1]);
+    }
+    
+    [Fact]
+    public void AddExtraHostsArgs_SetArgsDictValues()
+    {
+        var expectedValue1 = "--add-host host.docker.internal:host-gateway";
+        var expectedValue2 = "--add-host some.host.name:1.2.3.4";
+        var expectedValue3 = "--add-host another-container:172.10.1.123";
+        var envArgs = new Dictionary<string, string>
+        {
+            { "host.docker.internal", "host-gateway" }, 
+            { "some.host.name", "1.2.3.4" }, 
+            { "another-container", "172.10.1.123" },
+        };
+
+        var result = _sut.ClearArgs()
+            .AddArg("--some-argument")
+            .AddExtraHostsArgs(envArgs);
+        
+        Assert.Equal(typeof(DockerCliCommand), result.GetType());
+        Assert.Equal(expectedValue1, _sut.Args[1]);
+        Assert.Equal(expectedValue2, _sut.Args[2]);
+        Assert.Equal(expectedValue3, _sut.Args[3]);
+        Assert.Equal(4, _sut.Args.Length);
     }
 }

@@ -46,6 +46,7 @@ internal static class AnsiConsolePrintExtensions
             .Style(LabelColor, "Hostname:", NameLength - SubValueIndent).Style(ValueColor, config.Network?.Hostname ?? Null).LineBreak()
             .Repeat(SubValuePrefix, SubValueIndent)
             .Style(LabelColor, "Alias:", NameLength - SubValueIndent).Style(ValueColor, config.Network?.Alias ?? Null).LineBreak()
+            .Style(LabelColor, "ExtraHosts:").LineBreak().AddConfigExtraHosts(config.ExtraHosts)
             .Style(LabelColor, "Restart:", NameLength).Style(ValueColor, config.Restart ?? Null).LineBreak();
 
         AnsiConsole.Write(composer);
@@ -108,6 +109,25 @@ internal static class AnsiConsolePrintExtensions
             composer.Repeat(SubValuePrefix, NameLength - 1).Space()
                 .Style(SpecialValueColor, key)
                 .Text("=").Style(ValueColor, value).LineBreak();
+        }
+
+        return composer;
+    }
+    
+    internal static CustomComposer AddConfigExtraHosts(this CustomComposer composer, Dictionary<string, string> extraHosts)
+    {
+        if (extraHosts.Count == 0)
+        {
+            composer.Repeat(SubValuePrefix, NameLength - 1).Space()
+                .Style(ValueColor, "[None]").LineBreak();
+            return composer;
+        }
+        
+        foreach ((string key, string value) in extraHosts)
+        {
+            composer.Repeat(SubValuePrefix, NameLength - 1).Space()
+                .Style(SpecialValueColor, key)
+                .Text(":").Style(ValueColor, value).LineBreak();
         }
 
         return composer;

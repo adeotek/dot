@@ -1,6 +1,7 @@
 ﻿using Adeotek.DevOpsTools.Common;
 using Adeotek.DevOpsTools.Extensions;
-using Adeotek.DevOpsTools.CommandsSettings;
+using Adeotek.DevOpsTools.CommandsSettings.Containers;
+using Adeotek.Extensions.ConfigFiles;
 using Adeotek.Extensions.Docker;
 using Adeotek.Extensions.Docker.Config;
 using Adeotek.Extensions.Docker.Exceptions;
@@ -8,7 +9,7 @@ using Adeotek.Extensions.Docker.Exceptions;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-namespace Adeotek.DevOpsTools.Commands;
+namespace Adeotek.DevOpsTools.Commands.Containers;
 
 internal abstract class ContainerBaseCommand<TSettings> 
     : CommandBase<TSettings> where TSettings : ContainerSettings
@@ -29,7 +30,7 @@ internal abstract class ContainerBaseCommand<TSettings>
             ExecuteContainerCommand(config);
             return 0;
         }
-        catch (DockerConfigException e)
+        catch (ConfigFileException e)
         {
             if (settings.Verbose)
             {

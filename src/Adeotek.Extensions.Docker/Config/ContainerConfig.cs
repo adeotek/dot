@@ -22,8 +22,14 @@ public class ContainerConfig
     public Dictionary<string, string> EnvVars { get; set; } = new();
     // Network
     public NetworkConfig? Network { get; set; }
+    // Extra hosts entries
+    public Dictionary<string, string> ExtraHosts { get; set; } = new();
     // Misc
     public string? Restart { get; set; }
+    // Container startup
+    public string? Command { get; set; }
+    public string[] CommandArgs { get; set; } = Array.Empty<string>();
+    public string[] RunCommandOptions { get; set; } = Array.Empty<string>();
     // Computed
     [JsonIgnore] [YamlIgnore]
     public string ImageTag => string.IsNullOrEmpty(Tag) ? "latest" : Tag;

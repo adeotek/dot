@@ -4,12 +4,12 @@
     <TargetFrameworks>net7.0;net8.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Title>AdeoTEK Processes Extensions</Title>
-    <Description>Extensions and helpers for Process and ProcessInfo classes</Description>
-    <Product>AdeoTEK Extensions Processes</Product>
+    <Title>AdeoTEK DevOps Tools Helpers</Title>
+    <Description>Helpers for DevOps tools</Description>
+    <Product>AdeoTEK DevOpsTools Helpers</Product>
     <Authors>George Benjamin-Schonberger</Authors>
     <Copyright>George Benjamin-Schonberger 2023</Copyright>
-    <Version>0.1.4</Version>
+    <Version>0.1.0</Version>
   </PropertyGroup>
 
 </Project>

@@ -56,6 +56,25 @@ The subcommands allows for the creation/update/removal of containers, based on c
 
 Check [ContainerConfiguration.md](./samples/ContainerConfiguration.md) for more information about the configuration files.
 
+### `email`
+
+Email tools.
+
+#### Subcommands
+
+- `send` - Send an email message based on a configuration file or provided options
+
+Check [EmailConfiguration.md](./samples/EmailConfiguration.md) for more information about the configuration files.
+
+### `port`
+
+TCP Ports tools.
+
+#### Subcommands
+
+- `listen` - Start a listener on the provided TCP port
+- `probe` - Probe (check if listening) a local or remote TCP port
+
 ### `utf8bom`
 
 This tool allows for adding/removing/checking the BOM (Byte Order Mark) signature of UTF-8 encoded files.
@@ -65,5 +84,4 @@ This tool allows for adding/removing/checking the BOM (Byte Order Mark) signatur
 - `add` - Add BOM (Byte Order Mark) to any UTF-8 files that do not have it
 - `remove` - Remove BOM (Byte Order Mark) from any UTF-8 files that have it
 
-In order to only check the BOM existence, without changing it, use the `add`/`remove` subcommands together with the `--dry-run` option. 
-
+To only check if BOM is present, without changing it, use the `add`/`remove` subcommands together with the `--dry-run` option. 

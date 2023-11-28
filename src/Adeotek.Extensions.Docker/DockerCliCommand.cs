@@ -46,6 +46,27 @@ public class DockerCliCommand : ShellCommand
     
     public DockerCliCommand AddFilterArg(string value, string? key = null) => 
         AddArg($"--filter {key ?? "name"}={value}");
+
+    public DockerCliCommand AddRunCommandOptionsArgs(string[] runCommandOptions) =>
+        runCommandOptions.Length == 0 
+            ? AddArg("-d")
+            : AddArg(string.Join(' ', runCommandOptions).Trim());
+    
+    public DockerCliCommand AddStartupCommandArgs(ContainerConfig config)
+    {
+        if (string.IsNullOrEmpty(config.Command))
+        {
+            return this;
+        }
+
+        AddArg(config.Command);
+        if (config.CommandArgs.Length > 0)
+        {
+            AddArg(string.Join(' ', config.CommandArgs).Trim());
+        }
+        
+        return this;
+    }
     
     public DockerCliCommand AddRestartArg(string? restart) => 
         restart == "" ? this : AddArg($"--restart={restart ?? "unless-stopped"}");
@@ -110,6 +131,18 @@ public class DockerCliCommand : ShellCommand
             AddArg($"--network-alias={config.Network.Alias ?? config.Name}");
         }
 
+        return this;
+    }
+    
+    public DockerCliCommand AddExtraHostArg(string name, string value) => 
+        AddArg($"--add-host {name}:{value}");
+    
+    public DockerCliCommand AddExtraHostsArgs(Dictionary<string, string> envVars)
+    {
+        foreach ((string name, string value) in envVars)
+        {
+            AddExtraHostArg(name, value);
+        }
         return this;
     }
 }

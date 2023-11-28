@@ -2,7 +2,7 @@
 
 using Spectre.Console.Cli;
 
-namespace Adeotek.DevOpsTools.CommandsSettings;
+namespace Adeotek.DevOpsTools.CommandsSettings.Files;
 
 public class Utf8BomSettings : GlobalSettings
 {
