@@ -15,13 +15,13 @@ internal abstract class ContainerBaseCommand<TSettings>
     : CommandBase<TSettings> where TSettings : ContainerSettings
 {
     protected bool IsDryRun => _settings?.DryRun ?? false;
-    protected abstract void ExecuteContainerCommand(ContainerConfig config);
+    protected abstract void ExecuteContainerCommand(ContainerConfigV1 configV1);
 
     protected override int ExecuteCommand(CommandContext context, TSettings settings)
     {
         try
         {
-            var config = DockerConfigManager.LoadContainerConfig(settings.ConfigFile);
+            var config = DockerConfigManagerV1.LoadContainerConfig(settings.ConfigFile);
             if (settings.Verbose)
             {
                 config.WriteToAnsiConsole();

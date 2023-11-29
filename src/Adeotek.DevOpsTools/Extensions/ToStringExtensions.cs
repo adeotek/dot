@@ -18,41 +18,41 @@ internal static class AnsiConsolePrintExtensions
     private const string SpecialValueColor = "turquoise4";
     private const string SpecialColor = "teal";
     
-    internal static void WriteToAnsiConsole(this ContainerConfig config)
+    internal static void WriteToAnsiConsole(this ContainerConfigV1 configV1)
     {
         var composer = new CustomComposer()
             .Style(SpecialColor, "[ContainerConfig]").LineBreak()
-            .Text("ContainerName:", NameLength).Style(SpecialValueColor, config.CurrentName).LineBreak()
-            .Text("FullImageName:", NameLength).Style(SpecialValueColor, config.FullImageName).LineBreak()
-            .Style(LabelColor, "Image:", NameLength).Style(ValueColor, config.Image).LineBreak()
-            .Style(LabelColor, "Tag:", NameLength).Style(ValueColor, config.Tag ?? Null).LineBreak()
-            .Style(LabelColor, "NamePrefix:", NameLength).Style(ValueColor, config.NamePrefix ?? Null).LineBreak()
-            .Style(LabelColor, "Name:", NameLength).Style(ValueColor, config.Name).LineBreak()
-            .Style(LabelColor, "CurrentSuffix:", NameLength).Style(ValueColor, config.CurrentSuffix ?? Null).LineBreak()
-            .Style(LabelColor, "PreviousSuffix:", NameLength).Style(ValueColor, config.PreviousSuffix ?? Null).LineBreak()
-            .Style(LabelColor, "Ports:").LineBreak().AddConfigPorts(config.Ports)
-            .Style(LabelColor, "Volumes:").LineBreak().AddConfigVolumes(config.Volumes)
-            .Style(LabelColor, "EnvVars:").LineBreak().AddConfigEnvVars(config.EnvVars)
+            .Text("ContainerName:", NameLength).Style(SpecialValueColor, configV1.CurrentName).LineBreak()
+            .Text("FullImageName:", NameLength).Style(SpecialValueColor, configV1.FullImageName).LineBreak()
+            .Style(LabelColor, "Image:", NameLength).Style(ValueColor, configV1.Image).LineBreak()
+            .Style(LabelColor, "Tag:", NameLength).Style(ValueColor, configV1.Tag ?? Null).LineBreak()
+            .Style(LabelColor, "NamePrefix:", NameLength).Style(ValueColor, configV1.NamePrefix ?? Null).LineBreak()
+            .Style(LabelColor, "Name:", NameLength).Style(ValueColor, configV1.Name).LineBreak()
+            .Style(LabelColor, "CurrentSuffix:", NameLength).Style(ValueColor, configV1.CurrentSuffix ?? Null).LineBreak()
+            .Style(LabelColor, "PreviousSuffix:", NameLength).Style(ValueColor, configV1.PreviousSuffix ?? Null).LineBreak()
+            .Style(LabelColor, "Ports:").LineBreak().AddConfigPorts(configV1.Ports)
+            .Style(LabelColor, "Volumes:").LineBreak().AddConfigVolumes(configV1.Volumes)
+            .Style(LabelColor, "EnvVars:").LineBreak().AddConfigEnvVars(configV1.EnvVars)
             .Style(LabelColor, "Network:").LineBreak()
             .Repeat(SubValuePrefix, SubValueIndent)
-            .Style(LabelColor, "Name:", NameLength - SubValueIndent).Style(ValueColor, config.Network?.Name ?? Null).LineBreak()
+            .Style(LabelColor, "Name:", NameLength - SubValueIndent).Style(ValueColor, configV1.Network?.Name ?? Null).LineBreak()
             .Repeat(SubValuePrefix, SubValueIndent)
-            .Style(LabelColor, "Subnet:", NameLength - SubValueIndent).Style(ValueColor, config.Network?.Subnet ?? Null).LineBreak()
+            .Style(LabelColor, "Subnet:", NameLength - SubValueIndent).Style(ValueColor, configV1.Network?.Subnet ?? Null).LineBreak()
             .Repeat(SubValuePrefix, SubValueIndent)
-            .Style(LabelColor, "IpRange:", NameLength - SubValueIndent).Style(ValueColor, config.Network?.IpRange ?? Null).LineBreak()
+            .Style(LabelColor, "IpRange:", NameLength - SubValueIndent).Style(ValueColor, configV1.Network?.IpRange ?? Null).LineBreak()
             .Repeat(SubValuePrefix, SubValueIndent)
-            .Style(LabelColor, "IpAddress:", NameLength - SubValueIndent).Style(ValueColor, config.Network?.IpAddress ?? Null).LineBreak()
+            .Style(LabelColor, "IpAddress:", NameLength - SubValueIndent).Style(ValueColor, configV1.Network?.IpAddress ?? Null).LineBreak()
             .Repeat(SubValuePrefix, SubValueIndent)
-            .Style(LabelColor, "Hostname:", NameLength - SubValueIndent).Style(ValueColor, config.Network?.Hostname ?? Null).LineBreak()
+            .Style(LabelColor, "Hostname:", NameLength - SubValueIndent).Style(ValueColor, configV1.Network?.Hostname ?? Null).LineBreak()
             .Repeat(SubValuePrefix, SubValueIndent)
-            .Style(LabelColor, "Alias:", NameLength - SubValueIndent).Style(ValueColor, config.Network?.Alias ?? Null).LineBreak()
-            .Style(LabelColor, "ExtraHosts:").LineBreak().AddConfigExtraHosts(config.ExtraHosts)
-            .Style(LabelColor, "Restart:", NameLength).Style(ValueColor, config.Restart ?? Null).LineBreak();
+            .Style(LabelColor, "Alias:", NameLength - SubValueIndent).Style(ValueColor, configV1.Network?.Alias ?? Null).LineBreak()
+            .Style(LabelColor, "ExtraHosts:").LineBreak().AddConfigExtraHosts(configV1.ExtraHosts)
+            .Style(LabelColor, "Restart:", NameLength).Style(ValueColor, configV1.Restart ?? Null).LineBreak();
 
         AnsiConsole.Write(composer);
     }
 
-    internal static CustomComposer AddConfigPorts(this CustomComposer composer, PortMapping[] ports)
+    internal static CustomComposer AddConfigPorts(this CustomComposer composer, PortMappingV1[] ports)
     {
         if (ports.Length == 0)
         {
@@ -72,7 +72,7 @@ internal static class AnsiConsolePrintExtensions
         return composer;
     }
     
-    internal static CustomComposer AddConfigVolumes(this CustomComposer composer, VolumeConfig[] volumes)
+    internal static CustomComposer AddConfigVolumes(this CustomComposer composer, VolumeConfigV1[] volumes)
     {
         if (volumes.Length == 0)
         {

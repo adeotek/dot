@@ -4,7 +4,7 @@ using YamlDotNet.Serialization;
 
 namespace Adeotek.Extensions.Docker.Config;
 
-public class ContainerConfig
+public class ContainerConfigV1
 {
     // Image
     public string Image { get; set; } = default!;
@@ -15,13 +15,13 @@ public class ContainerConfig
     public string? CurrentSuffix { get; set; }
     public string? PreviousSuffix { get; set; }
     // Ports
-    public PortMapping[] Ports { get; set; } = Array.Empty<PortMapping>();
+    public PortMappingV1[] Ports { get; set; } = Array.Empty<PortMappingV1>();
     // Volumes
-    public VolumeConfig[] Volumes { get; set; } = Array.Empty<VolumeConfig>();
+    public VolumeConfigV1[] Volumes { get; set; } = Array.Empty<VolumeConfigV1>();
     // Environment variables
     public Dictionary<string, string> EnvVars { get; set; } = new();
     // Network
-    public NetworkConfig? Network { get; set; }
+    public NetworkConfigV1? Network { get; set; }
     // Extra hosts entries
     public Dictionary<string, string> ExtraHosts { get; set; } = new();
     // Misc

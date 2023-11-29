@@ -45,20 +45,20 @@ public class DockerManager
         throw new DockerCliException("container inspect", 1, $"Unable to inspect container '{name}'!");
     }
     
-    public int CreateContainer(ContainerConfig config, bool dryRun = false)
+    public int CreateContainer(ContainerConfigV1 configV1, bool dryRun = false)
     {
         _dockerCli.ClearArgsAndReset()
             .AddArg("run")
-            .AddRunCommandOptionsArgs(config.RunCommandOptions)
-            .AddArg($"--name={config.CurrentName}")
-            .AddPortsArgs(config.Ports)
-            .AddVolumesArgs(config.Volumes)
-            .AddEnvVarsArgs(config.EnvVars)
-            .AddNetworkArgs(config)
-            .AddExtraHostsArgs(config.ExtraHosts)
-            .AddRestartArg(config.Restart)
-            .AddArg(config.FullImageName)
-            .AddStartupCommandArgs(config);
+            .AddRunCommandOptionsArgs(configV1.RunCommandOptions)
+            .AddArg($"--name={configV1.CurrentName}")
+            .AddPortsArgs(configV1.Ports)
+            .AddVolumesArgs(configV1.Volumes)
+            .AddEnvVarsArgs(configV1.EnvVars)
+            .AddNetworkArgs(configV1)
+            .AddExtraHostsArgs(configV1.ExtraHosts)
+            .AddRestartArg(configV1.Restart)
+            .AddArg(configV1.FullImageName)
+            .AddStartupCommandArgs(configV1);
         
         LogCommand();
         if (dryRun)
@@ -73,12 +73,12 @@ public class DockerManager
             return 1;
         }
 
-        if (_dockerCli.IsError(config.CurrentName))
+        if (_dockerCli.IsError(configV1.CurrentName))
         {
             return 0;
         }
         
-        throw new DockerCliException("run", 1, $"Unable to create container '{config.CurrentName}'!");
+        throw new DockerCliException("run", 1, $"Unable to create container '{configV1.CurrentName}'!");
     }
     
     public int StartContainer(string containerName, bool dryRun = false)
@@ -220,7 +220,7 @@ public class DockerManager
         return 1;
     }
 
-    public int CreateBindVolume(VolumeConfig volume, bool dryRun = false)
+    public int CreateBindVolume(VolumeConfigV1 volume, bool dryRun = false)
     {
         var changes = 0;
         LogCommand("mkdir", volume.Source);
@@ -296,7 +296,7 @@ public class DockerManager
         return _dockerCli.IsSuccess(networkName);
     }
 
-    public int CreateNetwork(NetworkConfig network, bool dryRun = false)
+    public int CreateNetwork(NetworkConfigV1 network, bool dryRun = false)
     {
         _dockerCli.ClearArgsAndReset()
             .AddArg("network")
@@ -473,14 +473,14 @@ public class DockerManager
     #endregion
 
     #region Composed methods (untestable)
-    public int CheckAndCreateContainer(ContainerConfig config, bool dryRun = false) =>
-        CreateNetworkIfMissing(config.Network, dryRun)
-        + config.Volumes.Sum(volume => CreateVolumeIfMissing(volume, dryRun))
-        + CreateContainer(config, dryRun);
+    public int CheckAndCreateContainer(ContainerConfigV1 configV1, bool dryRun = false) =>
+        CreateNetworkIfMissing(configV1.Network, dryRun)
+        + configV1.Volumes.Sum(volume => CreateVolumeIfMissing(volume, dryRun))
+        + CreateContainer(configV1, dryRun);
 
-    public int UpgradeContainer(ContainerConfig config, bool replace = false, bool force = false, bool dryRun = false)
+    public int UpgradeContainer(ContainerConfigV1 configV1, bool replace = false, bool force = false, bool dryRun = false)
     {
-        if (!CheckIfNewVersionExists(config))
+        if (!CheckIfNewVersionExists(configV1))
         {
             if (!force)
             {
@@ -491,10 +491,10 @@ public class DockerManager
         }
 
         var changes = replace 
-            ? StopAndRemoveContainer(config.CurrentName, dryRun) 
-            : DemoteContainer(config, dryRun);
+            ? StopAndRemoveContainer(configV1.CurrentName, dryRun) 
+            : DemoteContainer(configV1, dryRun);
     
-        changes += CheckAndCreateContainer(config, dryRun);
+        changes += CheckAndCreateContainer(configV1, dryRun);
         if (dryRun)
         {
             LogMessage("Container create finished.", "msg");
@@ -514,53 +514,53 @@ public class DockerManager
         StopContainer(currentName, dryRun)
         + RenameContainer(currentName, newName, dryRun);
 
-    public int DemoteContainer(ContainerConfig config, bool dryRun = false) =>
-        (ContainerExists(config.PreviousName) 
-            ? StopAndRemoveContainer(config.PreviousName, dryRun) 
+    public int DemoteContainer(ContainerConfigV1 configV1, bool dryRun = false) =>
+        (ContainerExists(configV1.PreviousName) 
+            ? StopAndRemoveContainer(configV1.PreviousName, dryRun) 
             : 0)
-        + StopAndRenameContainer(config.CurrentName, config.PreviousName, dryRun);
+        + StopAndRenameContainer(configV1.CurrentName, configV1.PreviousName, dryRun);
 
-    public int DowngradeContainer(ContainerConfig config, bool dryRun = false)
+    public int DowngradeContainer(ContainerConfigV1 configV1, bool dryRun = false)
     {
-        if (!ContainerExists(config.PreviousName))
+        if (!ContainerExists(configV1.PreviousName))
         {
             throw new DockerCliException("downgrade", 1, "Previous container is missing!");
         }
 
-        return (ContainerExists(config.CurrentName)
-               ? StopAndRemoveContainer(config.CurrentName, dryRun)
+        return (ContainerExists(configV1.CurrentName)
+               ? StopAndRemoveContainer(configV1.CurrentName, dryRun)
                : 0)
-           + RenameContainer(config.PreviousName, config.CurrentName, dryRun)
-           + StartContainer(config.CurrentName, dryRun);
+           + RenameContainer(configV1.PreviousName, configV1.CurrentName, dryRun)
+           + StartContainer(configV1.CurrentName, dryRun);
     }
     
-    public int PurgeContainer(ContainerConfig config, bool purge = false, bool dryRun = false)
+    public int PurgeContainer(ContainerConfigV1 configV1, bool purge = false, bool dryRun = false)
     {
-        var changes = StopAndRemoveContainer(config.CurrentName, dryRun);
+        var changes = StopAndRemoveContainer(configV1.CurrentName, dryRun);
         if (!purge)
         {
             return changes;
         }
     
-        if (ContainerExists(config.PreviousName))
+        if (ContainerExists(configV1.PreviousName))
         {
             LogMessage("Previous container found, removing it.");
-            changes += StopAndRemoveContainer(config.PreviousName, dryRun);
+            changes += StopAndRemoveContainer(configV1.PreviousName, dryRun);
         }
 
-        changes += config.Volumes
+        changes += configV1.Volumes
             .Where(e => e is { AutoCreate: true, IsBind: false })
             .Sum(volume => RemoveVolume(volume.Source, dryRun));
 
-        if (config.Network is not null && !config.Network.IsShared)
+        if (configV1.Network is not null && !configV1.Network.IsShared)
         {
-            changes += RemoveNetwork(config.Network.Name, dryRun);
+            changes += RemoveNetwork(configV1.Network.Name, dryRun);
         }
 
         return changes;
     }
 
-    public int CreateVolumeIfMissing(VolumeConfig volume, bool dryRun = false)
+    public int CreateVolumeIfMissing(VolumeConfigV1 volume, bool dryRun = false)
     {
         if (volume.IsBind)
         {
@@ -590,7 +590,7 @@ public class DockerManager
         return CreateVolume(volume.Source, dryRun);
     }
 
-    public int CreateNetworkIfMissing(NetworkConfig? network, bool dryRun = false)
+    public int CreateNetworkIfMissing(NetworkConfigV1? network, bool dryRun = false)
     {
         if (network is null || string.IsNullOrEmpty(network.Name) || NetworkExists(network.Name))
         {
@@ -600,11 +600,11 @@ public class DockerManager
         return CreateNetwork(network, dryRun);
     }
     
-    public bool CheckIfNewVersionExists(ContainerConfig config)
+    public bool CheckIfNewVersionExists(ContainerConfigV1 configV1)
     {
-        PullImage(config.Image, config.ImageTag);
-        var imageId = GetImageId(config.Image, config.ImageTag);
-        var containerImageId = GetContainerImageId(config.CurrentName);
+        PullImage(configV1.Image, configV1.ImageTag);
+        var imageId = GetImageId(configV1.Image, configV1.ImageTag);
+        var containerImageId = GetContainerImageId(configV1.CurrentName);
         return !string.IsNullOrEmpty(imageId) 
             && !imageId.Equals(containerImageId, StringComparison.InvariantCultureIgnoreCase);
     }

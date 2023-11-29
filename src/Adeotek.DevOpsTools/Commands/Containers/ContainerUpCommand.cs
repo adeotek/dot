@@ -11,10 +11,10 @@ internal sealed class ContainerUpCommand : ContainerBaseCommand<ContainerUpSetti
     private bool Replace => _settings?.Replace ?? false;
     private bool Force => _settings?.Force ?? false;
     
-    protected override void ExecuteContainerCommand(ContainerConfig config)
+    protected override void ExecuteContainerCommand(ContainerConfigV1 configV1)
     {
         var dockerManager = GetDockerManager();
-        if (dockerManager.ContainerExists(config.CurrentName))
+        if (dockerManager.ContainerExists(configV1.CurrentName))
         {
             if (!Upgrade)
             {
@@ -23,12 +23,12 @@ internal sealed class ContainerUpCommand : ContainerBaseCommand<ContainerUpSetti
             }
         
             PrintMessage("Container already present, updating it.", _warningColor);
-            Changes += dockerManager.UpgradeContainer(config, Replace, Force, IsDryRun);
+            Changes += dockerManager.UpgradeContainer(configV1, Replace, Force, IsDryRun);
             return;
         }
         
         PrintMessage("Container not fond, creating new one.");
-        Changes += dockerManager.CheckAndCreateContainer(config, IsDryRun);
+        Changes += dockerManager.CheckAndCreateContainer(configV1, IsDryRun);
         
         if (Changes == 0)
         {

@@ -11,7 +11,7 @@ using YamlDotNet.Serialization.NamingConventions;
 namespace Adeotek.Extensions.Docker;
 
 [ExcludeFromCodeCoverage]
-public class DockerConfigManager
+public static class DockerConfigManagerV1
 {
     public static ContainerConfigV1 LoadContainerConfig(string? configFile) => 
         ConfigManager.LoadConfig<ContainerConfigV1>(configFile);

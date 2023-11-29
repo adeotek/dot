@@ -99,7 +99,7 @@ public class DockerManagerTests
     [Fact]
     public void CreateContainer_WithMissing_ReturnsOne()
     {
-        var config = DockerConfigManager.GetSampleConfig();
+        var config = DockerConfigManagerV1.GetSampleConfig();
         var expectedArgs = GetCreateContainerArgs(config);
         var sut = GetDockerManager(out var shellProcessMock);
         string? cmd = null;
@@ -126,7 +126,7 @@ public class DockerManagerTests
     [Fact]
     public void CreateContainer_WithMissingAndNoStartupCommand_ReturnsOne()
     {
-        var config = DockerConfigManager.GetSampleConfig();
+        var config = DockerConfigManagerV1.GetSampleConfig();
         config.Command = null;
         var expectedArgs = GetCreateContainerArgs(config);
         var sut = GetDockerManager(out var shellProcessMock);
@@ -154,7 +154,7 @@ public class DockerManagerTests
     [Fact]
     public void CreateContainer_WithExisting_ReturnsZero()
     {
-        var config = DockerConfigManager.GetSampleConfig();
+        var config = DockerConfigManagerV1.GetSampleConfig();
         var expectedArgs = GetCreateContainerArgs(config);
         var sut = GetDockerManager(out var shellProcessMock);
         string? cmd = null;
@@ -184,7 +184,7 @@ public class DockerManagerTests
     [Fact]
     public void CreateContainer_WithUnknownError_ThrowsException()
     {
-        var config = DockerConfigManager.GetSampleConfig();
+        var config = DockerConfigManagerV1.GetSampleConfig();
         var expectedArgs = GetCreateContainerArgs(config);
         var sut = GetDockerManager(out var shellProcessMock);
         string? cmd = null;
@@ -834,7 +834,7 @@ public class DockerManagerTests
     [Fact]
     public void CreateNetwork_WithMissing_ReturnsOne()
     {
-        var network = DockerConfigManager.GetSampleConfig().Network 
+        var network = DockerConfigManagerV1.GetSampleConfig().Network 
                       ?? throw new NullReferenceException("NetworkConfig");
         var expectedArgs = GetNetworkCreateArgs(network);
         var sut = GetDockerManager(out var shellProcessMock);
@@ -865,7 +865,7 @@ public class DockerManagerTests
     [Fact]
     public void CreateNetwork_WithExisting_ReturnsZero()
     {
-        var network = DockerConfigManager.GetSampleConfig().Network 
+        var network = DockerConfigManagerV1.GetSampleConfig().Network 
                       ?? throw new NullReferenceException("NetworkConfig");
         var expectedArgs = GetNetworkCreateArgs(network);
         var sut = GetDockerManager(out var shellProcessMock);
@@ -896,7 +896,7 @@ public class DockerManagerTests
     [Fact]
     public void CreateNetwork_WithUnknownError_ThrowsException()
     {
-        var network = DockerConfigManager.GetSampleConfig().Network 
+        var network = DockerConfigManagerV1.GetSampleConfig().Network 
                       ?? throw new NullReferenceException("NetworkConfig");
         var expectedArgs = GetNetworkCreateArgs(network);
         var sut = GetDockerManager(out var shellProcessMock);
@@ -1515,26 +1515,26 @@ public class DockerManagerTests
         return new DockerManager(new DockerCliCommand(provider) { Command = CliCommand });
     }
 
-    private static string GetCreateContainerArgs(ContainerConfig config) =>
+    private static string GetCreateContainerArgs(ContainerConfigV1 configV1) =>
         "run " +
-        (config.RunCommandOptions.Length > 0 ? string.Join(' ',config.RunCommandOptions).Trim() : "-d") + " " +
-        $"--name={config.NamePrefix}{config.Name}{config.CurrentSuffix} " +
-        $"-p {config.Ports[0].Host}:{config.Ports[0].Container} " +
-        $"-p {config.Ports[1].Host}:{config.Ports[1].Container} " +
-        $"-v {config.Volumes[0].Source}:{config.Volumes[0].Destination} " +
-        $"-v {config.Volumes[1].Source}:{config.Volumes[1].Destination} " +
-        $"-e {config.EnvVars.First().Key}={config.EnvVars.First().Value} " +
-        $"-e {config.EnvVars.Skip(1).First().Key}={config.EnvVars.Skip(1).First().Value} " +
-        $"--network={config.Network?.Name} --ip={config.Network?.IpAddress} " +
-        $"--hostname={config.Network?.Hostname} " +
-        $"--network-alias={config.Network?.Alias} " +
-        $"--add-host {config.ExtraHosts.First().Key}:{config.ExtraHosts.First().Value} " +
-        $"--add-host {config.ExtraHosts.Skip(1).First().Key}:{config.ExtraHosts.Skip(1).First().Value} " +
-        $"--restart={config.Restart} " +
-        $"{config.Image}:{config.Tag}" +
-        (!string.IsNullOrEmpty(config.Command) ? $" {config.Command} {string.Join(' ',config.CommandArgs).Trim()}" : "");
+        (configV1.RunCommandOptions.Length > 0 ? string.Join(' ',configV1.RunCommandOptions).Trim() : "-d") + " " +
+        $"--name={configV1.NamePrefix}{configV1.Name}{configV1.CurrentSuffix} " +
+        $"-p {configV1.Ports[0].Host}:{configV1.Ports[0].Container} " +
+        $"-p {configV1.Ports[1].Host}:{configV1.Ports[1].Container} " +
+        $"-v {configV1.Volumes[0].Source}:{configV1.Volumes[0].Destination} " +
+        $"-v {configV1.Volumes[1].Source}:{configV1.Volumes[1].Destination} " +
+        $"-e {configV1.EnvVars.First().Key}={configV1.EnvVars.First().Value} " +
+        $"-e {configV1.EnvVars.Skip(1).First().Key}={configV1.EnvVars.Skip(1).First().Value} " +
+        $"--network={configV1.Network?.Name} --ip={configV1.Network?.IpAddress} " +
+        $"--hostname={configV1.Network?.Hostname} " +
+        $"--network-alias={configV1.Network?.Alias} " +
+        $"--add-host {configV1.ExtraHosts.First().Key}:{configV1.ExtraHosts.First().Value} " +
+        $"--add-host {configV1.ExtraHosts.Skip(1).First().Key}:{configV1.ExtraHosts.Skip(1).First().Value} " +
+        $"--restart={configV1.Restart} " +
+        $"{configV1.Image}:{configV1.Tag}" +
+        (!string.IsNullOrEmpty(configV1.Command) ? $" {configV1.Command} {string.Join(' ',configV1.CommandArgs).Trim()}" : "");
 
-    private static string GetNetworkCreateArgs(NetworkConfig network) =>
+    private static string GetNetworkCreateArgs(NetworkConfigV1 network) =>
         "network create -d bridge --attachable " +
         $"--subnet {network.Subnet} " +
         $"--ip-range {network.IpRange} " +

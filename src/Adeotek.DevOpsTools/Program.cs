@@ -17,17 +17,17 @@ app.Configure(configurator =>
         AnsiConsole.WriteException(e, ExceptionFormats.ShortenEverything);
         return 1;
     });
-    
-    configurator.AddBranch("container", container =>
+
+    configurator.AddBranch("containers", containers =>
     {
-        container.SetDescription("Manage Docker containers");
-        container.AddCommand<ContainerUpCommand>("up")
+        containers.SetDescription("Manage Docker containers");
+        containers.AddCommand<ContainerUpCommand>("up")
             .WithDescription("Create/Update Docker containers");
-        container.AddCommand<ContainerDownCommand>("down")
+        containers.AddCommand<ContainerDownCommand>("down")
             .WithDescription("Remove Docker containers");
-        container.AddCommand<ContainerDownCommand>("backup")
+        containers.AddCommand<ContainerDownCommand>("backup")
             .WithDescription("Backup Docker container volumes");
-        container.AddBranch("config", config =>
+        containers.AddBranch("config", config =>
         {
             config.SetDescription("Validate/Generate Docker containers config files");
             config.AddCommand<ContainerConfigValidateCommand>("validate")
@@ -35,24 +35,15 @@ app.Configure(configurator =>
             config.AddCommand<ContainerConfigSampleCommand>("sample")
                 .WithDescription("Generate Docker container config sample file");
         });
-    });
-    
-    configurator.AddBranch("utf8bom", utf8Bom =>
-    {
-        utf8Bom.SetDescription("Add/Remove/Check BOM (Byte Order Mark) signature of UTF-8 encoded files");
-        utf8Bom.AddCommand<Utf8BomAddCommand>("add")
-            .WithDescription("Add UTF8 Signature (BOM) to files");
-        utf8Bom.AddCommand<Utf8BomRemoveCommand>("remove")
-            .WithDescription("Add UTF8 Signature (BOM) from files");
-    });
-    
+    }).WithAlias("container");
+
     configurator.AddBranch("email", email =>
     {
         email.SetDescription("Email tools");
         email.AddCommand<EmailSendCommand>("send")
             .WithDescription("Send an email message based on a configuration file or provided options");
     });
-    
+
     configurator.AddBranch("port", port =>
     {
         port.SetDescription("TCP ports testing");
@@ -60,6 +51,15 @@ app.Configure(configurator =>
             .WithDescription("Start a listener on the provided TCP port");
         port.AddCommand<PortProbeCommand>("probe")
             .WithDescription("Probe (check if is listening) a local or remote TCP port");
+    });
+
+    configurator.AddBranch("utf8bom", utf8Bom =>
+    {
+        utf8Bom.SetDescription("Add/Remove/Check BOM (Byte Order Mark) signature of UTF-8 encoded files");
+        utf8Bom.AddCommand<Utf8BomAddCommand>("add")
+            .WithDescription("Add UTF8 Signature (BOM) to files");
+        utf8Bom.AddCommand<Utf8BomRemoveCommand>("remove")
+            .WithDescription("Add UTF8 Signature (BOM) from files");
     });
 });
 return app.Run(args);

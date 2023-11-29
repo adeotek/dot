@@ -10,19 +10,19 @@ internal sealed class ContainerDownCommand : ContainerBaseCommand<ContainerDownS
     private bool Downgrade => _settings?.Downgrade ?? false;
     private bool Purge => _settings?.Purge ?? false;
     
-    protected override void ExecuteContainerCommand(ContainerConfig config)
+    protected override void ExecuteContainerCommand(ContainerConfigV1 configV1)
     {
         var dockerManager = GetDockerManager();
         if (Downgrade)
         {
-            if (!dockerManager.ContainerExists(config.PreviousName))
+            if (!dockerManager.ContainerExists(configV1.PreviousName))
             {
-                PrintMessage($"Previous container '{config.PreviousName}' not fond, rollback not possible!", _warningColor);
+                PrintMessage($"Previous container '{configV1.PreviousName}' not fond, rollback not possible!", _warningColor);
                 return;
             }
 
             PrintMessage("Previous container found, downgrading.");
-            Changes += dockerManager.DowngradeContainer(config, IsDryRun);
+            Changes += dockerManager.DowngradeContainer(configV1, IsDryRun);
             if (IsDryRun)
             {
                 PrintMessage("Container downgrade finished.", _standardColor, separator: IsVerbose);
@@ -35,10 +35,10 @@ internal sealed class ContainerDownCommand : ContainerBaseCommand<ContainerDownS
             return;
         }
         
-        if (dockerManager.ContainerExists(config.CurrentName))
+        if (dockerManager.ContainerExists(configV1.CurrentName))
         {
             PrintMessage("Container found, removing it.");
-            Changes += dockerManager.PurgeContainer(config, Purge, IsDryRun);
+            Changes += dockerManager.PurgeContainer(configV1, Purge, IsDryRun);
             if (IsDryRun)
             {
                 PrintMessage("Container remove finished.", _standardColor, separator: IsVerbose);
@@ -54,7 +54,7 @@ internal sealed class ContainerDownCommand : ContainerBaseCommand<ContainerDownS
         if (Purge)
         {
             PrintMessage("Container not found, trying to purge resources.", _warningColor);
-            Changes += dockerManager.PurgeContainer(config, Purge, IsDryRun);
+            Changes += dockerManager.PurgeContainer(configV1, Purge, IsDryRun);
             if (IsDryRun)
             {
                 PrintMessage("Container resources purge finished.", _standardColor, separator: IsVerbose);

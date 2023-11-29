@@ -8,7 +8,7 @@ internal sealed class ContainerBackupCommand : ContainerBaseCommand<ContainerBac
     protected override string CommandName => "container backup";
     protected override string ResultLabel => "Changes";
     
-    protected override void ExecuteContainerCommand(ContainerConfig config)
+    protected override void ExecuteContainerCommand(ContainerConfigV1 configV1)
     {
         var dockerManager = GetDockerManager();
     }

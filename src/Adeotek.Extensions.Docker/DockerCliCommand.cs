@@ -52,17 +52,17 @@ public class DockerCliCommand : ShellCommand
             ? AddArg("-d")
             : AddArg(string.Join(' ', runCommandOptions).Trim());
     
-    public DockerCliCommand AddStartupCommandArgs(ContainerConfig config)
+    public DockerCliCommand AddStartupCommandArgs(ContainerConfigV1 configV1)
     {
-        if (string.IsNullOrEmpty(config.Command))
+        if (string.IsNullOrEmpty(configV1.Command))
         {
             return this;
         }
 
-        AddArg(config.Command);
-        if (config.CommandArgs.Length > 0)
+        AddArg(configV1.Command);
+        if (configV1.CommandArgs.Length > 0)
         {
-            AddArg(string.Join(' ', config.CommandArgs).Trim());
+            AddArg(string.Join(' ', configV1.CommandArgs).Trim());
         }
         
         return this;
@@ -74,7 +74,7 @@ public class DockerCliCommand : ShellCommand
     public DockerCliCommand AddPortArg(uint hostPort, uint containerPort) =>
         AddArg($"-p {hostPort}:{containerPort}");
     
-    public DockerCliCommand AddPortsArgs(PortMapping[] ports)
+    public DockerCliCommand AddPortsArgs(PortMappingV1[] ports)
     {
         foreach (var port in ports)
         {
@@ -86,7 +86,7 @@ public class DockerCliCommand : ShellCommand
     public DockerCliCommand AddVolumeArg(string source, string destination, bool isReadonly = false) => 
         AddArg($"-v {source}:{destination}{(isReadonly ? ":ro" : "")}");
     
-    public DockerCliCommand AddVolumesArgs(IEnumerable<VolumeConfig> volumes)
+    public DockerCliCommand AddVolumesArgs(IEnumerable<VolumeConfigV1> volumes)
     {
         foreach (var volume in volumes)
         {
@@ -107,28 +107,28 @@ public class DockerCliCommand : ShellCommand
         return this;
     }
     
-    public DockerCliCommand AddNetworkArgs(ContainerConfig config)
+    public DockerCliCommand AddNetworkArgs(ContainerConfigV1 configV1)
     {
-        if (config.Network is null)
+        if (configV1.Network is null)
         {
             return this;
         }
         
-        if (!string.IsNullOrEmpty(config.Network.Name))
+        if (!string.IsNullOrEmpty(configV1.Network.Name))
         {
-            AddArg($"--network={config.Network.Name}");
+            AddArg($"--network={configV1.Network.Name}");
         }
-        if (!string.IsNullOrEmpty(config.Network.IpAddress))
+        if (!string.IsNullOrEmpty(configV1.Network.IpAddress))
         {
-            AddArg($"--ip={config.Network.IpAddress}");
+            AddArg($"--ip={configV1.Network.IpAddress}");
         }
-        if (config.Network.Hostname != "")
+        if (configV1.Network.Hostname != "")
         {
-            AddArg($"--hostname={config.Network.Hostname ?? config.CurrentName}");
+            AddArg($"--hostname={configV1.Network.Hostname ?? configV1.CurrentName}");
         }
-        if (config.Network.Alias != "")
+        if (configV1.Network.Alias != "")
         {
-            AddArg($"--network-alias={config.Network.Alias ?? config.Name}");
+            AddArg($"--network-alias={configV1.Network.Alias ?? configV1.Name}");
         }
 
         return this;

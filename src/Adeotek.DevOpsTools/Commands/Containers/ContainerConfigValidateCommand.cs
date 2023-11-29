@@ -11,7 +11,7 @@ internal class ContainerConfigValidateCommand : CommandBase<ContainerConfigValid
     
     protected override int ExecuteCommand(CommandContext context, ContainerConfigValidateSettings settings)
     {
-        var config = DockerConfigManager.LoadContainerConfig(settings.ConfigFile);
+        var config = DockerConfigManagerV1.LoadContainerConfig(settings.ConfigFile);
         bool hasErrors = false;
         
         if (string.IsNullOrEmpty(config.Image) || config.Image.Contains(' '))

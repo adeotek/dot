@@ -93,7 +93,7 @@ public class DockerCliCommandTests
     [Fact]
     public void AddStartupCommandArgs_WithoutCommand_DoNotSetCommandArgs()
     {
-        ContainerConfig config = new()
+        ContainerConfigV1 configV1 = new()
         {
             Command = null,
             CommandArgs = new [] { "--verbose" }
@@ -101,7 +101,7 @@ public class DockerCliCommandTests
 
         var result = _sut.ClearArgs()
             .AddArg("--some-argument")
-            .AddStartupCommandArgs(config);
+            .AddStartupCommandArgs(configV1);
         
         Assert.Equal(typeof(DockerCliCommand), result.GetType());
         Assert.Single(_sut.Args);
@@ -110,7 +110,7 @@ public class DockerCliCommandTests
     [Fact]
     public void AddStartupCommandArgs_WithNoOptions_SetArgsDefaultOption()
     {
-        ContainerConfig config = new()
+        ContainerConfigV1 configV1 = new()
         {
             Command = "serve"
         };
@@ -118,7 +118,7 @@ public class DockerCliCommandTests
 
         var result = _sut.ClearArgs()
             .AddArg("--some-argument")
-            .AddStartupCommandArgs(config);
+            .AddStartupCommandArgs(configV1);
         
         Assert.Equal(typeof(DockerCliCommand), result.GetType());
         Assert.Equal(2, _sut.Args.Length);
@@ -128,7 +128,7 @@ public class DockerCliCommandTests
     [Fact]
     public void AddStartupCommandArgs_WithTwoOptions_SetOptionsArgs()
     {
-        ContainerConfig config = new()
+        ContainerConfigV1 configV1 = new()
         {
             Command = "serve",
             CommandArgs = new [] { "-v", "--debug" }
@@ -138,7 +138,7 @@ public class DockerCliCommandTests
 
         var result = _sut.ClearArgs()
             .AddArg("--some-argument")
-            .AddStartupCommandArgs(config);
+            .AddStartupCommandArgs(configV1);
         
         Assert.Equal(typeof(DockerCliCommand), result.GetType());
         Assert.Equal(3, _sut.Args.Length);
@@ -163,7 +163,7 @@ public class DockerCliCommandTests
     public void AddPortsArgs_SetArgsDictValues()
     {
         var expectedValue = "-p 1234:9876";
-        var ports = new PortMapping[]
+        var ports = new PortMappingV1[]
         {
             new() { Host = 1234, Container = 9876 }, 
             new() { Host = 80, Container = 80 }, 
@@ -210,7 +210,7 @@ public class DockerCliCommandTests
     {
         var expectedFirstValue = "-v volume-name:/path/in/container";
         var expectedSecondValue = "-v /some/path/on/host:/another/path/in/container:ro";
-        var volumes = new VolumeConfig[]
+        var volumes = new VolumeConfigV1[]
         {
             new() { Source = "volume-name", Destination = "/path/in/container", IsReadonly = false }, 
             new() { Source = "/some/path/on/host", Destination = "/another/path/in/container", IsReadonly = true },
@@ -296,11 +296,11 @@ public class DockerCliCommandTests
         var expectedIpArg = "--ip=10.2.3.4";
         var expectedHostnameArg = "--hostname=some-host-name";
         var expectedNetworkAliasArg = "--network-alias=other-host-name";
-        ContainerConfig config = new()
+        ContainerConfigV1 configV1 = new()
         {
             Image = "SomeImage",
             Name = "some-name",
-            Network = new NetworkConfig
+            Network = new NetworkConfigV1
             {
                 Name = "test-network",
                 IpAddress = "10.2.3.4",
@@ -311,7 +311,7 @@ public class DockerCliCommandTests
         
         var result = _sut.ClearArgs()
             .AddArg("--some-argument")
-            .AddNetworkArgs(config);
+            .AddNetworkArgs(configV1);
         
         Assert.Equal(typeof(DockerCliCommand), result.GetType());
         Assert.Equal(expectedNetworkArg, _sut.Args[1]);
@@ -324,7 +324,7 @@ public class DockerCliCommandTests
     [Fact]
     public void AddNetworkArgs_WithNullNetwork_SetArgsDictValues()
     {
-        ContainerConfig config = new()
+        ContainerConfigV1 configV1 = new()
         {
             Image = "SomeImage",
             Name = "some-name",
@@ -333,7 +333,7 @@ public class DockerCliCommandTests
         
         var result = _sut.ClearArgs()
             .AddArg("--some-argument")
-            .AddNetworkArgs(config);
+            .AddNetworkArgs(configV1);
         
         Assert.Equal(typeof(DockerCliCommand), result.GetType());
         Assert.Single(_sut.Args);
