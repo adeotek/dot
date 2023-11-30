@@ -8,9 +8,19 @@ using YamlDotNet.Serialization.NamingConventions;
 namespace Adeotek.Extensions.ConfigFiles;
 
 [ExcludeFromCodeCoverage]
-public static class ConfigManager
+public class ConfigManager
 {
-    public static T LoadConfig<T>(string? configFile) where T : class
+    public JsonSerializerOptions JsonSerializerOptions { get; set; } = new()
+    {
+        AllowTrailingCommas = true, 
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DictionaryKeyPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = false
+    };
+
+    public INamingConvention YamlNamingConvention { get; set; } = UnderscoredNamingConvention.Instance;
+    
+    public T LoadConfig<T>(string? configFile) where T : class
     {
         if (string.IsNullOrEmpty(configFile))
         {
@@ -41,13 +51,12 @@ public static class ConfigManager
         throw new ConfigFileException("The config file is not in a valid format", configFile);
     }
 
-    public static T LoadConfigFromJsonString<T>(string data) where T : class
+    protected virtual T LoadConfigFromJsonString<T>(string data) where T : class
     {
         try
         {
-            return JsonSerializer.Deserialize<T>(data, 
-                    new JsonSerializerOptions { AllowTrailingCommas = true })
-                ?? throw new ConfigFileException("Unable to deserialize JSON config data");
+            return JsonSerializer.Deserialize<T>(data, JsonSerializerOptions)
+                   ?? throw new ConfigFileException("Unable to deserialize JSON config data");
         }
         catch (ConfigFileException)
         {
@@ -59,12 +68,12 @@ public static class ConfigManager
         }
     }
     
-    public static T LoadConfigFromYamlString<T>(string data) where T : class
+    protected virtual T LoadConfigFromYamlString<T>(string data) where T : class
     {
         try
         {
             return new DeserializerBuilder()
-                .WithNamingConvention(PascalCaseNamingConvention.Instance) 
+                .WithNamingConvention(YamlNamingConvention) 
                 .Build()
                 .Deserialize<T>(data)
                    ?? throw new ConfigFileException("Unable to deserialize YAML config data");

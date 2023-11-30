@@ -4,6 +4,7 @@ using Adeotek.DevOpsTools.CommandsSettings.Containers;
 using Adeotek.Extensions.ConfigFiles;
 using Adeotek.Extensions.Docker;
 using Adeotek.Extensions.Docker.Config;
+using Adeotek.Extensions.Docker.Config.V1;
 using Adeotek.Extensions.Docker.Exceptions;
 
 using Spectre.Console;
@@ -15,19 +16,21 @@ internal abstract class ContainerBaseCommand<TSettings>
     : CommandBase<TSettings> where TSettings : ContainerSettings
 {
     protected bool IsDryRun => _settings?.DryRun ?? false;
-    protected abstract void ExecuteContainerCommand(ContainerConfigV1 configV1);
+    protected abstract void ExecuteContainerCommand(ContainerConfigV1 config);
 
     protected override int ExecuteCommand(CommandContext context, TSettings settings)
     {
         try
         {
-            var config = DockerConfigManagerV1.LoadContainerConfig(settings.ConfigFile);
-            if (settings.Verbose)
+            var configVersion = settings.ConfigV1 ?? context.Data?.ToString() == "v1" ? "v1" : null;
+            PrintMessage($"Config Version: {configVersion ?? "v2"}", _standardColor);
+            var config = DockerConfigManager.LoadContainersConfig(settings.ConfigFile, configVersion);
+            if (settings.ShowConfig)
             {
                 config.WriteToAnsiConsole();
             }
-
-            ExecuteContainerCommand(config);
+            
+            // ExecuteContainerCommand(config);
             return 0;
         }
         catch (ConfigFileException e)

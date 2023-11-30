@@ -1,4 +1,4 @@
-﻿namespace Adeotek.Extensions.Docker.Config;
+﻿namespace Adeotek.Extensions.Docker.Config.V1;
 
 public class VolumeConfigV1
 {

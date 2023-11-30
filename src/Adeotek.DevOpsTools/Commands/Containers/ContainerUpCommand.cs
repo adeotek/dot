@@ -1,5 +1,6 @@
 ﻿using Adeotek.DevOpsTools.CommandsSettings.Containers;
 using Adeotek.Extensions.Docker.Config;
+using Adeotek.Extensions.Docker.Config.V1;
 
 namespace Adeotek.DevOpsTools.Commands.Containers;
 

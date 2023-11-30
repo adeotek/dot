@@ -18,6 +18,30 @@ app.Configure(configurator =>
         return 1;
     });
 
+    configurator.AddBranch("container", containers =>
+    {
+        containers.SetDescription("Manage Docker containers");
+        containers.AddCommand<ContainerUpCommand>("up")
+            .WithDescription("Create/Update Docker containers")
+            .WithData("v1");
+        containers.AddCommand<ContainerDownCommand>("down")
+            .WithDescription("Remove Docker containers")
+            .WithData("v1");
+        containers.AddCommand<ContainerDownCommand>("backup")
+            .WithDescription("Backup Docker container volumes")
+            .WithData("v1");
+        containers.AddBranch("config", config =>
+        {
+            config.SetDescription("Validate/Generate Docker containers config files");
+            config.AddCommand<ContainerConfigValidateCommand>("validate")
+                .WithDescription("Validate Docker container config file")
+                .WithData("v1");
+            config.AddCommand<ContainerConfigSampleCommand>("sample")
+                .WithDescription("Generate Docker container config sample file")
+                .WithData("v1");
+        });
+    });
+
     configurator.AddBranch("containers", containers =>
     {
         containers.SetDescription("Manage Docker containers");
@@ -35,7 +59,7 @@ app.Configure(configurator =>
             config.AddCommand<ContainerConfigSampleCommand>("sample")
                 .WithDescription("Generate Docker container config sample file");
         });
-    }).WithAlias("container");
+    });
 
     configurator.AddBranch("email", email =>
     {

@@ -2,7 +2,7 @@
 
 namespace Adeotek.Extensions.Docker.Tests;
 
-public class DockerConfigManagerV1Tests
+public class DockerConfigManagerTests
 {
     private readonly string _fixturesPath = Path.Combine(
         Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "",
@@ -19,12 +19,13 @@ public class DockerConfigManagerV1Tests
     {
         var configFile = Path.Combine(_fixturesPath, fixtureFile);
 
-        var result = DockerConfigManagerV1.LoadContainerConfig(configFile);
-        
-        Assert.NotNull(result.FullImageName);
-        Assert.NotEqual(string.Empty, result.FullImageName.Trim());
-        Assert.NotNull(result.CurrentName);
-        Assert.NotEqual(string.Empty, result.CurrentName.Trim());
+        // var result = DockerConfigManager.LoadConfig(configFile);
+        //
+        // Assert.NotNull(result.FullImageName);
+        // Assert.NotEqual(string.Empty, result.FullImageName.Trim());
+        // Assert.NotNull(result.CurrentName);
+        // Assert.NotEqual(string.Empty, result.CurrentName.Trim());
+        throw new NotImplementedException();
     }
     
     [Theory]
@@ -35,7 +36,7 @@ public class DockerConfigManagerV1Tests
         var configFile = Path.Combine(_fixturesPath, $"config-full.{fixtureExtension}");
         var expectedResult = File.ReadAllText(configFile).Trim();
 
-        var result = DockerConfigManagerV1.GetSerializedSampleConfig(format);
+        var result = DockerConfigManager.GetSerializedSampleConfig(format);
         
         Assert.Equal(expectedResult, result.Trim());
     }

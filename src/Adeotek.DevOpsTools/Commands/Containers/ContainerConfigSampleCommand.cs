@@ -9,7 +9,7 @@ namespace Adeotek.DevOpsTools.Commands.Containers;
 
 internal class ContainerConfigSampleCommand : CommandBase<ContainerConfigSampleSettings>
 {
-    protected override string CommandName => "container config";
+    protected override string CommandName => "containers config";
     
     protected override int ExecuteCommand(CommandContext context, ContainerConfigSampleSettings settings)
     {
@@ -19,7 +19,7 @@ internal class ContainerConfigSampleCommand : CommandBase<ContainerConfigSampleS
             return 1;
         }
         
-        var config = DockerConfigManagerV1.GetSerializedSampleConfig(settings.Format);
+        var config = DockerConfigManager.GetSerializedSampleConfig(settings.Format);
         
         if (settings.Target?.ToLower() == "screen" || settings.Target?.ToLower() == "display")
         {

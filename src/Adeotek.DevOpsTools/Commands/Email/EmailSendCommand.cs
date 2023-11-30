@@ -82,7 +82,8 @@ internal class EmailSendCommand : CommandBase<EmailSendSettings>
 
     private static EmailConfig LoadConfiguration(EmailSendSettings sendSettings)
     {
-        var config = ConfigManager.LoadConfig<EmailConfig>(sendSettings.ConfigFile);
+        var config = new ConfigManager()
+            .LoadConfig<EmailConfig>(sendSettings.ConfigFile);
         // Override config file values with command options
         if (!string.IsNullOrEmpty(sendSettings.FromAddress))
         {

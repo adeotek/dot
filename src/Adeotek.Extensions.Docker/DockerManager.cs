@@ -1,4 +1,5 @@
 ﻿using Adeotek.Extensions.Docker.Config;
+using Adeotek.Extensions.Docker.Config.V1;
 using Adeotek.Extensions.Docker.Exceptions;
 using Adeotek.Extensions.Processes;
 
