@@ -8,7 +8,7 @@ namespace Adeotek.DevOpsTools.Extensions;
 
 internal static class AnsiConsolePrintExtensions
 {
-    private const int NameLength = 20;
+    private const int NameLength = 24;
     private const int SubValueIndent = 2;
     private const char SubValuePrefix = ' ';
     private const string MappingSeparator = " -> ";
@@ -50,16 +50,16 @@ internal static class AnsiConsolePrintExtensions
             .Style(LabelColor, "BaseName:", NameLength).Style(ValueColor, service.BaseName ?? Null).LineBreak()
             .Style(LabelColor, "CurrentSuffix:", NameLength).Style(ValueColor, service.CurrentSuffix ?? Null).LineBreak()
             .Style(LabelColor, "PreviousSuffix:", NameLength).Style(ValueColor, service.PreviousSuffix ?? Null).LineBreak()
-            .Style(LabelColor, "Ports:").LineBreak().AddConfigPorts(service.Ports)
-            .Style(LabelColor, "Volumes:").LineBreak().AddConfigVolumes(service.Volumes)
+            .Style(LabelColor, "Ports:", NameLength).AddConfigPorts(service.Ports)
+            .Style(LabelColor, "Volumes:", NameLength).AddConfigVolumes(service.Volumes)
             .Style(LabelColor, "EnvFiles:", NameLength)
             .Style(ValueColor, service.EnvFiles is null ? Null : string.Join("; ", service.EnvFiles)).LineBreak()
-            .Style(LabelColor, "EnvVars:").LineBreak().AddConfigEnvVars(service.EnvVars)
+            .Style(LabelColor, "EnvVars:", NameLength).AddConfigEnvVars(service.EnvVars)
             .Style(LabelColor, "Networks:").LineBreak().AddServiceNetworks(service.Networks)
             .Style(LabelColor, "Links:", NameLength)
             .Style(ValueColor, service.Links is null ? Null : string.Join("; ", service.Links)).LineBreak()
             .Style(LabelColor, "Hostname:", NameLength).Style(ValueColor, service.Hostname ?? Null).LineBreak()
-            .Style(LabelColor, "ExtraHosts:").LineBreak().AddConfigExtraHosts(service.ExtraHosts)
+            .Style(LabelColor, "ExtraHosts:", NameLength).AddConfigExtraHosts(service.ExtraHosts)
             .Style(LabelColor, "Dns:", NameLength)
             .Style(ValueColor, service.Dns is null ? Null : string.Join("; ", service.Dns)).LineBreak()
             .Style(LabelColor, "Restart:", NameLength).Style(ValueColor, service.Restart ?? Null).LineBreak()
@@ -71,13 +71,19 @@ internal static class AnsiConsolePrintExtensions
             .Style(LabelColor, "Attach:", NameLength).Style(ValueColor, service.Attach.ToString()).LineBreak()
             .Style(LabelColor, "RunCommandOptions:", NameLength)
             .Style(ValueColor, service.RunCommandOptions is null ? Null : string.Join(" ", service.RunCommandOptions)).LineBreak();
-
         return composer;
     }
     
     internal static CustomComposer AddNetworkConfig(this CustomComposer composer, NetworkConfig network)
     {
-        
+        composer.Style(LabelColor, "Name:", NameLength).Style(ValueColor, network.Name).LineBreak()
+            .Style(LabelColor, "Driver:", NameLength).Style(ValueColor, network.Driver).LineBreak()
+            .Style(LabelColor, "IPAM:", NameLength).AddIpamConfig(network)
+            .Style(LabelColor, "Flags:", NameLength)
+            .Style(LabelColor, "Attachable:").Space().Style(ValueColor, network.Attachable ? "Yes" : "No").Text(" | ")
+            .Style(LabelColor, "External:").Space().Style(ValueColor, network.External ? "Yes" : "No").Text(" | ")
+            .Style(LabelColor, "Internal:").Space().Style(ValueColor, network.Internal ? "Yes" : "No").Text(" | ")
+            .Style(LabelColor, "Preserve:").Space().Style(ValueColor, network.Preserve ? "Yes" : "No").LineBreak();
         return composer;
     }
     
@@ -92,25 +98,80 @@ internal static class AnsiConsolePrintExtensions
         
         foreach ((string name, ServiceNetworkConfig network) in networks)
         {
-            composer.Repeat(SubValuePrefix, NameLength - 1).Space()
-            //     .Style(SpecialValueColor, $"{(string.IsNullOrEmpty(network.HostIp) ? "" : $":{network.HostIp}")}{network.Published ?? ""}")
-            //     .Text(MappingSeparator).Style(ValueColor, $"{network.Target}{(string.IsNullOrEmpty(network.Protocol) ? "" : $"/{network.Protocol}")}")
-            .LineBreak();
-            
-            // .Repeat(SubValuePrefix, SubValueIndent)
-            // .Style(LabelColor, "Name:", NameLength - SubValueIndent).Style(ValueColor, service.Network?.Name ?? Null).LineBreak()
-            // .Repeat(SubValuePrefix, SubValueIndent)
-            // .Style(LabelColor, "Subnet:", NameLength - SubValueIndent).Style(ValueColor, service.Network?.Subnet ?? Null).LineBreak()
-            // .Repeat(SubValuePrefix, SubValueIndent)
-            // .Style(LabelColor, "IpRange:", NameLength - SubValueIndent).Style(ValueColor, service.Network?.IpRange ?? Null).LineBreak()
-            // .Repeat(SubValuePrefix, SubValueIndent)
-            // .Style(LabelColor, "IpAddress:", NameLength - SubValueIndent).Style(ValueColor, service.Network?.IpAddress ?? Null).LineBreak()
-            // .Repeat(SubValuePrefix, SubValueIndent)
-            // .Style(LabelColor, "Hostname:", NameLength - SubValueIndent).Style(ValueColor, service.Network?.Hostname ?? Null).LineBreak()
-            // .Repeat(SubValuePrefix, SubValueIndent)
-            // .Style(LabelColor, "Alias:", NameLength - SubValueIndent).Style(ValueColor, service.Network?.Alias ?? Null).LineBreak()
+            composer.Repeat(SubValuePrefix, SubValueIndent)
+                .Style(LabelColor, "Name:", NameLength - SubValueIndent).Style(ValueColor, name).LineBreak()
+                .Repeat(SubValuePrefix, SubValueIndent)
+                .Style(LabelColor, "IpV4Address:", NameLength - SubValueIndent).Style(ValueColor, network.IpV4Address ?? Null).LineBreak()
+                .Repeat(SubValuePrefix, SubValueIndent)
+                .Style(LabelColor, "IpV6Address:", NameLength - SubValueIndent).Style(ValueColor, network.IpV6Address ?? Null).LineBreak()
+                .Repeat(SubValuePrefix, SubValueIndent)
+                .Style(LabelColor, "Aliases:", NameLength - SubValueIndent);
+            if (network.Aliases is null || network.Aliases.Length == 0)
+            {
+                composer.Style(ValueColor, "[None]").LineBreak();
+            }
+            else
+            {
+                var first = true;
+                foreach (var alias in network.Aliases)
+                {
+                    if (first)
+                    {
+                        first = false;
+                    }
+                    else
+                    {
+                        composer.Repeat(SubValuePrefix, SubValueIndent);
+                    }
+                    
+                    composer.Style(ValueColor, alias).LineBreak();
+                }    
+            }
         }
 
+        return composer;
+    }
+
+    internal static CustomComposer AddIpamConfig(this CustomComposer composer, NetworkConfig network)
+    {
+        if (network.Ipam is null)
+        {
+            return composer.Style(ValueColor, "[None]").LineBreak();
+        }
+        
+        composer.LineBreak().Repeat(SubValuePrefix, SubValueIndent)
+            .Style(LabelColor, "Driver:", NameLength - SubValueIndent).Style(ValueColor, network.Ipam.Driver).LineBreak()
+            .Repeat(SubValuePrefix, SubValueIndent)
+            .Style(LabelColor, "Config.Subnet:", NameLength - SubValueIndent).Style(ValueColor, network.Ipam.Config.Subnet).LineBreak()
+            .Repeat(SubValuePrefix, SubValueIndent)
+            .Style(LabelColor, "Config.IpRange:", NameLength - SubValueIndent).Style(ValueColor, network.Ipam.Config.IpRange).LineBreak()
+            .Repeat(SubValuePrefix, SubValueIndent)
+            .Style(LabelColor, "Config.Gateway:", NameLength - SubValueIndent).Style(ValueColor, network.Ipam.Config.Gateway ?? Null).LineBreak()
+            .Repeat(SubValuePrefix, SubValueIndent)
+            .Style(LabelColor, "Config.AuxAddresses:", NameLength - SubValueIndent);
+            
+        if (network.Ipam.Config.AuxAddresses is null || network.Ipam.Config.AuxAddresses.Count == 0)
+        {
+            composer.Style(ValueColor, "[None]").LineBreak();
+        }
+        else
+        {
+            var first = true;
+            foreach (var auxAddress in network.Ipam.Config.AuxAddresses)
+            {
+                if (first)
+                {
+                    first = false;
+                }
+                else
+                {
+                    composer.Repeat(SubValuePrefix, SubValueIndent);
+                }
+                
+                composer.Style(ValueColor, $"{auxAddress.Key}:{auxAddress.Value}").LineBreak();
+            }    
+        }
+        
         return composer;
     }
 
@@ -118,16 +179,25 @@ internal static class AnsiConsolePrintExtensions
     {
         if (ports is null || ports.Length == 0)
         {
-            composer.Repeat(SubValuePrefix, NameLength - 1).Space()
-                .Style(ValueColor, "[None]").LineBreak();
-            return composer;
+            return composer.Style(ValueColor, "[None]").LineBreak();
         }
         
+        var first = true;
         foreach (var port in ports)
         {
-            composer.Repeat(SubValuePrefix, NameLength - 1).Space()
-                .Style(SpecialValueColor, $"{(string.IsNullOrEmpty(port.HostIp) ? "" : $":{port.HostIp}")}{port.Published ?? ""}")
-                .Text(MappingSeparator).Style(ValueColor, $"{port.Target}{(string.IsNullOrEmpty(port.Protocol) ? "" : $"/{port.Protocol}")}")
+            if (first)
+            {
+                first = false;
+            }
+            else
+            {
+                composer.Repeat(SubValuePrefix, NameLength - 1).Space();
+            }
+            
+            composer.Style(SpecialValueColor, string.IsNullOrEmpty(port.HostIp) ? "" : $":{port.HostIp}")
+                .Style(SpecialValueColor, port.Published ?? port.Target)
+                .Text(MappingSeparator).Style(ValueColor, port.Target)
+                .Style(SpecialValueColor, string.IsNullOrEmpty(port.Protocol) ? "" : $"/{port.Protocol}")
                 .LineBreak();
         }
 
@@ -138,15 +208,22 @@ internal static class AnsiConsolePrintExtensions
     {
         if (volumes is null || volumes.Length == 0)
         {
-            composer.Repeat(SubValuePrefix, NameLength - 1).Space()
-                .Style(ValueColor, "[None]").LineBreak();
-            return composer;
+            return composer.Style(ValueColor, "[None]").LineBreak();
         }
         
+        var first = true;
         foreach (var volume in volumes)
         {
-            composer.Repeat(SubValuePrefix, NameLength - 1).Space()
-                .Style(SpecialColor, $"[{volume.Type}]").Space()
+            if (first)
+            {
+                first = false;
+            }
+            else
+            {
+                composer.Repeat(SubValuePrefix, NameLength - 1).Space();
+            }
+            
+            composer.Style(SpecialColor, $"[{volume.Type}]").Space()
                 .Style(SpecialValueColor, volume.Source)
                 .Text(MappingSeparator).Style(ValueColor, volume.Target).Text(" (")
                 .Style(LabelColor,"ReadOnly:").Space().Style(ValueColor, volume.ReadOnly ? "Yes" : "No").Text(" | ")
@@ -162,15 +239,22 @@ internal static class AnsiConsolePrintExtensions
     {
         if (envVars is null || envVars.Count == 0)
         {
-            composer.Repeat(SubValuePrefix, NameLength - 1).Space()
-                .Style(ValueColor, "[None]").LineBreak();
-            return composer;
+            return composer.Style(ValueColor, "[None]").LineBreak();
         }
         
+        var first = true;
         foreach ((string key, string value) in envVars)
         {
-            composer.Repeat(SubValuePrefix, NameLength - 1).Space()
-                .Style(SpecialValueColor, key)
+            if (first)
+            {
+                first = false;
+            }
+            else
+            {
+                composer.Repeat(SubValuePrefix, NameLength - 1).Space();
+            }
+            
+            composer.Style(SpecialValueColor, key)
                 .Text("=").Style(ValueColor, value).LineBreak();
         }
 
@@ -181,15 +265,21 @@ internal static class AnsiConsolePrintExtensions
     {
         if (extraHosts is null || extraHosts.Count == 0)
         {
-            composer.Repeat(SubValuePrefix, NameLength - 1).Space()
-                .Style(ValueColor, "[None]").LineBreak();
-            return composer;
+            return composer.Style(ValueColor, "[None]").LineBreak();
         }
-        
+
+        bool first = true;
         foreach ((string key, string value) in extraHosts)
         {
-            composer.Repeat(SubValuePrefix, NameLength - 1).Space()
-                .Style(SpecialValueColor, key)
+            if (first)
+            {
+                first = false;
+            }
+            else
+            {
+                composer.Repeat(SubValuePrefix, NameLength - 1).Space();
+            }
+            composer.Style(SpecialValueColor, key)
                 .Text(":").Style(ValueColor, value).LineBreak();
         }
 

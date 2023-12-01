@@ -54,7 +54,7 @@ public static class MapperExtensions
     private static PortMapping ToV2(this PortMappingV1 port) =>
         new()
         {
-            Target = port.Container,
+            Target = port.Container.ToString(),
             Published = port.Host.ToString(),
             HostIp = null,
             Protocol = null,

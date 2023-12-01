@@ -6,6 +6,10 @@ namespace Adeotek.DevOpsTools.CommandsSettings.Containers;
 
 internal sealed class ContainerUpSettings : ContainerSettings
 {
+    [Description("Execute the command only for the service with the provided name")]
+    [CommandOption("-n|--name <value>")]
+    public string? Service { get; init; }
+    
     [Description("Upgrade container if it exists")]
     [CommandOption("-u|--upgrade")]
     [DefaultValue(false)]

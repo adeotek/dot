@@ -1,6 +1,6 @@
 ﻿using Adeotek.DevOpsTools.CommandsSettings.Containers;
+using Adeotek.Extensions.Docker;
 using Adeotek.Extensions.Docker.Config;
-using Adeotek.Extensions.Docker.Config.V1;
 
 namespace Adeotek.DevOpsTools.Commands.Containers;
 
@@ -11,64 +11,86 @@ internal sealed class ContainerDownCommand : ContainerBaseCommand<ContainerDownS
     private bool Downgrade => _settings?.Downgrade ?? false;
     private bool Purge => _settings?.Purge ?? false;
     
-    protected override void ExecuteContainerCommand(ContainerConfigV1 configV1)
+    protected override void ExecuteContainerCommand(ContainersConfig config)
     {
         var dockerManager = GetDockerManager();
+        
         if (Downgrade)
         {
-            if (!dockerManager.ContainerExists(configV1.PreviousName))
+            ExecuteDowngrade(GetTargetServices(config), dockerManager);
+            return;
+        }
+
+        ExecuteDown(GetTargetServices(config), config, dockerManager);
+    }
+
+    private void ExecuteDown(Dictionary<string, ServiceConfig> targetServices, 
+        ContainersConfig config, DockerManager dockerManager)
+    {
+        foreach ((string name, ServiceConfig service) in targetServices)
+        {
+            var exists = dockerManager.ContainerExists(service.CurrentName);
+            if (!exists && !Purge)
             {
-                PrintMessage($"Previous container '{configV1.PreviousName}' not fond, rollback not possible!", _warningColor);
-                return;
+                PrintMessage($"<{name}> Container not fond, nothing to do!", _warningColor); 
+                continue;
             }
 
-            PrintMessage("Previous container found, downgrading.");
-            Changes += dockerManager.DowngradeContainer(configV1, IsDryRun);
+            if (exists)
+            {
+                PrintMessage($"<{name}> Container found, removing it.");
+            }
+            else
+            {
+                PrintMessage($"<{name}> Container not found, trying to purge resources.", _warningColor);
+            }
+            
+            Changes += dockerManager.PurgeContainer(name, config, Purge, IsDryRun);
             if (IsDryRun)
             {
-                PrintMessage("Container downgrade finished.", _standardColor, separator: IsVerbose);
+                PrintMessage(exists
+                        ? $"<{name}> Container remove finished."
+                        : $"<{name}> Container resources purge finished.", 
+                    _standardColor, separator: IsVerbose);
                 PrintMessage("Dry run: No changes were made!", _warningColor);
             }
             else
             {
-                PrintMessage("Container downgrading successfully!", _successColor, separator: IsVerbose);
+                PrintMessage(exists
+                        ? $"<{name}> Container removed{(Purge ? " and resources purged" : "")} successfully!"
+                        : $"<{name}> Container resources purged successfully!", 
+                    _successColor, separator: IsVerbose);
             }
-            return;
         }
-        
-        if (dockerManager.ContainerExists(configV1.CurrentName))
+    }
+
+    private void ExecuteDowngrade(Dictionary<string, ServiceConfig> targetServices, DockerManager dockerManager)
+    {
+        foreach ((string name, ServiceConfig service) in targetServices)
         {
-            PrintMessage("Container found, removing it.");
-            Changes += dockerManager.PurgeContainer(configV1, Purge, IsDryRun);
+            if (string.IsNullOrEmpty(service.PreviousName))
+            {
+                PrintMessage($"<{name}> Previous name is null/empty, rollback not possible!", _warningColor);
+                continue;
+            }
+            
+            if (!dockerManager.ContainerExists(service.PreviousName))
+            {
+                PrintMessage($"<{name}> Previous container '{service.PreviousName}' not fond, rollback not possible!", _warningColor);
+                continue;
+            }
+            
+            PrintMessage($"<{name}> Previous container found, downgrading.");
+            Changes += dockerManager.DowngradeContainer(service, IsDryRun);
             if (IsDryRun)
             {
-                PrintMessage("Container remove finished.", _standardColor, separator: IsVerbose);
+                PrintMessage($"<{name}> Container downgrade finished.", _standardColor, separator: IsVerbose);
                 PrintMessage("Dry run: No changes were made!", _warningColor);
             }
             else
             {
-                PrintMessage($"Container removed{(Purge ? " and resources purged" : "")} successfully!", _successColor, separator: IsVerbose);
+                PrintMessage($"<{name}> Container downgrading successfully!", _successColor, separator: IsVerbose);
             }
-            return;
-        }
-        
-        if (Purge)
-        {
-            PrintMessage("Container not found, trying to purge resources.", _warningColor);
-            Changes += dockerManager.PurgeContainer(configV1, Purge, IsDryRun);
-            if (IsDryRun)
-            {
-                PrintMessage("Container resources purge finished.", _standardColor, separator: IsVerbose);
-                PrintMessage("Dry run: No changes were made!", _warningColor);
-            }
-            else
-            {
-                PrintMessage("Container resources purged successfully!", _successColor, separator: IsVerbose);
-            }
-        }
-        else
-        {
-            PrintMessage("Container not fond, nothing to do!", _warningColor);    
         }
     }
 }

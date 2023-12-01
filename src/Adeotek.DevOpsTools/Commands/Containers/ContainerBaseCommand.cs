@@ -4,7 +4,6 @@ using Adeotek.DevOpsTools.CommandsSettings.Containers;
 using Adeotek.Extensions.ConfigFiles;
 using Adeotek.Extensions.Docker;
 using Adeotek.Extensions.Docker.Config;
-using Adeotek.Extensions.Docker.Config.V1;
 using Adeotek.Extensions.Docker.Exceptions;
 
 using Spectre.Console;
@@ -16,7 +15,7 @@ internal abstract class ContainerBaseCommand<TSettings>
     : CommandBase<TSettings> where TSettings : ContainerSettings
 {
     protected bool IsDryRun => _settings?.DryRun ?? false;
-    protected abstract void ExecuteContainerCommand(ContainerConfigV1 config);
+    protected abstract void ExecuteContainerCommand(ContainersConfig config);
 
     protected override int ExecuteCommand(CommandContext context, TSettings settings)
     {
@@ -30,7 +29,7 @@ internal abstract class ContainerBaseCommand<TSettings>
                 config.WriteToAnsiConsole();
             }
             
-            // ExecuteContainerCommand(config);
+            ExecuteContainerCommand(config);
             return 0;
         }
         catch (ConfigFileException e)
@@ -60,7 +59,15 @@ internal abstract class ContainerBaseCommand<TSettings>
             return e.ExitCode;
         }
     }
-    
+
+    protected virtual Dictionary<string, ServiceConfig> GetTargetServices(ContainersConfig config, string? service = null) =>
+        string.IsNullOrEmpty(service)
+            ? config.Services
+            : config.Services
+                .Where(x => x.Key == service)
+                .ToDictionary(x => x.Key, x => x.Value);
+
+
     protected virtual DockerManager GetDockerManager()
     {
         DockerManager dockerManager = new();

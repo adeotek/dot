@@ -15,7 +15,7 @@ public class PortMapping
     /// The container port.
     /// </summary>
     [YamlMember(Alias = "target")]
-    public uint Target { get; set; }
+    public string Target { get; set; } = default!;
     /// <summary>
     /// The publicly exposed port.
     /// It is defined as a string and can be set as a range using syntax start-end.
