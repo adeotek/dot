@@ -5,6 +5,7 @@ using System.Text.Json;
 using Adeotek.Extensions.ConfigFiles;
 using Adeotek.Extensions.Docker.Config;
 using Adeotek.Extensions.Docker.Config.V1;
+using Adeotek.Extensions.Docker.Converters;
 
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -26,7 +27,26 @@ public class DockerConfigManager : ConfigManager
         var configV1 = configManager.LoadConfig<ContainerConfigV1>(configFile);
         return configV1.ToContainersConfig();
     }
-    
+
+    protected override T LoadConfigFromYamlString<T>(string data)
+    {
+        try
+        {
+            var builder = new DeserializerBuilder()
+                .WithNamingConvention(UnderscoredNamingConvention.Instance);
+            return builder
+                       .WithTypeConverter(new PortMappingYamlTypeConverter(null, builder.BuildValueDeserializer()))
+                       .WithTypeConverter(new VolumeConfigYamlTypeConverter(null, builder.BuildValueDeserializer()))
+                       .Build()
+                       .Deserialize<T>(data)
+                   ?? throw new ConfigFileException("Unable to deserialize YAML config data");
+        }
+        catch (Exception e)
+        {
+            throw new ConfigFileException("Config data is not in a valid YAML format", null, e);
+        }
+    }
+
     public static string GetSerializedSampleConfig(string format)
     {
         try

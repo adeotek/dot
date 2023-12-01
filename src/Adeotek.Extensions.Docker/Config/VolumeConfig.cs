@@ -2,6 +2,17 @@
 
 namespace Adeotek.Extensions.Docker.Config;
 
+/// <summary>
+/// Container volume.
+/// Short syntax: VOLUME:CONTAINER_PATH:ACCESS_MODE
+/// - VOLUME: Can be either a host path on the platform hosting containers (bind mount) or a volume name.
+/// - CONTAINER_PATH: The path in the container where the volume is mounted.
+/// - ACCESS_MODE: A comma-separated, list of options:
+///     rw: Read and write access. This is the default if none is specified.
+///     ro: Read-only access.
+///     z: SELinux option indicating that the bind mount host content is shared among multiple containers.
+///     Z: SELinux option indicating that the bind mount host content is private and unshared for other containers.
+/// </summary>
 public class VolumeConfig
 {
     public static readonly string[] VolumeType = { "volume", "bind", "tmpfs", "npipe", "cluster" };
