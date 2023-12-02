@@ -1,4 +1,6 @@
-﻿using YamlDotNet.Serialization;
+﻿using System.Text.Json.Serialization;
+
+using YamlDotNet.Serialization;
 
 namespace Adeotek.Extensions.Docker.Config;
 
@@ -49,4 +51,12 @@ public class NetworkConfig
     /// </summary>
     [YamlMember(Alias="preserve")]
     public bool Preserve { get; set; }
+    
+    // Computed
+    [JsonIgnore] [YamlIgnore] public string NetworkName { get; private set; } = "N/A";
+    public NetworkConfig SetNetworkName(string networkName)
+    {
+        NetworkName = networkName;
+        return this;
+    }
 }

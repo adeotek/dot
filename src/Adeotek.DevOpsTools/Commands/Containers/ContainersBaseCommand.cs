@@ -62,15 +62,15 @@ internal abstract class ContainersBaseCommand<TSettings>
         }
     }
 
-    protected virtual Dictionary<string, ServiceConfig> GetTargetServices(ContainersConfig config, string? service = null)
+    protected virtual List<ServiceConfig> GetTargetServices(ContainersConfig config, string? service = null)
     {
-        var targetServices = string.IsNullOrEmpty(service)
-            ? config.Services
-            : config.Services
-                .Where(x => x.Key == service);
+        var targetServices = config.Services.ToServicesEnumerable();
+        if (!string.IsNullOrEmpty(service))
+        {
+            targetServices = targetServices.Where(x => x.ServiceName == service);
+        }
         
-        return targetServices
-            .ToDictionary(x => x.Key, x => x.Value.SetServiceName(x.Key));
+        return targetServices.ToList();
     }
 
 

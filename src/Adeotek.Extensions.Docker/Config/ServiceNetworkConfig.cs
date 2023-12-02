@@ -1,4 +1,6 @@
-﻿using YamlDotNet.Serialization;
+﻿using System.Text.Json.Serialization;
+
+using YamlDotNet.Serialization;
 
 namespace Adeotek.Extensions.Docker.Config;
 
@@ -19,4 +21,12 @@ public class ServiceNetworkConfig
     /// </summary>
     [YamlMember(Alias = "aliases")]
     public string[]? Aliases { get; set; }
+    
+    // Computed
+    [JsonIgnore] [YamlIgnore] public string NetworkName { get; private set; } = "N/A";
+    public ServiceNetworkConfig SetNetworkName(string networkName)
+    {
+        NetworkName = networkName;
+        return this;
+    }
 }

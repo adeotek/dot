@@ -140,8 +140,8 @@ public class ServiceConfig
     public string? PreviousName => string.IsNullOrEmpty(ContainerName) && !string.IsNullOrEmpty(PreviousSuffix) 
         ? $"{NamePrefix}{BaseName}{PreviousSuffix}"
         : null;
-    [JsonIgnore] [YamlIgnore] public string? ServiceName { get; private set; }
-    public ServiceConfig SetServiceName(string? serviceName)
+    [JsonIgnore] [YamlIgnore] public string ServiceName { get; private set; } = "N/A";
+    public ServiceConfig SetServiceName(string serviceName)
     {
         ServiceName = serviceName;
         return this;
