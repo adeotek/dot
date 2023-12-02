@@ -4,7 +4,7 @@ using Spectre.Console.Cli;
 
 namespace Adeotek.DevOpsTools.CommandsSettings.Containers;
 
-internal sealed class ContainerUpSettings : ContainerSettings
+internal sealed class ContainersUpSettings : ContainersSettings
 {
     [Description("Execute the command only for the service with the provided name")]
     [CommandOption("-n|--name <value>")]

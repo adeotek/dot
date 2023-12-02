@@ -19,7 +19,7 @@ internal class EmailSendCommand : CommandBase<EmailSendSettings>
     private const string SpecialValueColor = "turquoise4";
     private const string SpecialColor = "teal";
     
-    protected override string CommandName => "email";
+    protected override string GetCommandName() => $"email {_commandName}";
     
     protected override int ExecuteCommand(CommandContext context, EmailSendSettings settings)
     {

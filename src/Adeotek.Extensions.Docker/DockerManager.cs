@@ -20,14 +20,15 @@ public class DockerManager : DockerCli
         StopContainer(currentName, dryRun)
         + RenameContainer(currentName, newName, dryRun);
     
-    public int CheckAndCreateContainer(ServiceConfig config, bool dryRun = false) =>
-        CreateNetworkIfMissing(config.Network, dryRun)
-        + config.Volumes.Sum(volume => CreateVolumeIfMissing(volume, dryRun))
-        + CreateContainer(config, dryRun);
+    public int CheckAndCreateContainer(ServiceConfig service, 
+        Dictionary<string, NetworkConfig>? networks = null, bool dryRun = false) =>
+        (networks is null ? 0 : CreateNetworksIfMissing(service, networks, dryRun))
+         + (service.Volumes?.Sum(volume => CreateVolumeIfMissing(volume, dryRun)) ?? 0)
+         + CreateContainer(service, dryRun);
 
-    public int UpgradeContainer(ServiceConfig config, bool replace = false, bool force = false, bool dryRun = false)
+    public int UpgradeContainer(ServiceConfig service, bool replace = false, bool force = false, bool dryRun = false)
     {
-        if (!CheckIfNewVersionExists(config))
+        if (!CheckIfNewVersionExists(service))
         {
             if (!force)
             {
@@ -38,10 +39,10 @@ public class DockerManager : DockerCli
         }
 
         var changes = replace 
-            ? StopAndRemoveContainer(config.CurrentName, dryRun) 
-            : DemoteContainer(config, dryRun);
+            ? StopAndRemoveContainer(service.CurrentName, dryRun) 
+            : DemoteContainer(service, dryRun);
     
-        changes += CheckAndCreateContainer(config, dryRun);
+        changes += CheckAndCreateContainer(service, dryRun: dryRun);
         if (dryRun)
         {
             LogMessage("Container create finished.", "msg");
@@ -53,27 +54,27 @@ public class DockerManager : DockerCli
         return changes;
     }
     
-    public int DemoteContainer(ServiceConfig config, bool dryRun = false)
+    public int DemoteContainer(ServiceConfig service, bool dryRun = false)
     {
-        DockerCliException.ThrowIfNull(config.PreviousName, "demote", 
+        DockerCliException.ThrowIfNull(service.PreviousName, "demote", 
             "Previous container name is null/empty!");
-        return (ContainerExists(config.PreviousName)
-                   ? StopAndRemoveContainer(config.PreviousName, dryRun)
+        return (ContainerExists(service.PreviousName)
+                   ? StopAndRemoveContainer(service.PreviousName, dryRun)
                    : 0)
-               + StopAndRenameContainer(config.CurrentName, config.PreviousName, dryRun);
+               + StopAndRenameContainer(service.CurrentName, service.PreviousName, dryRun);
     }
 
-    public int DowngradeContainer(ServiceConfig config, bool dryRun = false)
+    public int DowngradeContainer(ServiceConfig service, bool dryRun = false)
     {
-        DockerCliException.ThrowIfNull(config.PreviousName, "downgrade", 
+        DockerCliException.ThrowIfNull(service.PreviousName, "downgrade", 
             "Previous container name is null/empty!");
-        DockerCliException.ThrowIf(!ContainerExists(config.PreviousName), "downgrade",
+        DockerCliException.ThrowIf(!ContainerExists(service.PreviousName), "downgrade",
             "Previous container is missing!");
-        return (ContainerExists(config.CurrentName)
-               ? StopAndRemoveContainer(config.CurrentName, dryRun)
+        return (ContainerExists(service.CurrentName)
+               ? StopAndRemoveContainer(service.CurrentName, dryRun)
                : 0)
-           + RenameContainer(config.PreviousName, config.CurrentName, dryRun)
-           + StartContainer(config.CurrentName, dryRun);
+           + RenameContainer(service.PreviousName, service.CurrentName, dryRun)
+           + StartContainer(service.CurrentName, dryRun);
     }
     
     public int PurgeContainer(string serviceName, ContainersConfig config, bool purge = false, bool dryRun = false)
@@ -133,6 +134,24 @@ public class DockerManager : DockerCli
         return CreateVolume(volume.Source, dryRun);
     }
 
+    public int CreateNetworksIfMissing(ServiceConfig service, Dictionary<string, NetworkConfig>? networks, bool dryRun = false)
+    {
+        if (service.Networks is null || service.Networks.Count == 0)
+        {
+            return 0;
+        }
+        
+        var changes = 0;
+        foreach ((string name, ServiceNetworkConfig serviceNetwork) in service.Networks)
+        {
+            var network = networks?.FirstOrDefault(x => x.Key == name);
+            DockerCliException.ThrowIfNull(network, "network create", 
+                $"Network {name} not defined, but used for service: {service.ServiceName}.");
+            changes += CreateNetworkIfMissing(network.Value.Value, dryRun);
+        }
+        return changes;
+    }
+    
     public int CreateNetworkIfMissing(NetworkConfig? network, bool dryRun = false)
     {
         if (network is null || string.IsNullOrEmpty(network.Name) || NetworkExists(network.Name))
@@ -143,11 +162,11 @@ public class DockerManager : DockerCli
         return CreateNetwork(network, dryRun);
     }
     
-    public bool CheckIfNewVersionExists(ServiceConfig config)
+    public bool CheckIfNewVersionExists(ServiceConfig service)
     {
-        PullImage(config.Image);
-        var imageId = GetImageId(config.Image);
-        var containerImageId = GetContainerImageId(config.CurrentName);
+        PullImage(service.Image);
+        var imageId = GetImageId(service.Image);
+        var containerImageId = GetContainerImageId(service.CurrentName);
         return !string.IsNullOrEmpty(imageId) 
             && !imageId.Equals(containerImageId, StringComparison.InvariantCultureIgnoreCase);
     }

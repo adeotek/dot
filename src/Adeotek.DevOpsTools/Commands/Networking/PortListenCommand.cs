@@ -13,7 +13,7 @@ namespace Adeotek.DevOpsTools.Commands.Networking;
 
 internal class PortListenCommand : CommandBase<PortListenSettings>
 {
-    protected override string CommandName => "port listen";
+    protected override string GetCommandName() => $"port {_commandName}";
     
     protected override int ExecuteCommand(CommandContext context, PortListenSettings settings)
     {

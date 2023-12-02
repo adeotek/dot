@@ -13,7 +13,7 @@ namespace Adeotek.DevOpsTools.Commands.Networking;
 
 internal class PortProbeCommand : CommandBase<PortProbeSettings>
 {
-    protected override string CommandName => "port probe";
+    protected override string GetCommandName() => $"port {_commandName}";
     
     protected override int ExecuteCommand(CommandContext context, PortProbeSettings settings)
     {

@@ -11,11 +11,13 @@ using Spectre.Console.Cli;
 
 namespace Adeotek.DevOpsTools.Commands.Containers;
 
-internal abstract class ContainerBaseCommand<TSettings> 
-    : CommandBase<TSettings> where TSettings : ContainerSettings
+internal abstract class ContainersBaseCommand<TSettings> 
+    : CommandBase<TSettings> where TSettings : ContainersSettings
 {
     protected bool IsDryRun => _settings?.DryRun ?? false;
     protected abstract void ExecuteContainerCommand(ContainersConfig config);
+
+    protected override string GetCommandName() => $"containers {_commandName}";
 
     protected override int ExecuteCommand(CommandContext context, TSettings settings)
     {
@@ -60,12 +62,16 @@ internal abstract class ContainerBaseCommand<TSettings>
         }
     }
 
-    protected virtual Dictionary<string, ServiceConfig> GetTargetServices(ContainersConfig config, string? service = null) =>
-        string.IsNullOrEmpty(service)
+    protected virtual Dictionary<string, ServiceConfig> GetTargetServices(ContainersConfig config, string? service = null)
+    {
+        var targetServices = string.IsNullOrEmpty(service)
             ? config.Services
             : config.Services
-                .Where(x => x.Key == service)
-                .ToDictionary(x => x.Key, x => x.Value);
+                .Where(x => x.Key == service);
+        
+        return targetServices
+            .ToDictionary(x => x.Key, x => x.Value.SetServiceName(x.Key));
+    }
 
 
     protected virtual DockerManager GetDockerManager()

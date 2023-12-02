@@ -21,22 +21,31 @@ app.Configure(configurator =>
     configurator.AddBranch("container", containers =>
     {
         containers.SetDescription("Manage Docker containers");
-        containers.AddCommand<ContainerUpCommand>("up")
+        containers.AddCommand<ContainersUpCommand>("up")
             .WithDescription("Create/Update Docker containers")
             .WithData("v1");
-        containers.AddCommand<ContainerDownCommand>("down")
+        containers.AddCommand<ContainersDownCommand>("down")
             .WithDescription("Remove Docker containers")
             .WithData("v1");
-        containers.AddCommand<ContainerDownCommand>("backup")
+        containers.AddCommand<ContainersDownCommand>("backup")
             .WithDescription("Backup Docker container volumes")
+            .WithData("v1");
+        containers.AddCommand<ContainersActionCommand>("start")
+            .WithDescription("Start Docker containers")
+            .WithData("v1");
+        containers.AddCommand<ContainersActionCommand>("stop")
+            .WithDescription("Stop Docker containers")
+            .WithData("v1");
+        containers.AddCommand<ContainersActionCommand>("restart")
+            .WithDescription("Restart Docker containers")
             .WithData("v1");
         containers.AddBranch("config", config =>
         {
             config.SetDescription("Validate/Generate Docker containers config files");
-            config.AddCommand<ContainerConfigValidateCommand>("validate")
+            config.AddCommand<ContainersConfigValidateCommand>("validate")
                 .WithDescription("Validate Docker container config file")
                 .WithData("v1");
-            config.AddCommand<ContainerConfigSampleCommand>("sample")
+            config.AddCommand<ContainersConfigSampleCommand>("sample")
                 .WithDescription("Generate Docker container config sample file")
                 .WithData("v1");
         });
@@ -45,18 +54,24 @@ app.Configure(configurator =>
     configurator.AddBranch("containers", containers =>
     {
         containers.SetDescription("Manage Docker containers");
-        containers.AddCommand<ContainerUpCommand>("up")
+        containers.AddCommand<ContainersUpCommand>("up")
             .WithDescription("Create/Update Docker containers");
-        containers.AddCommand<ContainerDownCommand>("down")
+        containers.AddCommand<ContainersDownCommand>("down")
             .WithDescription("Remove Docker containers");
-        containers.AddCommand<ContainerDownCommand>("backup")
+        containers.AddCommand<ContainersDownCommand>("backup")
             .WithDescription("Backup Docker container volumes");
+        containers.AddCommand<ContainersActionCommand>("start")
+            .WithDescription("Start Docker containers");
+        containers.AddCommand<ContainersActionCommand>("stop")
+            .WithDescription("Stop Docker containers");
+        containers.AddCommand<ContainersActionCommand>("restart")
+            .WithDescription("Restart Docker containers");
         containers.AddBranch("config", config =>
         {
             config.SetDescription("Validate/Generate Docker containers config files");
-            config.AddCommand<ContainerConfigValidateCommand>("validate")
+            config.AddCommand<ContainersConfigValidateCommand>("validate")
                 .WithDescription("Validate Docker container config file");
-            config.AddCommand<ContainerConfigSampleCommand>("sample")
+            config.AddCommand<ContainersConfigSampleCommand>("sample")
                 .WithDescription("Generate Docker container config sample file");
         });
     });
