@@ -1,4 +1,8 @@
 {
-  "Image": "<image-name>",
-  "Name": "<base-container-name>"
+  "services": {
+    "first-service": {
+      "image": "[<registry>/][<project>/]<image>[:<tag>|@<digest>]",
+      "containerName": "<full-container-name>"
+    }
+  }
 }

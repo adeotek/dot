@@ -1,4 +1,4 @@
-{
+﻿{
   "services": {
     "first-service": {
       "image": "[<registry>/][<project>/]<image>[:<tag>|@<digest>]",

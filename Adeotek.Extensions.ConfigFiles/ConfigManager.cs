@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -10,14 +12,20 @@ namespace Adeotek.Extensions.ConfigFiles;
 [ExcludeFromCodeCoverage]
 public class ConfigManager
 {
-    public JsonSerializerOptions JsonSerializerOptions { get; set; } = new()
+    public static readonly JsonSerializerOptions DefaultJsonSerializerOptions = new()
     {
-        AllowTrailingCommas = true, 
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         DictionaryKeyPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = false
+        PropertyNameCaseInsensitive = false,
+        // Serialization
+        WriteIndented = true, 
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
+        // Deserialization
+        AllowTrailingCommas = true
     };
 
+    public JsonSerializerOptions JsonSerializerOptions { get; set; } = DefaultJsonSerializerOptions;
     public INamingConvention YamlNamingConvention { get; set; } = UnderscoredNamingConvention.Instance;
     
     public T LoadConfig<T>(string? configFile) where T : class

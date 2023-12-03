@@ -23,8 +23,6 @@
         aliases: 
           - web-proxy
       private-network:
-        aliases:
-          - nginx-proxy
     hostname: sys--nginx
     extra_hosts:
       host.docker.internal: host-gateway

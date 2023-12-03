@@ -18,13 +18,15 @@ internal sealed class DefaultHelpProvider : HelpProvider
     {
         _applicationVersion = settings.ApplicationVersion
                               ?? Assembly.GetEntryAssembly()
-                                  ?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
+                                  ?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+                                  ?.InformationalVersion.Split("+")[0]
                               ?? "?";
     }
 
     public override IEnumerable<IRenderable> GetHeader(ICommandModel model, ICommandInfo? command)
     {
-        double spaces = (ApplicationTitle.Length - model.ApplicationName.Length - _applicationVersion.Length) / 2d;
+        double spaces = Math.Max(0, 
+            (ApplicationTitle.Length - model.ApplicationName.Length - _applicationVersion.Length) / 2d);
         var composer = new CustomComposer()
             // Top separator row
             .Repeat(HS, (2 * HTL) + 2 + ApplicationTitle.Length).LineBreak()

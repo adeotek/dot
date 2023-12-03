@@ -1,26 +1,34 @@
 {
-  "Image": "<image-name>",
-  "NamePrefix": "<optional-container-name-prefix>",
-  "Name": "<base-container-name>",
-  "Ports": [
-    {
-      "Host": 8080,
-      "Container": 80
+  "services": {
+    "first-service": {
+      "image": "[<registry>/][<project>/]<image>[:<tag>|@<digest>]",
+      "containerName": "<full-container-name>",
+      "ports": [
+        {
+          "target": "443"
+        }
+      ],
+      "volumes": [
+        {
+          "source": "<other-docker-volume-name>",
+          "target": "/path/in/container/data"
+        }
+      ],
+      "envVars": {
+        "tz": "UTC"
+      },
+      "networks": {
+        "some-network": {}
+      },
+      "extraHosts": {
+        "host.docker.internal": "host-gateway"
+      }
     }
-  ],
-  "Volumes": [
-    {
-      "Source": "<docker-volume-name>",
-      "Destination": "/path/in/container/data"
+  },
+  "networks": {
+    "some-network": {
+      "name": "<some-docker-network-name>",
+      "driver": "bridge"
     }
-  ],
-  "EnvVars": {
-    "TZ": "UTC"
-  },
-  "Network": {
-    "Name": "<docker-network-name>"
-  },
-  "ExtraHosts": {
-    "host.docker.internal": "host-gateway"
   }
 }

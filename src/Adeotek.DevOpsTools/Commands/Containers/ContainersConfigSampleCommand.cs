@@ -27,7 +27,7 @@ internal class ContainersConfigSampleCommand : CommandBase<ContainersConfigSampl
             {
                 PrintMessage("YAML Sample Config");
                 PrintSeparator();
-                AnsiConsole.Write(config);
+                AnsiConsole.Write(config.Replace("{}", ""));
                 return 0;
             }
 
