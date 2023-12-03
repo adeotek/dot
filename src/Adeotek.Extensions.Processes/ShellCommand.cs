@@ -132,7 +132,19 @@ public class ShellCommand
         _arguments.AddRange(range);
         return this;
     }
+    
+    public ShellCommand AddArgIf(string value, bool condition)
+    {
+        if (!condition)
+        {
+            return this;
+        }
 
+        _prepared = false;
+        _arguments.Add(value);
+        return this;
+    }
+    
     public ShellCommand SetArgAt(int index, string value)
     {
         _prepared = false;

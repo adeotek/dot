@@ -15,7 +15,7 @@ namespace Adeotek.Extensions.Docker.Config;
 /// </summary>
 public class VolumeConfig
 {
-    public static readonly string[] VolumeType = { "volume", "bind", "tmpfs", "npipe", "cluster" };
+    // public static readonly string[] VolumeType = { "volume", "bind", "tmpfs", "npipe", "cluster" };
     
     /// <summary>
     /// The mount type. Either volume, bind, tmpfs, npipe, or cluster

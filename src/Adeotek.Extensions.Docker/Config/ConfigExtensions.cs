@@ -10,18 +10,18 @@ public static class ConfigExtensions
     public static IEnumerable<ServiceConfig> ToServicesEnumerable(this Dictionary<string, ServiceConfig> services) =>
         services.Select(x => x.Value.SetServiceName(x.Key));
 
-    // public static IEnumerable<NetworkConfig> ToNetworksEnumerable(this Dictionary<string, NetworkConfig> networks) =>
-    //     networks.Select(x => x.Value.SetNetworkName(x.Key));
+    public static IEnumerable<NetworkConfig> ToNetworksEnumerable(this Dictionary<string, NetworkConfig> networks) =>
+        networks.Select(x => x.Value.SetNetworkName(x.Key));
     
     public static IEnumerable<ServiceNetworkConfig> ToServiceNetworkEnumerable(this Dictionary<string, ServiceNetworkConfig>? networks) =>
         networks?.Select(x => x.Value.SetNetworkName(x.Key))
             ?? Array.Empty<ServiceNetworkConfig>();
     
-    // public static ServiceConfig? GetByName(this Dictionary<string, ServiceConfig> services, string name)
-    // {
-    //     var item= services.FirstOrDefault(x => x.Key == name);
-    //     return item.Value?.SetServiceName(item.Key);
-    // }
+    public static ServiceConfig? GetByName(this Dictionary<string, ServiceConfig> services, string name)
+    {
+        var item= services.FirstOrDefault(x => x.Key == name);
+        return item.Value?.SetServiceName(item.Key);
+    }
     
     public static NetworkConfig? GetByName(this Dictionary<string, NetworkConfig> networks, string name)
     {

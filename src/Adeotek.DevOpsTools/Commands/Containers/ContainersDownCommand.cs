@@ -107,12 +107,12 @@ internal sealed class ContainersDownCommand : ContainersBaseCommand<ContainersDo
     private void ExecuteVolumesPurge(List<ServiceConfig> targetServices, ContainersConfig config,
         DockerManager dockerManager)
     {
-        if (!Purge || targetVolumes.Count == 0)
+        if (!Purge || targetServices.Count == 1)
         {
             return;
         }
         
-        Changes += dockerManager.PurgeVolumes(targetVolumes, config, IsDryRun);
+        Changes += dockerManager.PurgeVolumes(targetServices, config, IsDryRun);
         if (IsDryRun)
         {
             PrintMessage("Volumes purge finished.", _standardColor, separator: IsVerbose);
@@ -127,12 +127,12 @@ internal sealed class ContainersDownCommand : ContainersBaseCommand<ContainersDo
     private void ExecuteNetworksPurge(List<ServiceConfig> targetServices, ContainersConfig config,
         DockerManager dockerManager)
     {
-        if (!Purge || targetNetworks.Count == 0)
+        if (!Purge || targetServices.Count == 1)
         {
             return;
         }
         
-        Changes += dockerManager.PurgeNetworks(targetNetworks, config, IsDryRun);
+        Changes += dockerManager.PurgeNetworks(targetServices, config, IsDryRun);
         if (IsDryRun)
         {
             PrintMessage("Networks purge finished.", _standardColor, separator: IsVerbose);

@@ -21,10 +21,10 @@ public class DockerManager : DockerCli
         + RenameContainer(currentName, newName, dryRun);
     
     public int CheckAndCreateService(ServiceConfig service, 
-        Dictionary<string, NetworkConfig>? networks = null, bool dryRun = false) =>
+        List<NetworkConfig>? networks = null, bool dryRun = false) =>
         (networks is null ? 0 : CreateNetworksIfMissing(service, networks, dryRun))
          + (service.Volumes?.Sum(volume => CreateVolumeIfMissing(volume, dryRun)) ?? 0)
-         + CreateContainer(service, dryRun);
+         + CreateContainer(service, networks, dryRun);
 
     public int UpgradeService(ServiceConfig service, bool replace = false, bool force = false, bool dryRun = false)
     {
@@ -128,20 +128,22 @@ public class DockerManager : DockerCli
         return changes;
     }
 
-    // public int PurgeVolumes(List<VolumeConfig> targetVolumes, ContainersConfig config, bool dryRun)
-    // {
-    //     changes += config.Volumes
-    //         .Where(e => e is { AutoCreate: true, IsBind: false })
-    //         .Sum(volume => RemoveVolume(volume.Source, dryRun));
-    // }
-    //
-    // public int PurgeNetworks(List<string> targetNetworks, ContainersConfig config, bool dryRun)
-    // {
-    //     if (config.Network is not null && !config.Network.IsShared)
-    //     {
-    //         changes += RemoveNetwork(config.Network.Name, dryRun);
-    //     }
-    // }
+    public int PurgeVolumes(List<ServiceConfig> targetServices, ContainersConfig config, bool dryRun)
+    {
+        // changes += config.Volumes
+        //     .Where(e => e is { AutoCreate: true, IsBind: false })
+        //     .Sum(volume => RemoveVolume(volume.Source, dryRun));
+        throw new NotImplementedException();
+    }
+    
+    public int PurgeNetworks(List<ServiceConfig> targetServices, ContainersConfig config, bool dryRun)
+    {
+        // if (config.Network is not null && !config.Network.IsShared)
+        // {
+        //     changes += RemoveNetwork(config.Network.Name, dryRun);
+        // }
+        throw new NotImplementedException();
+    }
 
     public int CreateVolumeIfMissing(VolumeConfig volume, bool dryRun = false)
     {
@@ -169,7 +171,7 @@ public class DockerManager : DockerCli
         }
     }
 
-    public int CreateNetworksIfMissing(ServiceConfig service, Dictionary<string, NetworkConfig>? networks, bool dryRun = false)
+    public int CreateNetworksIfMissing(ServiceConfig service, List<NetworkConfig>? networks, bool dryRun = false)
     {
         if (service.Networks is null || service.Networks.Count == 0)
         {
@@ -177,12 +179,12 @@ public class DockerManager : DockerCli
         }
         
         var changes = 0;
-        foreach ((string name, ServiceNetworkConfig serviceNetwork) in service.Networks)
+        foreach (var serviceNetwork in service.Networks.ToServiceNetworkEnumerable())
         {
-            var network = networks?.FirstOrDefault(x => x.Key == name);
+            var network = networks?.FirstOrDefault(x => x.NetworkName == serviceNetwork.NetworkName);
             DockerCliException.ThrowIfNull(network, "network create", 
-                $"Network {name} not defined, but used for service: {service.ServiceName}.");
-            changes += CreateNetworkIfMissing(network.Value.Value, dryRun);
+                $"Network {serviceNetwork.NetworkName} not defined, but used for service: {service.ServiceName}.");
+            changes += CreateNetworkIfMissing(network, dryRun);
         }
         return changes;
     }

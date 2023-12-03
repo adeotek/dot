@@ -44,20 +44,26 @@ public class DockerCli
         throw new DockerCliException("container inspect", 1, $"Unable to inspect container '{name}'!");
     }
     
-    public int CreateContainer(ServiceConfig config, bool dryRun = false)
+    public int CreateContainer(ServiceConfig serviceConfig, List<NetworkConfig>? networks, bool dryRun = false)
     {
         _dockerCli.ClearArgsAndReset()
             .AddArg("run")
-            .AddRunCommandOptionsArgs(config.RunCommandOptions)
-            .AddArg($"--name={config.CurrentName}")
-            .AddPortsArgs(config.Ports)
-            .AddVolumesArgs(config.Volumes)
-            .AddEnvVarsArgs(config.EnvVars)
-            .AddNetworkArgs(config)
-            .AddExtraHostsArgs(config.ExtraHosts)
-            .AddRestartArg(config.Restart)
-            .AddArg(config.Image)
-            .AddStartupCommandArgs(config);
+            .AddRunCommandOptionsArgs(serviceConfig.RunCommandOptions)
+            .AddArg($"--name={serviceConfig.CurrentName}")
+            .AddPortsArgs(serviceConfig.Ports)
+            .AddVolumesArgs(serviceConfig.Volumes)
+            .AddEnvFilesArgs(serviceConfig.EnvFiles)
+            .AddEnvVarsArgs(serviceConfig.EnvVars)
+            .AddNetworkArgs(serviceConfig, networks)
+            .AddLinksArgs(serviceConfig.Links)
+            .AddExtraHostsArgs(serviceConfig.ExtraHosts)
+            .AddDnsArgs(serviceConfig.Dns)
+            .AddRestartArg(serviceConfig.Restart)
+            .AddPullPolicyArg(serviceConfig.PullPolicy)
+            .AddArg(serviceConfig.Image)
+            .AddStartupCommandArgs(serviceConfig);
+            // Expose
+            // Attach
         
         LogCommand();
         if (dryRun)
@@ -72,12 +78,12 @@ public class DockerCli
             return 1;
         }
 
-        if (_dockerCli.IsError(config.CurrentName))
+        if (_dockerCli.IsError(serviceConfig.CurrentName))
         {
             return 0;
         }
         
-        throw new DockerCliException("run", 1, $"Unable to create container '{config.CurrentName}'!");
+        throw new DockerCliException("run", 1, $"Unable to create container '{serviceConfig.CurrentName}'!");
     }
     
     public int StartContainer(string containerName, bool dryRun = false)
@@ -300,10 +306,13 @@ public class DockerCli
         _dockerCli.ClearArgsAndReset()
             .AddArg("network")
             .AddArg("create")
-            .AddArg("-d bridge")
-            .AddArg("--attachable")
-            .AddArg($"--subnet {network.Subnet}")
-            .AddArg($"--ip-range {network.IpRange}")
+            .AddArg($"--driver {network.Driver}")
+            .AddArgIf("--attachable", network.Attachable)
+            .AddArgIf("--internal", network.Internal)
+            .AddArgIf($"--ipam-driver {network.Ipam?.Driver}", !string.IsNullOrEmpty(network.Ipam?.Driver))
+            .AddArgIf($"--subnet {network.Ipam?.Config.Subnet}", !string.IsNullOrEmpty(network.Ipam?.Config.Subnet))
+            .AddArgIf($"--ip-range {network.Ipam?.Config.IpRange}", !string.IsNullOrEmpty(network.Ipam?.Config.IpRange))
+            .AddArgIf($"--gateway {network.Ipam?.Config.Gateway}", !string.IsNullOrEmpty(network.Ipam?.Config.Gateway))
             .AddArg(network.Name);
         LogCommand();
         if (dryRun)

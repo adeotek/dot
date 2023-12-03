@@ -29,7 +29,7 @@ internal sealed class ContainersUpCommand : ContainersBaseCommand<ContainersUpSe
             }
         
             PrintMessage($"<{service.ServiceName}> Container not fond, creating new one.");
-            Changes += dockerManager.CheckAndCreateService(service, config.Networks, IsDryRun);
+            Changes += dockerManager.CheckAndCreateService(service, config.Networks.ToNetworksEnumerable().ToList(), IsDryRun);
         
             if (Changes == 0)
             {

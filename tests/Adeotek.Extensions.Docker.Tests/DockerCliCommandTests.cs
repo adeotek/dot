@@ -40,7 +40,7 @@ public class DockerCliCommandTests
     }
     
     [Fact]
-    public void AddFilterArg_WithNonNullValue_SetArgsDictValue()
+    public void AddRestartArg_WithNonNullValue_SetArgsDictValue()
     {
         var expectedValue = "--restart=always";
 
@@ -53,13 +53,63 @@ public class DockerCliCommandTests
     }
     
     [Fact]
-    public void AddFilterArg_WithNullValue_SetArgsDictValue()
+    public void AddRestartArg_WithNonNullValue_DoNotSetAnything()
+    {
+        var result = _sut.ClearArgs()
+            .AddArg("--some-argument")
+            .AddRestartArg("");
+        
+        Assert.Equal(typeof(DockerCliCommand), result.GetType());
+        Assert.True(_sut.Args.Length == 1);
+        Assert.Equal("--some-argument", _sut.Args[0]);
+    }
+    
+    [Fact]
+    public void AddRestartArg_WithNullValue_SetArgsDictValue()
     {
         var expectedValue = "--restart=unless-stopped";
 
         var result = _sut.ClearArgs()
             .AddArg("--some-argument")
             .AddRestartArg(null);
+        
+        Assert.Equal(typeof(DockerCliCommand), result.GetType());
+        Assert.Equal(expectedValue, _sut.Args[1]);
+    }
+    
+    [Fact]
+    public void AddPullPolicyArg_WithNonNullValue_SetArgsDictValue()
+    {
+        var expectedValue = "--pull=always";
+
+        var result = _sut.ClearArgs()
+            .AddArg("--some-argument")
+            .AddPullPolicyArg("always");
+        
+        Assert.Equal(typeof(DockerCliCommand), result.GetType());
+        Assert.Equal(expectedValue, _sut.Args[1]);
+    }
+    
+    [Fact]
+    public void AddPullPolicyArg_WithNonNullValue_DoNotSetAnything()
+    {
+        var result = _sut.ClearArgs()
+            .AddArg("--some-argument")
+            .AddPullPolicyArg("");
+        
+        Assert.Equal(typeof(DockerCliCommand), result.GetType());
+        Assert.True(_sut.Args.Length == 1);
+        Assert.Equal("--some-argument", _sut.Args[0]);
+    }
+    
+    [Fact]
+    public void AddPullPolicyArg_WithNullValue_SetArgsDictValue()
+    {
+        var expectedValue = "--pull=missing";
+
+        var result = _sut.ClearArgs()
+            .AddArg("--some-argument")
+            .AddPullPolicyArg(null);
         
         Assert.Equal(typeof(DockerCliCommand), result.GetType());
         Assert.Equal(expectedValue, _sut.Args[1]);
