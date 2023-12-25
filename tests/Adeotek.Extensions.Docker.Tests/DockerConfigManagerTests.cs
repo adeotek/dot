@@ -9,23 +9,23 @@ public class DockerConfigManagerTests
         "Fixtures");
         
     [Theory]
-    [InlineData("config-full.json")]
-    [InlineData("config-full.yml")]
-    [InlineData("config-med.json")]
-    [InlineData("config-med.yaml")]
-    [InlineData("config-min.json")]
-    [InlineData("config-min.yml")]
-    public void LoadContainerConfig_WithValidFile_ReturnValidObject(string fixtureFile)
+    [InlineData("config-full.json", 2, 2)]
+    [InlineData("config-full.yml", 2, 2)]
+    [InlineData("config-med.json", 1, 1)]
+    [InlineData("config-med.yaml", 1, 1)]
+    [InlineData("config-min.json", 1, 0)]
+    [InlineData("config-min.yml", 1, 0)]
+    public void LoadContainerConfig_WithValidFile_ReturnValidObject(string fixtureFile, 
+        int servicesCount, int networksCount)
     {
         var configFile = Path.Combine(_fixturesPath, fixtureFile);
 
-        // var result = DockerConfigManager.LoadConfig(configFile);
-        //
-        // Assert.NotNull(result.FullImageName);
-        // Assert.NotEqual(string.Empty, result.FullImageName.Trim());
-        // Assert.NotNull(result.CurrentName);
-        // Assert.NotEqual(string.Empty, result.CurrentName.Trim());
-        throw new NotImplementedException();
+        var result = DockerConfigManager.LoadContainersConfig(configFile);
+        
+        Assert.Equal(servicesCount, result.Services.Count);
+        Assert.Equal(networksCount, result.Networks.Count);
+        Assert.False(string.IsNullOrWhiteSpace(result.Services.First().Value.Image));
+        Assert.False(string.IsNullOrWhiteSpace(result.Services.First().Value.CurrentName));
     }
     
     [Theory]
@@ -38,6 +38,6 @@ public class DockerConfigManagerTests
 
         var result = DockerConfigManager.GetSerializedSampleConfig(format);
         
-        Assert.Equal(expectedResult, result.Trim());
+        Assert.Equal(expectedResult.Trim(), result.Trim());
     }
 }

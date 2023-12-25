@@ -80,10 +80,10 @@ public class DockerCliCommand : ShellCommand
     {
         StringBuilder sb = new();
         sb.Append("-p ");
-        if (string.IsNullOrEmpty(hostIp)) sb.Append($"{hostIp}:");
-        if (string.IsNullOrEmpty(hostIp) || string.IsNullOrEmpty(hostPort)) sb.Append($"{hostPort ?? containerPort}:");
+        if (!string.IsNullOrEmpty(hostIp)) sb.Append($"{hostIp}:");
+        if (!string.IsNullOrEmpty(hostIp) || !string.IsNullOrEmpty(hostPort)) sb.Append($"{hostPort ?? containerPort}:");
         sb.Append(containerPort);
-        if (string.IsNullOrEmpty(protocol)) sb.Append($"/{protocol}");
+        if (!string.IsNullOrEmpty(protocol)) sb.Append($"/{protocol}");
         return AddArg(sb.ToString());
     }
     

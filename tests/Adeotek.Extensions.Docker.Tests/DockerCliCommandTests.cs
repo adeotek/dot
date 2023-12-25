@@ -1,5 +1,4 @@
 ﻿using Adeotek.Extensions.Docker.Config;
-using Adeotek.Extensions.Docker.Config.V1;
 
 namespace Adeotek.Extensions.Docker.Tests;
 
@@ -142,34 +141,33 @@ public class DockerCliCommandTests
     }
     
     [Fact]
-    public void AddStartupCommandArgs_WithoutCommand_DoNotSetCommandArgs()
+    public void AddStartupCommandArgs_WithEmptyCommand_DoNotSetCommandArgs()
     {
-        ContainerConfigV1 configV1 = new()
+        ServiceConfig config = new()
         {
-            Command = null,
-            CommandArgs = new [] { "--verbose" }
+            Command = null
         };
 
         var result = _sut.ClearArgs()
             .AddArg("--some-argument")
-            .AddStartupCommandArgs(configV1);
+            .AddStartupCommandArgs(config);
         
         Assert.Equal(typeof(DockerCliCommand), result.GetType());
         Assert.Single(_sut.Args);
     }
     
     [Fact]
-    public void AddStartupCommandArgs_WithNoOptions_SetArgsDefaultOption()
+    public void AddStartupCommandArgs_WithTwoOptions_SetOptionsArgs()
     {
-        ContainerConfigV1 configV1 = new()
+        ServiceConfig config = new()
         {
-            Command = "serve"
+            Command = new [] { "serve -v", "--debug" }
         };
-        var expectedValue = "serve";
+        var expectedValue = "serve -v --debug";
 
         var result = _sut.ClearArgs()
             .AddArg("--some-argument")
-            .AddStartupCommandArgs(configV1);
+            .AddStartupCommandArgs(config);
         
         Assert.Equal(typeof(DockerCliCommand), result.GetType());
         Assert.Equal(2, _sut.Args.Length);
@@ -177,34 +175,26 @@ public class DockerCliCommandTests
     }
     
     [Fact]
-    public void AddStartupCommandArgs_WithTwoOptions_SetOptionsArgs()
-    {
-        ContainerConfigV1 configV1 = new()
-        {
-            Command = "serve",
-            CommandArgs = new [] { "-v", "--debug" }
-        };
-        var expectedCommandArg = "serve";
-        var expectedCommandArgsArg = "-v --debug";
-
-        var result = _sut.ClearArgs()
-            .AddArg("--some-argument")
-            .AddStartupCommandArgs(configV1);
-        
-        Assert.Equal(typeof(DockerCliCommand), result.GetType());
-        Assert.Equal(3, _sut.Args.Length);
-        Assert.Equal(expectedCommandArg, _sut.Args[1]);
-        Assert.Equal(expectedCommandArgsArg, _sut.Args[2]);
-    }
-    
-    [Fact]
-    public void AddPortArg_SetArgsDictValue()
+    public void AddPortArg_WithMinimalArguments_SetArgsDictValue()
     {
         var expectedValue = "-p 1234:9876";
 
         var result = _sut.ClearArgs()
             .AddArg("--some-argument")
-            .AddPortArg(1234, 9876);
+            .AddPortArg("1234", "9876");
+        
+        Assert.Equal(typeof(DockerCliCommand), result.GetType());
+        Assert.Equal(expectedValue, _sut.Args[1]);
+    }
+    
+    [Fact]
+    public void AddPortArg_WithAllArguments_SetArgsDictValue()
+    {
+        var expectedValue = "-p 1.2.3.4:1234:9876/tcp";
+
+        var result = _sut.ClearArgs()
+            .AddArg("--some-argument")
+            .AddPortArg("1234", "9876", "1.2.3.4", "tcp");
         
         Assert.Equal(typeof(DockerCliCommand), result.GetType());
         Assert.Equal(expectedValue, _sut.Args[1]);
@@ -213,12 +203,13 @@ public class DockerCliCommandTests
     [Fact]
     public void AddPortsArgs_SetArgsDictValues()
     {
-        var expectedValue = "-p 1234:9876";
-        var ports = new PortMappingV1[]
+        var expectedFirstValue = "-p 1234:9876";
+        var expectedLastValue = "-p 443";
+        var ports = new PortMapping[]
         {
-            new() { Host = 1234, Container = 9876 }, 
-            new() { Host = 80, Container = 80 }, 
-            new() { Host = 443, Container = 443 },
+            new() { Published = "1234", Target = "9876" }, 
+            new() { Published = "80", Target = "80" }, 
+            new() { Target = "443" },
         };
 
         var result = _sut.ClearArgs()
@@ -226,7 +217,8 @@ public class DockerCliCommandTests
             .AddPortsArgs(ports);
         
         Assert.Equal(typeof(DockerCliCommand), result.GetType());
-        Assert.Equal(expectedValue, _sut.Args[1]);
+        Assert.Equal(expectedFirstValue, _sut.Args[1]);
+        Assert.Equal(expectedLastValue, _sut.Args[3]);
         Assert.Equal(4, _sut.Args.Length);
     }
     
@@ -261,10 +253,10 @@ public class DockerCliCommandTests
     {
         var expectedFirstValue = "-v volume-name:/path/in/container";
         var expectedSecondValue = "-v /some/path/on/host:/another/path/in/container:ro";
-        var volumes = new VolumeConfigV1[]
+        var volumes = new VolumeConfig[]
         {
-            new() { Source = "volume-name", Destination = "/path/in/container", IsReadonly = false }, 
-            new() { Source = "/some/path/on/host", Destination = "/another/path/in/container", IsReadonly = true },
+            new() { Source = "volume-name", Target = "/path/in/container", ReadOnly = false }, 
+            new() { Type = "bind", Source = "/some/path/on/host", Target = "/another/path/in/container", ReadOnly = true }
         };
 
         var result = _sut.ClearArgs()
@@ -343,48 +335,64 @@ public class DockerCliCommandTests
     [Fact]
     public void AddNetworkArgs_WithNotNullNetwork_SetArgsDictValues()
     {
-        var expectedNetworkArg = "--network=test-network";
+        var expectedNetworkArg = "--network=docker-test-network";
         var expectedIpArg = "--ip=10.2.3.4";
+        var expectedFirstNetworkAliasArg = "--network-alias=alias-host-name";
+        var expectedSecondNetworkAliasArg = "--network-alias=other-host-name";
         var expectedHostnameArg = "--hostname=some-host-name";
-        var expectedNetworkAliasArg = "--network-alias=other-host-name";
-        ContainerConfigV1 configV1 = new()
+        ServiceConfig config = new()
         {
-            Image = "SomeImage",
-            Name = "some-name",
-            Network = new NetworkConfigV1
+            Networks = new Dictionary<string, ServiceNetworkConfig>
             {
-                Name = "test-network",
-                IpAddress = "10.2.3.4",
-                Hostname = "some-host-name",
-                Alias = "other-host-name"
-            }
+                {
+                    "test-network",
+                    new ServiceNetworkConfig
+                    {
+                        IpV4Address = "10.2.3.4",
+                        Aliases = new []
+                        {
+                            "alias-host-name",
+                            "other-host-name"
+                        }
+                    }
+                }
+            },
+            Hostname = "some-host-name"
+        };
+        List<NetworkConfig> networks = new()
+        {
+            new NetworkConfig { Name = "docker-test-network" }.SetNetworkName("test-network")
         };
         
         var result = _sut.ClearArgs()
             .AddArg("--some-argument")
-            .AddNetworkArgs(configV1);
+            .AddNetworkArgs(config, networks);
         
         Assert.Equal(typeof(DockerCliCommand), result.GetType());
         Assert.Equal(expectedNetworkArg, _sut.Args[1]);
         Assert.Equal(expectedIpArg, _sut.Args[2]);
-        Assert.Equal(expectedHostnameArg, _sut.Args[3]);
-        Assert.Equal(expectedNetworkAliasArg, _sut.Args[4]);
-        Assert.Equal(5, _sut.Args.Length);
+        Assert.Equal(expectedFirstNetworkAliasArg, _sut.Args[3]);
+        Assert.Equal(expectedSecondNetworkAliasArg, _sut.Args[4]);
+        Assert.Equal(expectedHostnameArg, _sut.Args[5]);
+        Assert.Equal(6, _sut.Args.Length);
     }
     
     [Fact]
     public void AddNetworkArgs_WithNullNetwork_SetArgsDictValues()
     {
-        ContainerConfigV1 configV1 = new()
+        ServiceConfig config = new()
         {
-            Image = "SomeImage",
-            Name = "some-name",
-            Network = null
+            Networks = null
+        };
+        
+        List<NetworkConfig> networks = new()
+        {
+            new NetworkConfig { Name = "docker-test-network" }.SetNetworkName("test-network")
         };
         
         var result = _sut.ClearArgs()
             .AddArg("--some-argument")
-            .AddNetworkArgs(configV1);
+            .AddNetworkArgs(config, networks);
         
         Assert.Equal(typeof(DockerCliCommand), result.GetType());
         Assert.Single(_sut.Args);

@@ -86,7 +86,7 @@ public class DockerConfigManager : ConfigManager
                         Ports = new PortMapping[]
                         {
                             new() { Published = "8000", Target = "8080", HostIp = "0.0.0.0", Protocol = "tcp" },
-                            new() { Target = "443"  }
+                            new() { Target = "443" }
                         },
                         Volumes = new VolumeConfig[]
                         {

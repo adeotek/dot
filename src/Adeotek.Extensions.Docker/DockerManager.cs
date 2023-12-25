@@ -8,6 +8,10 @@ namespace Adeotek.Extensions.Docker;
 [ExcludeFromCodeCoverage]
 public class DockerManager : DockerCli
 {
+    public DockerManager(DockerCliCommand? dockerCli = null) : base(dockerCli)
+    {
+    }
+    
     public int RestartService(string containerName, bool dryRun = false) =>
         StopContainer(containerName, dryRun)
         + StartContainer(containerName, dryRun);
@@ -130,19 +134,60 @@ public class DockerManager : DockerCli
 
     public int PurgeVolumes(List<ServiceConfig> targetServices, ContainersConfig config, bool dryRun)
     {
-        // changes += config.Volumes
-        //     .Where(e => e is { AutoCreate: true, IsBind: false })
-        //     .Sum(volume => RemoveVolume(volume.Source, dryRun));
-        throw new NotImplementedException();
+        List<VolumeConfig> volumes = new();
+        var unaffectedServices = config.Services
+            .Where(x => 
+                targetServices.All(t => t.ServiceName != x.Key)
+                && x.Value.Volumes is not null && x.Value.Volumes.Length > 0)
+            .ToArray(); 
+        foreach (var service in targetServices.Where(x => x.Volumes is not null && x.Volumes.Length > 0))
+        {
+            foreach (var volume in service.Volumes!)
+            {
+                var isShared = unaffectedServices.Any(x =>
+                    x.Value.Volumes?.Any(t => t.Type == volume.Type && t.Source == volume.Source) ?? false);
+                
+                if (volume.Type == "volume" && !isShared)
+                {
+                    volumes.Add(volume);
+                    continue;
+                }
+                
+                if (volume.Type == "bind" && (volume.Bind?.CreateHostPath ?? false) && !isShared)
+                {
+                    volumes.Add(volume); 
+                }
+            }
+        }
+
+        return volumes.Sum(volume => RemoveVolume(volume.Source, dryRun));
     }
     
     public int PurgeNetworks(List<ServiceConfig> targetServices, ContainersConfig config, bool dryRun)
     {
-        // if (config.Network is not null && !config.Network.IsShared)
-        // {
-        //     changes += RemoveNetwork(config.Network.Name, dryRun);
-        // }
-        throw new NotImplementedException();
+        List<string> networks = new();
+        var unaffectedServices = config.Services
+            .Where(x => 
+                targetServices.All(t => t.ServiceName != x.Key)
+                && x.Value.Networks is not null && x.Value.Networks.Count > 0)
+            .ToArray(); 
+        foreach (var service in targetServices.Where(x => x.Networks is not null && x.Networks.Count > 0))
+        {
+            foreach ((string? networkKey, ServiceNetworkConfig? _) in service.Networks!)
+            {
+                if (unaffectedServices.Any(x =>
+                        x.Value.Networks?.Any(t => t.Key == networkKey) ?? false))
+                {
+                    continue;
+                }
+                
+                networks.Add(networkKey);
+            }
+        }
+
+        return config.Networks
+            .Where(x => networks.Contains(x.Key) && !x.Value.Preserve)
+            .Sum(x => RemoveNetwork(x.Value.Name, dryRun));
     }
 
     public int CreateVolumeIfMissing(VolumeConfig volume, bool dryRun = false)

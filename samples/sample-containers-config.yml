@@ -14,9 +14,9 @@
         bind:
           create_host_path: true
       - "/opt/nginx/ssl:/ssl:ro"
-      - "/opt/nginx/x:/x"
+      - "nginx-config:/etc/nginx"
     environment:
-      TZ: Europe/Bucharest
+      TZ: UTC
       APP_ENV: PROD
     networks:
       shared-services-network:
@@ -52,7 +52,7 @@
         volume:
           nocopy: true
     environment:
-      TZ: Europe/Bucharest
+      TZ: UTC
     networks:
       private-network:
         ipv4_address: 172.20.1.10
@@ -76,4 +76,4 @@ networks:
       config:
         subnet: 172.20.1.1/24
         ip_range: 172.20.1.1/26
-    internal: false
+    preserve: true
