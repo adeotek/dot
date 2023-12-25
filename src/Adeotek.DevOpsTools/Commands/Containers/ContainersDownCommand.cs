@@ -9,31 +9,45 @@ internal sealed class ContainersDownCommand : ContainersBaseCommand<ContainersDo
     protected override string ResultLabel => "Changes";
     private bool Downgrade => _settings?.Downgrade ?? false;
     private bool Purge => _settings?.Purge ?? false;
+    private bool Backup => _settings?.Backup ?? false;
     
     protected override void ExecuteContainerCommand(ContainersConfig config)
     {
         var dockerManager = GetDockerManager();
-        
+
         if (Downgrade)
         {
-            ExecuteDowngrade(GetTargetServices(config), dockerManager);
-            return;
+            ExecuteDowngrade(GetTargetServices(config, _settings?.ServiceName), dockerManager);
         }
-
-        ExecuteDown(GetTargetServices(config), config, dockerManager);
+        else
+        {
+            ExecuteDown(GetTargetServices(config, _settings?.ServiceName), config, dockerManager);    
+        }
     }
 
     private void ExecuteDown(List<ServiceConfig> targetServices, 
         ContainersConfig config, DockerManager dockerManager)
     {
+        var first = true;
         foreach (var service in targetServices)
         {
+            if (first)
+            {
+                first = false;
+            }
+            else
+            {
+                PrintSeparator();
+            }
+            
             var exists = dockerManager.ContainerExists(service.CurrentName);
             if (!exists && !Purge)
             {
                 PrintMessage($"<{service.ServiceName}> Container not fond, nothing to do!", _warningColor); 
                 continue;
             }
+            
+            ExecuteServiceVolumesBackup(service, dockerManager);
 
             if (exists)
             {
@@ -76,8 +90,18 @@ internal sealed class ContainersDownCommand : ContainersBaseCommand<ContainersDo
 
     private void ExecuteDowngrade(List<ServiceConfig> targetServices, DockerManager dockerManager)
     {
+        var first = true;
         foreach (var service in targetServices)
         {
+            if (first)
+            {
+                first = false;
+            }
+            else
+            {
+                PrintSeparator();
+            }
+            
             if (string.IsNullOrEmpty(service.PreviousName))
             {
                 PrintMessage($"<{service.ServiceName}> Previous name is null/empty, rollback not possible!", _warningColor);
@@ -89,6 +113,8 @@ internal sealed class ContainersDownCommand : ContainersBaseCommand<ContainersDo
                 PrintMessage($"<{service.ServiceName}> Previous container '{service.PreviousName}' not fond, rollback not possible!", _warningColor);
                 continue;
             }
+
+            ExecuteServiceVolumesBackup(service, dockerManager);
             
             PrintMessage($"<{service.ServiceName}> Previous container found, downgrading.");
             Changes += dockerManager.DowngradeService(service, IsDryRun);
@@ -101,6 +127,27 @@ internal sealed class ContainersDownCommand : ContainersBaseCommand<ContainersDo
             {
                 PrintMessage($"<{service.ServiceName}> Container downgrading successfully!", _successColor, separator: IsVerbose);
             }
+        }
+    }
+
+    private void ExecuteServiceVolumesBackup(ServiceConfig service, DockerManager dockerManager)
+    {
+        if (!Backup || service.Volumes is null || service.Volumes.Length <= 0)
+        {
+            return;
+        }
+
+        Changes += service.Volumes
+            .Sum(x => dockerManager.BackupVolume(x, _settings?.BackupLocation ?? "", IsDryRun));
+        
+        if (IsDryRun)
+        {
+            PrintMessage($"<{service.ServiceName}> Volumes backup finished.", _standardColor, separator: IsVerbose);
+            PrintMessage("Dry run: No changes were made!", _warningColor);
+        }
+        else
+        {
+            PrintMessage($"<{service.ServiceName}> Volumes backup done!", _successColor, separator: IsVerbose);
         }
     }
 

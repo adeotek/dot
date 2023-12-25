@@ -1,9 +1,13 @@
-﻿# Container Configuration 
-This page contains information about the `container` command configuration files.
-The `container` command supports both YAML and JSON formats for the container configuration.
+﻿# Containers Configuration 
+This page contains information about the `containers` command configuration files.
+The `containers` command supports both YAML and JSON formats for the container configuration.
 
-- YAML sample configuration: [sample-container-config.yml](./sample-container-config.yml)
-- JSON sample configuration: [sample-container-config.json](./sample-container-config.json)
+**New**: With the new `containers` command, the configuration file structure is mostly compatible with `docker-compose` configuration files.
+
+**_Warning_**: there are a few options specific to this tool that are not used/recognize by `docker-compose`.
+
+- YAML sample configuration: [sample-containers-config.yml](./sample-containers-config.yml)
+- JSON sample configuration: [sample-containers-config.json](./sample-containers-config.json)
 
 The `config sample` subcommand can be used to generate a sample configuration into a file or as output into the console.
 

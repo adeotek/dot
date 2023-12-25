@@ -8,7 +8,7 @@ internal sealed class ContainersUpSettings : ContainersSettings
 {
     [Description("Execute the command only for the service with the provided name")]
     [CommandOption("-n|--name <value>")]
-    public string? Service { get; init; }
+    public string? ServiceName { get; init; }
     
     [Description("Upgrade container if it exists")]
     [CommandOption("-u|--upgrade")]
@@ -25,8 +25,12 @@ internal sealed class ContainersUpSettings : ContainersSettings
     [DefaultValue(false)]
     public bool Force { get; init; }
     
-    [Description("Backup container volumes when updating\nOnly works together with the '--update' option)")]
+    [Description("Backup container volumes before updating\nOnly works together with the '--update' option")]
     [CommandOption("-b|--backup")]
     [DefaultValue(false)]
     public bool Backup { get; init; }
+    
+    [Description("Volumes backup location (absolute/relative path)")]
+    [CommandOption("-l|--backup-location")]
+    public string? BackupLocation { get; init; }
 }

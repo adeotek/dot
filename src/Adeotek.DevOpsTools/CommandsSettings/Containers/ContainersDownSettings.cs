@@ -8,7 +8,7 @@ internal sealed class ContainersDownSettings : ContainersSettings
 {
     [Description("Execute the command only for the service with the provided name")]
     [CommandOption("-n|--name <value>")]
-    public string? Service { get; init; }
+    public string? ServiceName { get; init; }
     
     [Description("Downgrade container to the previous version (the last demoted version)\nIt only works when using update with demote")]
     [CommandOption("-d|--downgrade")]
@@ -24,4 +24,8 @@ internal sealed class ContainersDownSettings : ContainersSettings
     [CommandOption("-b|--backup")]
     [DefaultValue(false)]
     public bool Backup { get; init; }
+    
+    [Description("Volumes backup location (absolute/relative path)")]
+    [CommandOption("-l|--backup-location")]
+    public string? BackupLocation { get; init; }
 }

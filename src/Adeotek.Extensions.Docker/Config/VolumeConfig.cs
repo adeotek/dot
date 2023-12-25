@@ -1,4 +1,6 @@
-﻿using YamlDotNet.Serialization;
+﻿using System.Text.Json.Serialization;
+
+using YamlDotNet.Serialization;
 
 namespace Adeotek.Extensions.Docker.Config;
 
@@ -54,4 +56,18 @@ public class VolumeConfig
     /// </summary>
     [YamlMember(Alias = "tmpfs")]
     public VolumeTmpFsConfig? TmpFs { get; set; }
+    /// <summary>
+    /// If TRUE, the volume will not be backed up when running the backup command.
+    /// [NOT SUPPORTED by Docker Compose]
+    /// </summary>
+    [YamlMember(Alias="skip_backup")]
+    public bool SkipBackup { get; set; }
+    
+    // Computed
+    [JsonIgnore]
+    [YamlIgnore]
+    public string BackupName =>
+        Type == "volume"
+            ? Source
+            : Source.Replace('/', '-').Replace('\\', '-');
 }

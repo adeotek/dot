@@ -216,6 +216,26 @@ public class DockerManager : DockerCli
         }
     }
 
+    public int BackupVolume(VolumeConfig volume, string backupLocation, bool dryRun = false)
+    {
+        if (volume.SkipBackup)
+        {
+            return 0;
+        }
+
+        var archiveFile = Path.Combine(backupLocation, $"{volume.BackupName}-{DateTime.Now:yyyyMMddHHmmss}.tar.gz");
+        DockerCliException.ThrowIfNull(archiveFile, "volume backup",
+            $"Invalid backup destination for volume: {volume.Source}.");
+        return volume.Type switch
+        {
+            "bind" => Directory.Exists(volume.Source)
+                ? ArchiveDirectory(volume.Source, archiveFile, dryRun) ? 1 : 0
+                : 0,
+            "volume" => VolumeExists(volume.Source) ? ArchiveVolume(volume.Source, archiveFile, dryRun) ? 1 : 0 : 0,
+            _ => throw new NotImplementedException($"Unsupported volume type: `{volume.Type}`!")
+        };
+    }
+
     public int CreateNetworksIfMissing(ServiceConfig service, List<NetworkConfig>? networks, bool dryRun = false)
     {
         if (service.Networks is null || service.Networks.Count == 0)

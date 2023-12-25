@@ -40,21 +40,27 @@ dot <command> <subcommand> --help
 
 ## Commands
 
-### `container`
+### `containers`
 
-Docker containers management tool. The subcommand work in a similar way to `docker-compose`, but referring only to individual containers.
-The subcommands allows for the creation/update/removal of containers, based on configuration files written in YAML or JSON.  
+Docker containers management tool. The subcommand work in a similar way to `docker-compose`, but with the ability to target individual services (containers).
+The subcommands allows for containers manipulation based on configuration files written in YAML or JSON.
+The new `containers` command replaces the old `container` one (v1).
+
+**_Warning_**: The old `container` command can still be used together with the old configuration format, but it is deprecated and will be removed in future versions.  
 
 #### Subcommands
 
 - `up` - Create/Update Docker containers based on YAML/JSON configuration files
 - `down` - Remove Docker containers based on YAML/JSON configuration files
 - `backup` - Backup Docker containers volumes based on YAML/JSON configuration files
+- `start` - Start Docker containers based on YAML/JSON configuration files
+- `stop` - Stop Docker containers based on YAML/JSON configuration files
+- `restart` - Restart Docker containers based on YAML/JSON configuration files
 - `config` - YAML/JSON configuration files generator/checker
    - `validate` - Validate existing YAML/JSON configuration file
    - `sample` - Generate new sample YAML/JSON configuration file
 
-Check [ContainerConfiguration.md](./samples/ContainerConfiguration.md) for more information about the configuration files.
+Check [ContainersConfiguration.md](./samples/ContainersConfiguration.md) for more information about the configuration files.
 
 ### `email`
 

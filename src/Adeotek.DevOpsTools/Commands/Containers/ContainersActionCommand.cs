@@ -10,12 +10,12 @@ internal sealed class ContainersActionCommand : ContainersBaseCommand<Containers
     protected override void ExecuteContainerCommand(ContainersConfig config)
     {
         var dockerManager = GetDockerManager();
-        foreach (var service in GetTargetServices(config))
+        foreach (var service in GetTargetServices(config, _settings?.ServiceName))
         {
             if (!dockerManager.ContainerExists(service.CurrentName))
             {
                 PrintMessage($"<{service.ServiceName}> Container not found, unable to perform {_commandName} action!", _errorColor);
-                return;
+                continue;
             }
         
             PrintMessage($"<{service.ServiceName}> Executing {_commandName}...");

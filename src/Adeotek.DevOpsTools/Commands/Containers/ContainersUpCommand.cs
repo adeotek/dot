@@ -9,23 +9,50 @@ internal sealed class ContainersUpCommand : ContainersBaseCommand<ContainersUpSe
     private bool Upgrade => _settings?.Upgrade ?? false;
     private bool Replace => _settings?.Replace ?? false;
     private bool Force => _settings?.Force ?? false;
+    private bool Backup => _settings?.Backup ?? false;
     
     protected override void ExecuteContainerCommand(ContainersConfig config)
     {
         var dockerManager = GetDockerManager();
-        foreach (var service in GetTargetServices(config))
+        var first = true;
+        foreach (var service in GetTargetServices(config, _settings?.ServiceName))
         {
+            if (first)
+            {
+                first = false;
+            }
+            else
+            {
+                PrintSeparator();
+            }
+            
             if (dockerManager.ContainerExists(service.CurrentName))
             {
                 if (!Upgrade)
                 {
                     PrintMessage($"<{service.ServiceName}> Container already present, nothing to do!", _successColor, separator: IsVerbose);
-                    return;
+                    continue;
+                }
+                
+                if (Backup && service.Volumes is not null && service.Volumes.Length > 0)
+                {
+                    Changes += service.Volumes
+                        .Sum(x => dockerManager.BackupVolume(x, _settings?.BackupLocation ?? "", IsDryRun));
+        
+                    if (IsDryRun)
+                    {
+                        PrintMessage($"<{service.ServiceName}> Volumes backup finished.", _standardColor, separator: IsVerbose);
+                        PrintMessage("Dry run: No changes were made!", _warningColor);
+                    }
+                    else
+                    {
+                        PrintMessage($"<{service.ServiceName}> Volumes backup done!", _successColor, separator: IsVerbose);
+                    }
                 }
         
                 PrintMessage($"<{service.ServiceName}> Container already present, updating it.", _warningColor);
                 Changes += dockerManager.UpgradeService(service, Replace, Force, IsDryRun);
-                return;
+                continue;
             }
         
             PrintMessage($"<{service.ServiceName}> Container not fond, creating new one.");
@@ -34,7 +61,7 @@ internal sealed class ContainersUpCommand : ContainersBaseCommand<ContainersUpSe
             if (Changes == 0)
             {
                 PrintMessage($"<{service.ServiceName}> Command failed, the container was not created!", _errorColor);
-                return;
+                continue;
             }
         
             if (IsDryRun)
