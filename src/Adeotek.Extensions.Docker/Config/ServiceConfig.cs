@@ -6,8 +6,8 @@ namespace Adeotek.Extensions.Docker.Config;
 
 public class ServiceConfig
 {
-    // public static readonly string[] PullPolicyValues = { "always", "never", "missing" };
-    // public static readonly string[] RestartPolicyValues = { "no", "always", "on-failure", "unless-stopped" };
+    public static readonly string[] PullPolicyValues = { "always", "never", "missing" };
+    public static readonly string[] RestartPolicyValues = { "no", "always", "on-failure", "unless-stopped" };
     
     /// <summary>
     /// Container image.
