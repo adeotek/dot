@@ -73,7 +73,7 @@ internal class ContainersConfigValidateCommand : CommandBase<ContainersConfigVal
             if (service.Networks is not null && service.Networks.Count > 0)
             {
                 var serviceNetworkIndex = 0;
-                foreach ((string? key, ServiceNetworkConfig _) in service.Networks)
+                foreach ((string? key, ServiceNetworkConfig? _) in service.Networks)
                 {
                     if (string.IsNullOrEmpty(key))
                     {

@@ -234,7 +234,7 @@ public class DockerManagerTests
                     targetServiceName, 
                     new ServiceConfig
                     {
-                        Networks = new Dictionary<string, ServiceNetworkConfig>
+                        Networks = new Dictionary<string, ServiceNetworkConfig?>
                         {
                             {
                                 firstNetworkKey,
@@ -258,14 +258,15 @@ public class DockerManagerTests
                     "other-service", 
                     new ServiceConfig
                     {
-                        Networks = new Dictionary<string, ServiceNetworkConfig>
+                        Networks = new Dictionary<string, ServiceNetworkConfig?>
                         {
                             {
-                                sharedNetworks == 1 
-                                    ? firstNetworkKey 
-                                    : sharedNetworks == 2 
-                                        ? secondNetworkKey
-                                        : "host-network",
+                                sharedNetworks switch
+                                {
+                                    1 => firstNetworkKey,
+                                    2 => secondNetworkKey,
+                                    _ => "host-network"
+                                },
                                 new ServiceNetworkConfig
                                 {
                                     IpV4Address = "172.17.0.11",

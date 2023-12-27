@@ -342,7 +342,7 @@ public class DockerCliCommandTests
         var expectedHostnameArg = "--hostname=some-host-name";
         ServiceConfig config = new()
         {
-            Networks = new Dictionary<string, ServiceNetworkConfig>
+            Networks = new Dictionary<string, ServiceNetworkConfig?>
             {
                 {
                     "test-network",

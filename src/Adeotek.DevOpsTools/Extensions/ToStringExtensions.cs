@@ -86,7 +86,7 @@ internal static class AnsiConsolePrintExtensions
         return composer;
     }
     
-    internal static CustomComposer AddServiceNetworks(this CustomComposer composer, Dictionary<string, ServiceNetworkConfig>? networks)
+    internal static CustomComposer AddServiceNetworks(this CustomComposer composer, Dictionary<string, ServiceNetworkConfig?>? networks)
     {
         if (networks is null || networks.Count == 0)
         {

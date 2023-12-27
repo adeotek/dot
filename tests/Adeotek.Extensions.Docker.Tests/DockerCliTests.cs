@@ -1538,8 +1538,8 @@ public class DockerCliTests
         $"-e {config.EnvVars!.First().Key}={config.EnvVars!.First().Value} " +
         $"-e {config.EnvVars!.Skip(1).First().Key}={config.EnvVars!.Skip(1).First().Value} " +
         $"--network={GetServiceNetworkName(config.Networks!.First().Key, networks)} " +
-        $"--ip={config.Networks!.First().Value.IpV4Address} " +
-        $"--network-alias={config.Networks!.First().Value.Aliases![0]} " +
+        $"--ip={config.Networks?.First().Value?.IpV4Address} " +
+        $"--network-alias={config.Networks?.First().Value?.Aliases![0]} " +
         $"--network={GetServiceNetworkName(config.Networks!.Skip(1).First().Key, networks)} " +
         (config.Hostname == "" ? "" : $"--hostname={config.Hostname ?? config.CurrentName} ") +
         $"--link {config.Links![0]} " +
