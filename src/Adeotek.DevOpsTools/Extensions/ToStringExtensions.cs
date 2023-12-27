@@ -82,8 +82,7 @@ internal static class AnsiConsolePrintExtensions
             .Style(LabelColor, "Flags:", NameLength)
             .Style(LabelColor, "Attachable:").Space().Style(ValueColor, network.Attachable ? "Yes" : "No").Text(" | ")
             .Style(LabelColor, "External:").Space().Style(ValueColor, network.External ? "Yes" : "No").Text(" | ")
-            .Style(LabelColor, "Internal:").Space().Style(ValueColor, network.Internal ? "Yes" : "No").Text(" | ")
-            .Style(LabelColor, "Preserve:").Space().Style(ValueColor, network.Preserve ? "Yes" : "No").LineBreak();
+            .Style(LabelColor, "Internal:").Space().Style(ValueColor, network.Internal ? "Yes" : "No").LineBreak();
         return composer;
     }
     

@@ -72,7 +72,7 @@ public class DockerManagerTests
     }
     
     [Fact]
-    public void PurgeNetworks_WithOneSharedNetworkAndOtherPreserved_DoNotRemoveAny()
+    public void PurgeNetworks_WithOneSharedNetworkAndOtherExternal_DoNotRemoveAny()
     {
         var targetServiceName = "target-service";
         var firstNetworkName = "target-docker-network";
@@ -95,7 +95,7 @@ public class DockerManagerTests
     }
     
     [Fact]
-    public void PurgeNetworks_WithOneDedicatedNetworkAndOnePreserved_RemoveOne()
+    public void PurgeNetworks_WithOneDedicatedNetworkAndOneExternal_RemoveOne()
     {
         var targetServiceName = "target-service";
         var firstNetworkName = "target-docker-network";
@@ -225,7 +225,7 @@ public class DockerManagerTests
 
     private static ContainersConfig GetConfigForNetworks(string targetServiceName, string firstNetworkName,
         string firstNetworkKey, string secondNetworkKey,
-        int sharedNetworks, bool secondNetworkPreserve) =>
+        int sharedNetworks, bool secondNetworkExternal) =>
         new()
         {
             Services = new Dictionary<string, ServiceConfig>
@@ -289,6 +289,7 @@ public class DockerManagerTests
                         Driver = "bridge",
                         Attachable = true,
                         Internal = false,
+                        External = false,
                         Ipam = new NetworkIpam
                         {
                             Driver = "default",
@@ -298,8 +299,7 @@ public class DockerManagerTests
                                 IpRange = "172.17.0.1/26",
                                 Gateway = "172.17.0.1"
                             }
-                        },
-                        Preserve = false
+                        }
                     }
                 },
                 { 
@@ -308,7 +308,7 @@ public class DockerManagerTests
                     {
                         Name = sharedNetworks == 0 ? firstNetworkName : "other-docker-network",
                         Driver = "bridge",
-                        Preserve = secondNetworkPreserve
+                        External = secondNetworkExternal
                     }
                 },
                 { 
@@ -317,7 +317,7 @@ public class DockerManagerTests
                     {
                         Name = "docker-host-network",
                         Driver = "host",
-                        Preserve = true
+                        External = true
                     }
                 }
             }

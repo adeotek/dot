@@ -89,4 +89,4 @@ networks:
     name: <other-docker-network-name>
     driver: host
     attachable: true
-    preserve: true
+    external: true

@@ -165,9 +165,8 @@ public static class ConfigExtensions
                 }
             },
             Attachable = true,
-            External = false,
-            Internal = false,
-            Preserve = config.Network.IsShared
+            External = config.Network.IsShared,
+            Internal = false
         });
         return result;
     }

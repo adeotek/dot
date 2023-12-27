@@ -46,6 +46,8 @@ Docker containers management tool. The subcommand work in a similar way to `dock
 The subcommands allows for containers manipulation based on configuration files written in YAML or JSON.
 The new `containers` command replaces the old `container` one (v1).
 
+**New**: The new `containers` command configuration file structure is mostly compatible with `docker-compose` configuration files (see [ContainersConfiguration.md](./samples/ContainersConfiguration.md)).
+
 **_Warning_**: The old `container` command can still be used together with the old configuration format, but it is deprecated and will be removed in future versions.  
 
 #### Subcommands

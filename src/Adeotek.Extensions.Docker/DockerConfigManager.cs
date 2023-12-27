@@ -217,6 +217,7 @@ public class DockerConfigManager : ConfigManager
                         Name = "<some-docker-network-name>",
                         Driver = "bridge",
                         Attachable = true,
+                        External = false,
                         Internal = false,
                         Ipam = new NetworkIpam
                         {
@@ -227,8 +228,7 @@ public class DockerConfigManager : ConfigManager
                                 IpRange = "172.17.0.1/26",
                                 Gateway = "172.17.0.1"
                             }
-                        },
-                        Preserve = false
+                        }
                     }
                 },
                 { 
@@ -237,7 +237,7 @@ public class DockerConfigManager : ConfigManager
                     {
                         Name = "<other-docker-network-name>",
                         Driver = "host",
-                        Preserve = true
+                        External = true
                     }
                 }
             }

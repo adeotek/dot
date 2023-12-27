@@ -45,12 +45,6 @@ public class NetworkConfig
     /// </summary>
     [YamlMember(Alias="internal")]
     public bool Internal { get; set; }
-    /// <summary>
-    /// If TRUE, the network will be preserved on purge, otherwise it will be deleted.
-    /// [NOT SUPPORTED by Docker Compose]
-    /// </summary>
-    [YamlMember(Alias="preserve")]
-    public bool Preserve { get; set; }
     
     // Computed
     [JsonIgnore] [YamlIgnore] public string NetworkName { get; private set; } = "N/A";

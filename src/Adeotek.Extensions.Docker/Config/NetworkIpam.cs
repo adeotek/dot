@@ -10,7 +10,7 @@ public class NetworkIpam
     [YamlMember(Alias = "driver")]
     public string Driver { get; set; } = "default";
     /// <summary>
-    /// IPAM config options list.
+    /// IPAM config options.
     /// </summary>
     [YamlMember(Alias = "config")]
     public NetworkIpamConfig Config { get; set; } = default!;

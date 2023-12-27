@@ -119,7 +119,7 @@ public class DockerManager : DockerCli
         foreach (var serviceNetwork in service.Networks.ToServiceNetworkEnumerable())
         {
             var network = config.Networks.GetByName(serviceNetwork.NetworkName);
-            if (network is null || network.Preserve
+            if (network is null || network.External
                 || otherServiceNetworks
                     .Any(x => x.NetworkName == serviceNetwork.NetworkName))
             {
@@ -186,7 +186,7 @@ public class DockerManager : DockerCli
         }
 
         return config.Networks
-            .Where(x => networks.Contains(x.Key) && !x.Value.Preserve)
+            .Where(x => networks.Contains(x.Key) && !x.Value.External)
             .Sum(x => RemoveNetwork(x.Value.Name, dryRun));
     }
 

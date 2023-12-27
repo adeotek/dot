@@ -85,7 +85,8 @@
           "target": "/data",
           "volume": {
             "nocopy": true
-          }
+          },
+          "skip_backup": false
         }
       ],
       "envVars": {
