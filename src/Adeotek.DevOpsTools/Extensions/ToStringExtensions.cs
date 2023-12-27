@@ -95,17 +95,17 @@ internal static class AnsiConsolePrintExtensions
             return composer;
         }
         
-        foreach ((string name, ServiceNetworkConfig network) in networks)
+        foreach ((string name, ServiceNetworkConfig? network) in networks)
         {
             composer.Repeat(SubValuePrefix, SubValueIndent)
                 .Style(LabelColor, "Name:", NameLength - SubValueIndent).Style(ValueColor, name).LineBreak()
                 .Repeat(SubValuePrefix, SubValueIndent)
-                .Style(LabelColor, "IpV4Address:", NameLength - SubValueIndent).Style(ValueColor, network.IpV4Address ?? Null).LineBreak()
+                .Style(LabelColor, "IpV4Address:", NameLength - SubValueIndent).Style(ValueColor, network?.IpV4Address ?? Null).LineBreak()
                 .Repeat(SubValuePrefix, SubValueIndent)
-                .Style(LabelColor, "IpV6Address:", NameLength - SubValueIndent).Style(ValueColor, network.IpV6Address ?? Null).LineBreak()
+                .Style(LabelColor, "IpV6Address:", NameLength - SubValueIndent).Style(ValueColor, network?.IpV6Address ?? Null).LineBreak()
                 .Repeat(SubValuePrefix, SubValueIndent)
                 .Style(LabelColor, "Aliases:", NameLength - SubValueIndent);
-            if (network.Aliases is null || network.Aliases.Length == 0)
+            if (network?.Aliases is null || network.Aliases.Length == 0)
             {
                 composer.Style(ValueColor, "[None]").LineBreak();
             }

@@ -115,7 +115,7 @@ public class DockerConfigManager : ConfigManager
                             { "TZ", "UTC" }, 
                             { "DEBUG_MODE", "true" }
                         },
-                        Networks = new Dictionary<string, ServiceNetworkConfig>
+                        Networks = new Dictionary<string, ServiceNetworkConfig?>
                         {
                             {
                                 "some-network",
@@ -185,7 +185,7 @@ public class DockerConfigManager : ConfigManager
                         {
                             { "TZ", "UTC" } 
                         },
-                        Networks = new Dictionary<string, ServiceNetworkConfig>
+                        Networks = new Dictionary<string, ServiceNetworkConfig?>
                         {
                             {
                                 "some-network",

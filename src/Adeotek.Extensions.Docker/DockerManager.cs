@@ -113,10 +113,15 @@ public class DockerManager : DockerCli
                 && otherServiceVolumes.All(e => e.Source != x.Source))
             .Sum(volume => RemoveVolume(volume.Source, dryRun))
             ?? 0;
+
+        if (service.Networks is null)
+        {
+            return changes;
+        }
         
         var otherServiceNetworks = config.GetAllServiceNetworks(service.ServiceName)
             .ToArray();
-        foreach (var serviceNetwork in service.Networks.ToServiceNetworkEnumerable())
+        foreach (var serviceNetwork in service.Networks!.ToServiceNetworkEnumerable())
         {
             var network = config.Networks.GetByName(serviceNetwork.NetworkName);
             if (network is null || network.External
@@ -244,7 +249,7 @@ public class DockerManager : DockerCli
         }
         
         var changes = 0;
-        foreach (var serviceNetwork in service.Networks.ToServiceNetworkEnumerable())
+        foreach (var serviceNetwork in service.Networks!.ToServiceNetworkEnumerable())
         {
             var network = networks?.FirstOrDefault(x => x.NetworkName == serviceNetwork.NetworkName);
             DockerCliException.ThrowIfNull(network, "network create", 

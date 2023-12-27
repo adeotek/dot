@@ -65,7 +65,7 @@
       ]
     },
     "cache": {
-      "image": "redis-stack",
+      "image": "redis/redis-stack",
       "pullPolicy": "always",
       "name_prefix": "db--",
       "base_name": "redis-cache",
@@ -123,7 +123,7 @@
           "ipRange": "172.20.1.1/26"
         }
       },
-      "preserve": true
+      "external": true
     }
   }
 }

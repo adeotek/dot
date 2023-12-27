@@ -13,6 +13,7 @@
         read_only: true
         bind:
           create_host_path: true
+        skip_backup: true
       - "/opt/nginx/ssl:/ssl:ro"
       - "nginx-config:/etc/nginx"
     environment:
@@ -22,7 +23,7 @@
       shared-services-network:
         aliases: 
           - web-proxy
-      private-network:
+#      private-network:
     hostname: sys--nginx
     extra_hosts:
       host.docker.internal: host-gateway
@@ -35,7 +36,7 @@
       - --memory 256MB
   
   cache:
-    image: redis-stack
+    image: redis/redis-stack
     pull_policy: always
     name_prefix: db--
     base_name: redis-cache
@@ -51,7 +52,6 @@
         target: /data
         volume:
           nocopy: true
-        skip_backup: false
     environment:
       TZ: UTC
     networks:
@@ -77,4 +77,4 @@ networks:
       config:
         subnet: 172.20.1.1/24
         ip_range: 172.20.1.1/26
-    preserve: true
+    external: true

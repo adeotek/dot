@@ -13,8 +13,8 @@ public static class ConfigExtensions
     public static IEnumerable<NetworkConfig> ToNetworksEnumerable(this Dictionary<string, NetworkConfig> networks) =>
         networks.Select(x => x.Value.SetNetworkName(x.Key));
     
-    public static IEnumerable<ServiceNetworkConfig> ToServiceNetworkEnumerable(this Dictionary<string, ServiceNetworkConfig>? networks) =>
-        networks?.Select(x => x.Value.SetNetworkName(x.Key))
+    public static IEnumerable<ServiceNetworkConfig> ToServiceNetworkEnumerable(this Dictionary<string, ServiceNetworkConfig?>? networks) =>
+        networks?.Select(x => (x.Value ?? new ServiceNetworkConfig()).SetNetworkName(x.Key))
             ?? Array.Empty<ServiceNetworkConfig>();
     
     public static ServiceConfig? GetByName(this Dictionary<string, ServiceConfig> services, string name)
@@ -60,7 +60,7 @@ public static class ConfigExtensions
                 continue;
             }
             
-            networks.AddRange(service.Networks.ToServiceNetworkEnumerable()
+            networks.AddRange(service.Networks!.ToServiceNetworkEnumerable()
                 .Where(x => networks.All(e => e.NetworkName != x.NetworkName))
             );
         }
@@ -171,14 +171,14 @@ public static class ConfigExtensions
         return result;
     }
     
-    private static Dictionary<string, ServiceNetworkConfig>? ExtractServiceNetwork(this ContainerConfigV1 config)
+    private static Dictionary<string, ServiceNetworkConfig?>? ExtractServiceNetwork(this ContainerConfigV1 config)
     {
         if (config.Network is null)
         {
             return null;
         }
         
-        var result = new Dictionary<string, ServiceNetworkConfig>
+        var result = new Dictionary<string, ServiceNetworkConfig?>
         { 
             { 
                 config.Network.Name, 

@@ -75,7 +75,7 @@ public class ServiceConfig
     /// Attached virtual networks.
     /// </summary>
     [YamlMember(Alias = "networks")]
-    public Dictionary<string, ServiceNetworkConfig>? Networks { get; set; }
+    public Dictionary<string, ServiceNetworkConfig?>? Networks { get; set; }
     /// <summary>
     /// Network linked services.
     /// </summary>

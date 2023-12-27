@@ -156,14 +156,14 @@ public class DockerCliCommand : ShellCommand
             return this;
         }
 
-        foreach ((string name, ServiceNetworkConfig serviceNetwork) in serviceConfig.Networks)
+        foreach ((string name, ServiceNetworkConfig? serviceNetwork) in serviceConfig.Networks)
         {
             var network = networks?.FirstOrDefault(x => x.NetworkName == name);
             DockerCliException.ThrowIfNull(network, "run", $"Undefined network: `{name}`");
             AddArg($"--network={network.Name}");
-            AddArgIf($"--ip={serviceNetwork.IpV4Address}", !string.IsNullOrEmpty(serviceNetwork.IpV4Address));
+            AddArgIf($"--ip={serviceNetwork?.IpV4Address}", !string.IsNullOrEmpty(serviceNetwork?.IpV4Address));
 
-            if (serviceNetwork.Aliases is null || serviceNetwork.Aliases.Length == 0)
+            if (serviceNetwork?.Aliases is null || serviceNetwork.Aliases.Length == 0)
             {
                 continue;
             }

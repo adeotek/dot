@@ -20,15 +20,12 @@ app.Configure(configurator =>
 
     configurator.AddBranch("container", containers =>
     {
-        containers.SetDescription("Manage Docker containers");
+        containers.SetDescription("Manage Docker containers (deprecated)");
         containers.AddCommand<ContainersUpCommand>("up")
             .WithDescription("Create/Update Docker containers")
             .WithData("v1");
         containers.AddCommand<ContainersDownCommand>("down")
             .WithDescription("Remove Docker containers")
-            .WithData("v1");
-        containers.AddCommand<ContainersDownCommand>("backup")
-            .WithDescription("Backup Docker container volumes")
             .WithData("v1");
         containers.AddCommand<ContainersActionCommand>("start")
             .WithDescription("Start Docker containers")
