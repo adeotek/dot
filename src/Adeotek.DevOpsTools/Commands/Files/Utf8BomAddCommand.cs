@@ -9,7 +9,6 @@ namespace Adeotek.DevOpsTools.Commands.Files;
 
 internal class Utf8BomAddCommand : Utf8BomBaseCommand<Utf8BomSettings> 
 {
-    protected override string CommandName => "utf8bom add";
     protected override string ResultLabel => "Changes";
     
     protected override int ExecuteCommand(CommandContext context, Utf8BomSettings settings)

@@ -8,7 +8,7 @@ namespace Adeotek.DevOpsTools.Extensions;
 
 internal static class AnsiConsolePrintExtensions
 {
-    private const int NameLength = 18;
+    private const int NameLength = 24;
     private const int SubValueIndent = 2;
     private const char SubValuePrefix = ' ';
     private const string MappingSeparator = " -> ";
@@ -18,115 +18,267 @@ internal static class AnsiConsolePrintExtensions
     private const string SpecialValueColor = "turquoise4";
     private const string SpecialColor = "teal";
     
-    internal static void WriteToAnsiConsole(this ContainerConfig config)
+    internal static void WriteToAnsiConsole(this ContainersConfig config)
     {
         var composer = new CustomComposer()
-            .Style(SpecialColor, "[ContainerConfig]").LineBreak()
-            .Text("ContainerName:", NameLength).Style(SpecialValueColor, config.CurrentName).LineBreak()
-            .Text("FullImageName:", NameLength).Style(SpecialValueColor, config.FullImageName).LineBreak()
-            .Style(LabelColor, "Image:", NameLength).Style(ValueColor, config.Image).LineBreak()
-            .Style(LabelColor, "Tag:", NameLength).Style(ValueColor, config.Tag ?? Null).LineBreak()
-            .Style(LabelColor, "NamePrefix:", NameLength).Style(ValueColor, config.NamePrefix ?? Null).LineBreak()
-            .Style(LabelColor, "Name:", NameLength).Style(ValueColor, config.Name).LineBreak()
-            .Style(LabelColor, "CurrentSuffix:", NameLength).Style(ValueColor, config.CurrentSuffix ?? Null).LineBreak()
-            .Style(LabelColor, "PreviousSuffix:", NameLength).Style(ValueColor, config.PreviousSuffix ?? Null).LineBreak()
-            .Style(LabelColor, "Ports:").LineBreak().AddConfigPorts(config.Ports)
-            .Style(LabelColor, "Volumes:").LineBreak().AddConfigVolumes(config.Volumes)
-            .Style(LabelColor, "EnvVars:").LineBreak().AddConfigEnvVars(config.EnvVars)
-            .Style(LabelColor, "Network:").LineBreak()
-            .Repeat(SubValuePrefix, SubValueIndent)
-            .Style(LabelColor, "Name:", NameLength - SubValueIndent).Style(ValueColor, config.Network?.Name ?? Null).LineBreak()
-            .Repeat(SubValuePrefix, SubValueIndent)
-            .Style(LabelColor, "Subnet:", NameLength - SubValueIndent).Style(ValueColor, config.Network?.Subnet ?? Null).LineBreak()
-            .Repeat(SubValuePrefix, SubValueIndent)
-            .Style(LabelColor, "IpRange:", NameLength - SubValueIndent).Style(ValueColor, config.Network?.IpRange ?? Null).LineBreak()
-            .Repeat(SubValuePrefix, SubValueIndent)
-            .Style(LabelColor, "IpAddress:", NameLength - SubValueIndent).Style(ValueColor, config.Network?.IpAddress ?? Null).LineBreak()
-            .Repeat(SubValuePrefix, SubValueIndent)
-            .Style(LabelColor, "Hostname:", NameLength - SubValueIndent).Style(ValueColor, config.Network?.Hostname ?? Null).LineBreak()
-            .Repeat(SubValuePrefix, SubValueIndent)
-            .Style(LabelColor, "Alias:", NameLength - SubValueIndent).Style(ValueColor, config.Network?.Alias ?? Null).LineBreak()
-            .Style(LabelColor, "ExtraHosts:").LineBreak().AddConfigExtraHosts(config.ExtraHosts)
-            .Style(LabelColor, "Restart:", NameLength).Style(ValueColor, config.Restart ?? Null).LineBreak();
+            .Style(SpecialColor, "[ContainersConfig]").LineBreak()
+            .Style(SpecialValueColor, "- [Services]").LineBreak();
+        foreach ((string name, ServiceConfig service) in config.Services)
+        {
+            composer.Style(SpecialColor, $"-- <{name}>").LineBreak()
+                .AddServiceConfig(service);
+        }
+        composer.Style(SpecialValueColor, "- [Networks]").LineBreak();
+        foreach ((string name, NetworkConfig network) in config.Networks)
+        {
+            composer.Style(SpecialColor, $"-- <{name}>").LineBreak()
+                .AddNetworkConfig(network);
+        }
+        composer.LineBreak();
 
         AnsiConsole.Write(composer);
     }
 
-    internal static CustomComposer AddConfigPorts(this CustomComposer composer, PortMapping[] ports)
+    internal static CustomComposer AddServiceConfig(this CustomComposer composer, ServiceConfig service)
     {
-        if (ports.Length == 0)
+        composer.Text("CurrentName:", NameLength).Style(SpecialValueColor, service.CurrentName).LineBreak()
+            .Text("PreviousName:", NameLength).Style(SpecialValueColor, service.PreviousName ?? "N/A").LineBreak()
+            .Style(LabelColor, "Image:", NameLength).Style(ValueColor, service.Image).LineBreak()
+            .Style(LabelColor, "PullPolicy:", NameLength).Style(ValueColor, service.PullPolicy ?? Null).LineBreak()
+            .Style(LabelColor, "ContainerName:", NameLength).Style(ValueColor, service.ContainerName ?? Null).LineBreak()
+            .Style(LabelColor, "NamePrefix:", NameLength).Style(ValueColor, service.NamePrefix ?? Null).LineBreak()
+            .Style(LabelColor, "BaseName:", NameLength).Style(ValueColor, service.BaseName ?? Null).LineBreak()
+            .Style(LabelColor, "CurrentSuffix:", NameLength).Style(ValueColor, service.CurrentSuffix ?? Null).LineBreak()
+            .Style(LabelColor, "PreviousSuffix:", NameLength).Style(ValueColor, service.PreviousSuffix ?? Null).LineBreak()
+            .Style(LabelColor, "Ports:", NameLength).AddConfigPorts(service.Ports)
+            .Style(LabelColor, "Volumes:", NameLength).AddConfigVolumes(service.Volumes)
+            .Style(LabelColor, "EnvFiles:", NameLength)
+            .Style(ValueColor, service.EnvFiles is null ? Null : string.Join("; ", service.EnvFiles)).LineBreak()
+            .Style(LabelColor, "EnvVars:", NameLength).AddConfigEnvVars(service.EnvVars)
+            .Style(LabelColor, "Networks:").LineBreak().AddServiceNetworks(service.Networks)
+            .Style(LabelColor, "Links:", NameLength)
+            .Style(ValueColor, service.Links is null ? Null : string.Join("; ", service.Links)).LineBreak()
+            .Style(LabelColor, "Hostname:", NameLength).Style(ValueColor, service.Hostname ?? Null).LineBreak()
+            .Style(LabelColor, "ExtraHosts:", NameLength).AddConfigExtraHosts(service.ExtraHosts)
+            .Style(LabelColor, "Dns:", NameLength)
+            .Style(ValueColor, service.Dns is null ? Null : string.Join("; ", service.Dns)).LineBreak()
+            .Style(LabelColor, "Restart:", NameLength).Style(ValueColor, service.Restart ?? Null).LineBreak()
+            .Style(LabelColor, "Entrypoint:", NameLength).Style(ValueColor, service.Entrypoint ?? Null).LineBreak()
+            .Style(LabelColor, "Command:", NameLength)
+            .Style(ValueColor, service.Command is null ? Null : string.Join(" ", service.Command)).LineBreak()
+            .Style(LabelColor, "Expose:", NameLength)
+            .Style(ValueColor, service.Expose is null ? Null : string.Join("; ", service.Expose)).LineBreak()
+            .Style(LabelColor, "Attach:", NameLength).Style(ValueColor, service.Attach.ToString()).LineBreak()
+            .Style(LabelColor, "RunCommandOptions:", NameLength)
+            .Style(ValueColor, service.RunCommandOptions is null ? Null : string.Join(" ", service.RunCommandOptions)).LineBreak();
+        return composer;
+    }
+    
+    internal static CustomComposer AddNetworkConfig(this CustomComposer composer, NetworkConfig network)
+    {
+        composer.Style(LabelColor, "Name:", NameLength).Style(ValueColor, network.Name).LineBreak()
+            .Style(LabelColor, "Driver:", NameLength).Style(ValueColor, network.Driver).LineBreak()
+            .Style(LabelColor, "IPAM:", NameLength).AddIpamConfig(network)
+            .Style(LabelColor, "Flags:", NameLength)
+            .Style(LabelColor, "Attachable:").Space().Style(ValueColor, network.Attachable ? "Yes" : "No").Text(" | ")
+            .Style(LabelColor, "External:").Space().Style(ValueColor, network.External ? "Yes" : "No").Text(" | ")
+            .Style(LabelColor, "Internal:").Space().Style(ValueColor, network.Internal ? "Yes" : "No").LineBreak();
+        return composer;
+    }
+    
+    internal static CustomComposer AddServiceNetworks(this CustomComposer composer, Dictionary<string, ServiceNetworkConfig>? networks)
+    {
+        if (networks is null || networks.Count == 0)
         {
             composer.Repeat(SubValuePrefix, NameLength - 1).Space()
                 .Style(ValueColor, "[None]").LineBreak();
             return composer;
         }
         
+        foreach ((string name, ServiceNetworkConfig? network) in networks)
+        {
+            composer.Repeat(SubValuePrefix, SubValueIndent)
+                .Style(LabelColor, "Name:", NameLength - SubValueIndent).Style(ValueColor, name).LineBreak()
+                .Repeat(SubValuePrefix, SubValueIndent)
+                .Style(LabelColor, "IpV4Address:", NameLength - SubValueIndent).Style(ValueColor, network?.IpV4Address ?? Null).LineBreak()
+                .Repeat(SubValuePrefix, SubValueIndent)
+                .Style(LabelColor, "IpV6Address:", NameLength - SubValueIndent).Style(ValueColor, network?.IpV6Address ?? Null).LineBreak()
+                .Repeat(SubValuePrefix, SubValueIndent)
+                .Style(LabelColor, "Aliases:", NameLength - SubValueIndent);
+            if (network?.Aliases is null || network.Aliases.Length == 0)
+            {
+                composer.Style(ValueColor, "[None]").LineBreak();
+            }
+            else
+            {
+                var first = true;
+                foreach (var alias in network.Aliases)
+                {
+                    if (first)
+                    {
+                        first = false;
+                    }
+                    else
+                    {
+                        composer.Repeat(SubValuePrefix, SubValueIndent);
+                    }
+                    
+                    composer.Style(ValueColor, alias).LineBreak();
+                }    
+            }
+        }
+
+        return composer;
+    }
+
+    internal static CustomComposer AddIpamConfig(this CustomComposer composer, NetworkConfig network)
+    {
+        if (network.Ipam is null)
+        {
+            return composer.Style(ValueColor, "[None]").LineBreak();
+        }
+        
+        composer.LineBreak().Repeat(SubValuePrefix, SubValueIndent)
+            .Style(LabelColor, "Driver:", NameLength - SubValueIndent).Style(ValueColor, network.Ipam.Driver).LineBreak()
+            .Repeat(SubValuePrefix, SubValueIndent)
+            .Style(LabelColor, "Config.Subnet:", NameLength - SubValueIndent).Style(ValueColor, network.Ipam.Config.Subnet).LineBreak()
+            .Repeat(SubValuePrefix, SubValueIndent)
+            .Style(LabelColor, "Config.IpRange:", NameLength - SubValueIndent).Style(ValueColor, network.Ipam.Config.IpRange).LineBreak()
+            .Repeat(SubValuePrefix, SubValueIndent)
+            .Style(LabelColor, "Config.Gateway:", NameLength - SubValueIndent).Style(ValueColor, network.Ipam.Config.Gateway ?? Null).LineBreak()
+            .Repeat(SubValuePrefix, SubValueIndent)
+            .Style(LabelColor, "Config.AuxAddresses:", NameLength - SubValueIndent);
+            
+        if (network.Ipam.Config.AuxAddresses is null || network.Ipam.Config.AuxAddresses.Count == 0)
+        {
+            composer.Style(ValueColor, "[None]").LineBreak();
+        }
+        else
+        {
+            var first = true;
+            foreach (var auxAddress in network.Ipam.Config.AuxAddresses)
+            {
+                if (first)
+                {
+                    first = false;
+                }
+                else
+                {
+                    composer.Repeat(SubValuePrefix, SubValueIndent);
+                }
+                
+                composer.Style(ValueColor, $"{auxAddress.Key}:{auxAddress.Value}").LineBreak();
+            }    
+        }
+        
+        return composer;
+    }
+
+    internal static CustomComposer AddConfigPorts(this CustomComposer composer, PortMapping[]? ports)
+    {
+        if (ports is null || ports.Length == 0)
+        {
+            return composer.Style(ValueColor, "[None]").LineBreak();
+        }
+        
+        var first = true;
         foreach (var port in ports)
         {
-            composer.Repeat(SubValuePrefix, NameLength - 1).Space()
-                .Style(SpecialValueColor, port.Host.ToString())
-                .Text(MappingSeparator).Style(ValueColor, port.Container.ToString())
+            if (first)
+            {
+                first = false;
+            }
+            else
+            {
+                composer.Repeat(SubValuePrefix, NameLength - 1).Space();
+            }
+            
+            composer.Style(SpecialValueColor, string.IsNullOrEmpty(port.HostIp) ? "" : $":{port.HostIp}")
+                .Style(SpecialValueColor, port.Published ?? port.Target)
+                .Text(MappingSeparator).Style(ValueColor, port.Target)
+                .Style(SpecialValueColor, string.IsNullOrEmpty(port.Protocol) ? "" : $"/{port.Protocol}")
                 .LineBreak();
         }
 
         return composer;
     }
     
-    internal static CustomComposer AddConfigVolumes(this CustomComposer composer, VolumeConfig[] volumes)
+    internal static CustomComposer AddConfigVolumes(this CustomComposer composer, VolumeConfig[]? volumes)
     {
-        if (volumes.Length == 0)
+        if (volumes is null || volumes.Length == 0)
         {
-            composer.Repeat(SubValuePrefix, NameLength - 1).Space()
-                .Style(ValueColor, "[None]").LineBreak();
-            return composer;
+            return composer.Style(ValueColor, "[None]").LineBreak();
         }
         
-        foreach (var port in volumes)
+        var first = true;
+        foreach (var volume in volumes)
         {
-            composer.Repeat(SubValuePrefix, NameLength - 1).Space()
-                .Style(SpecialValueColor, port.Source)
-                .Text(MappingSeparator).Style(ValueColor, port.Destination).Text(" (")
-                .Style(port.IsBind ? "green" : "red",$"IsBind={(port.IsBind ? "Yes" : "No")}").Text(" | ")
-                .Style(port.IsReadonly ? "green" : "red",$"IsReadonly={(port.IsReadonly ? "Yes" : "No")}").Text(" | ")
-                .Style(port.AutoCreate ? "green" : "red",$"AutoCreate={(port.AutoCreate ? "Yes" : "No")}")
+            if (first)
+            {
+                first = false;
+            }
+            else
+            {
+                composer.Repeat(SubValuePrefix, NameLength - 1).Space();
+            }
+            
+            composer.Style(SpecialColor, $"[{volume.Type}]").Space()
+                .Style(SpecialValueColor, volume.Source)
+                .Text(MappingSeparator).Style(ValueColor, volume.Target).Text(" (")
+                .Style(LabelColor,"ReadOnly:").Space().Style(ValueColor, volume.ReadOnly ? "Yes" : "No").Text(" | ")
+                .Style(LabelColor,"Bind.CreateHostPath:").Space().Style(ValueColor, volume.Bind?.CreateHostPath ?? false ? "Yes" : "No").Text(" | ")
+                .Style(LabelColor,"Volume.NoCopy:").Space().Style(ValueColor, volume.Volume?.NoCopy ?? false ? "Yes" : "No")
                 .Text(")").LineBreak();
         }
 
         return composer;
     }
     
-    internal static CustomComposer AddConfigEnvVars(this CustomComposer composer, Dictionary<string, string> envVars)
+    internal static CustomComposer AddConfigEnvVars(this CustomComposer composer, Dictionary<string, string>? envVars)
     {
-        if (envVars.Count == 0)
+        if (envVars is null || envVars.Count == 0)
         {
-            composer.Repeat(SubValuePrefix, NameLength - 1).Space()
-                .Style(ValueColor, "[None]").LineBreak();
-            return composer;
+            return composer.Style(ValueColor, "[None]").LineBreak();
         }
         
+        var first = true;
         foreach ((string key, string value) in envVars)
         {
-            composer.Repeat(SubValuePrefix, NameLength - 1).Space()
-                .Style(SpecialValueColor, key)
+            if (first)
+            {
+                first = false;
+            }
+            else
+            {
+                composer.Repeat(SubValuePrefix, NameLength - 1).Space();
+            }
+            
+            composer.Style(SpecialValueColor, key)
                 .Text("=").Style(ValueColor, value).LineBreak();
         }
 
         return composer;
     }
     
-    internal static CustomComposer AddConfigExtraHosts(this CustomComposer composer, Dictionary<string, string> extraHosts)
+    internal static CustomComposer AddConfigExtraHosts(this CustomComposer composer, Dictionary<string, string>? extraHosts)
     {
-        if (extraHosts.Count == 0)
+        if (extraHosts is null || extraHosts.Count == 0)
         {
-            composer.Repeat(SubValuePrefix, NameLength - 1).Space()
-                .Style(ValueColor, "[None]").LineBreak();
-            return composer;
+            return composer.Style(ValueColor, "[None]").LineBreak();
         }
-        
+
+        bool first = true;
         foreach ((string key, string value) in extraHosts)
         {
-            composer.Repeat(SubValuePrefix, NameLength - 1).Space()
-                .Style(SpecialValueColor, key)
+            if (first)
+            {
+                first = false;
+            }
+            else
+            {
+                composer.Repeat(SubValuePrefix, NameLength - 1).Space();
+            }
+            composer.Style(SpecialValueColor, key)
                 .Text(":").Style(ValueColor, value).LineBreak();
         }
 

@@ -9,7 +9,6 @@ namespace Adeotek.DevOpsTools.Commands.Files;
 
 internal class Utf8BomRemoveCommand : Utf8BomBaseCommand<Utf8BomSettings>
 {
-    protected override string CommandName => "utf8bom remove";
     protected override string ResultLabel => "Changes";
     
     protected override int ExecuteCommand(CommandContext context, Utf8BomSettings settings)

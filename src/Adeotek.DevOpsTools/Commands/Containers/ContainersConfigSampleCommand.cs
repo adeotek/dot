@@ -7,11 +7,11 @@ using Spectre.Console.Json;
 
 namespace Adeotek.DevOpsTools.Commands.Containers;
 
-internal class ContainerConfigSampleCommand : CommandBase<ContainerConfigSampleSettings>
+internal class ContainersConfigSampleCommand : CommandBase<ContainersConfigSampleSettings>
 {
-    protected override string CommandName => "container config";
+    protected override string GetCommandName() => $"containers config {_commandName}";
     
-    protected override int ExecuteCommand(CommandContext context, ContainerConfigSampleSettings settings)
+    protected override int ExecuteCommand(CommandContext context, ContainersConfigSampleSettings settings)
     {
         if (settings.Format?.ToLower() != "yaml" && settings.Format?.ToLower() != "json")
         {
@@ -27,7 +27,7 @@ internal class ContainerConfigSampleCommand : CommandBase<ContainerConfigSampleS
             {
                 PrintMessage("YAML Sample Config");
                 PrintSeparator();
-                AnsiConsole.Write(config);
+                AnsiConsole.Write(config.Replace("{}", ""));
                 return 0;
             }
 

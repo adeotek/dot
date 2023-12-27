@@ -19,7 +19,7 @@ internal class EmailSendCommand : CommandBase<EmailSendSettings>
     private const string SpecialValueColor = "turquoise4";
     private const string SpecialColor = "teal";
     
-    protected override string CommandName => "email";
+    protected override string GetCommandName() => $"email {_commandName}";
     
     protected override int ExecuteCommand(CommandContext context, EmailSendSettings settings)
     {
@@ -82,7 +82,8 @@ internal class EmailSendCommand : CommandBase<EmailSendSettings>
 
     private static EmailConfig LoadConfiguration(EmailSendSettings sendSettings)
     {
-        var config = ConfigManager.LoadConfig<EmailConfig>(sendSettings.ConfigFile);
+        var config = new ConfigManager()
+            .LoadConfig<EmailConfig>(sendSettings.ConfigFile);
         // Override config file values with command options
         if (!string.IsNullOrEmpty(sendSettings.FromAddress))
         {

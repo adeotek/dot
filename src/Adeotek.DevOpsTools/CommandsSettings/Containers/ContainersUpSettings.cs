@@ -4,8 +4,12 @@ using Spectre.Console.Cli;
 
 namespace Adeotek.DevOpsTools.CommandsSettings.Containers;
 
-internal sealed class ContainerUpSettings : ContainerSettings
+internal sealed class ContainersUpSettings : ContainersSettings
 {
+    [Description("Execute the command only for the service with the provided name")]
+    [CommandOption("-n|--name <value>")]
+    public string? ServiceName { get; init; }
+    
     [Description("Upgrade container if it exists")]
     [CommandOption("-u|--upgrade")]
     [DefaultValue(false)]
@@ -21,8 +25,12 @@ internal sealed class ContainerUpSettings : ContainerSettings
     [DefaultValue(false)]
     public bool Force { get; init; }
     
-    [Description("Backup container volumes when updating\nOnly works together with the '--update' option)")]
+    [Description("Backup container volumes before updating\nOnly works together with the '--update' option")]
     [CommandOption("-b|--backup")]
     [DefaultValue(false)]
     public bool Backup { get; init; }
+    
+    [Description("Volumes backup location (absolute/relative path)")]
+    [CommandOption("-l|--backup-location")]
+    public string? BackupLocation { get; init; }
 }

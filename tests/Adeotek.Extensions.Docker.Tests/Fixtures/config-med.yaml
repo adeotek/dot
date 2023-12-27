@@ -1,15 +1,19 @@
-Image: <image-name>
-NamePrefix: <optional-container-name-prefix>
-Name: <base-container-name>
-Ports:
-  - Host: 8080
-    Container: 80
-Volumes:
-  - Source: <docker-volume-name>
-    Destination: /path/in/container/data
-EnvVars:
-  TZ: UTC
-Network:
-  Name: <docker-network-name>
-ExtraHosts:
-  host.docker.internal: host-gateway
+services:
+  first-service:
+    image: '[<registry>/][<project>/]<image>[:<tag>|@<digest>]'
+    container_name: <full-container-name>
+    ports:
+      - target: "443"
+    volumes:
+      - source: <other-docker-volume-name>
+        target: /path/in/container/data
+    environment:
+      TZ: UTC
+    networks:
+      some-network:
+    extra_hosts:
+      host.docker.internal: host-gateway
+networks:
+  some-network:
+    name: <some-docker-network-name>
+    driver: bridge

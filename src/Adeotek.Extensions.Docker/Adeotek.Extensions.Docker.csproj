@@ -8,8 +8,8 @@
     <Description>Extensions and helpers for interaction with Docker</Description>
     <Product>AdeoTEK Extensions Docker</Product>
     <Authors>George Benjamin-Schonberger</Authors>
-    <Copyright>George Benjamin-Schonberger 2023</Copyright>
-    <Version>0.1.8</Version>
+    <Copyright>George Benjamin-Schonberger 2024</Copyright>
+    <Version>0.3.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
