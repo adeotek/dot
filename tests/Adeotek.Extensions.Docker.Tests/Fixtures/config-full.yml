@@ -43,14 +43,16 @@ services:
     dns:
     - 8.8.8.8
     - 8.8.4.4
+    expose:
+    - 8080-8082
+    - "443"
     restart: '<optional-restart-mode (default: unless-stopped)>'
     entrypoint: <optional-override-th-image-entrypoint>
     command:
     - <container-startup-command>
     - --some-arg=123
     - --flag-arg
-    attach: true
-    run_command_options:
+    docker_command_options:
     - -it
     - <any-docker-run-option>
   second-service:
@@ -73,7 +75,6 @@ services:
     extra_hosts:
       host.docker.internal: host-gateway
     restart: '<optional-restart-mode (default: unless-stopped)>'
-    attach: true
 networks:
   some-network:
     name: <some-docker-network-name>

@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Text;
 
 using Adeotek.Extensions.Docker.Config;
 using Adeotek.Extensions.Docker.Exceptions;
@@ -96,13 +97,16 @@ public class DockerCliTests
         Assert.Equal($"container inspect --format \"{{{{lower .Name}}}}\" {containerName}", args);
     }
 
-    [Fact]
-    public void CreateContainer_WithMissing_ReturnsOne()
+    [Theory]
+    [InlineData(true, "first-service")]
+    [InlineData(true, "second-service")]
+    [InlineData(false, "second-service")]
+    public void CreateContainer_WithMissing_ReturnsOne(bool autoStart, string serviceName)
     {
         var config = DockerConfigManager.GetSampleConfig();
-        var serviceConfig = config.Services.First().Value;
+        var serviceConfig = config.Services[serviceName];
         var networks = config.Networks.ToNetworksEnumerable().ToList();
-        var expectedArgs = GetCreateContainerArgs(serviceConfig, networks);
+        var expectedArgs = GetCreateContainerArgs(serviceConfig, networks, autoStart);
         var sut = GetDockerCli(out var shellProcessMock);
         string? cmd = null;
         string? args = null;
@@ -118,21 +122,24 @@ public class DockerCliTests
 
         ShellProcessMockSendStdOutput(shellProcessMock, new[] { "newly_created_container_id" });
         
-        var result = sut.CreateContainer(serviceConfig, networks);
+        var result = sut.CreateContainer(serviceConfig, networks, autoStart);
         
         Assert.Equal(1, result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal(expectedArgs, args);
     }
     
-    [Fact]
-    public void CreateContainer_WithMissingAndNoStartupCommand_ReturnsOne()
+    [Theory]
+    [InlineData(true, "first-service")]
+    [InlineData(true, "second-service")]
+    [InlineData(false, "second-service")]
+    public void CreateContainer_WithMissingAndNoStartupCommand_ReturnsOne(bool autoStart, string serviceName)
     {
         var config = DockerConfigManager.GetSampleConfig();
-        var serviceConfig = config.Services.First().Value;
+        var serviceConfig = config.Services[serviceName];
         var networks = config.Networks.ToNetworksEnumerable().ToList();
         serviceConfig.Command = null;
-        var expectedArgs = GetCreateContainerArgs(serviceConfig, networks);
+        var expectedArgs = GetCreateContainerArgs(serviceConfig, networks, autoStart);
         var sut = GetDockerCli(out var shellProcessMock);
         string? cmd = null;
         string? args = null;
@@ -148,7 +155,7 @@ public class DockerCliTests
 
         ShellProcessMockSendStdOutput(shellProcessMock, new[] { "newly_created_container_id" });
         
-        var result = sut.CreateContainer(serviceConfig, networks);
+        var result = sut.CreateContainer(serviceConfig, networks, autoStart);
         
         Assert.Equal(1, result);
         Assert.Equal(CliCommand, cmd);
@@ -161,7 +168,7 @@ public class DockerCliTests
         var config = DockerConfigManager.GetSampleConfig();
         var serviceConfig = config.Services.First().Value;
         var networks = config.Networks.ToNetworksEnumerable().ToList();
-        var expectedArgs = GetCreateContainerArgs(serviceConfig, networks);
+        var expectedArgs = GetCreateContainerArgs(serviceConfig, networks, true);
         var sut = GetDockerCli(out var shellProcessMock);
         string? cmd = null;
         string? args = null;
@@ -180,7 +187,7 @@ public class DockerCliTests
             $"docker: Error response from daemon: Conflict. The container name \"/{serviceConfig.CurrentName}\" is already in use by container"
         });
         
-        var result = sut.CreateContainer(serviceConfig, networks);
+        var result = sut.CreateContainer(serviceConfig, networks, true);
         
         Assert.Equal(0, result);
         Assert.Equal(CliCommand, cmd);
@@ -193,7 +200,7 @@ public class DockerCliTests
         var config = DockerConfigManager.GetSampleConfig();
         var serviceConfig = config.Services.First().Value;
         var networks = config.Networks.ToNetworksEnumerable().ToList();
-        var expectedArgs = GetCreateContainerArgs(serviceConfig, networks);
+        var expectedArgs = GetCreateContainerArgs(serviceConfig, networks, true);
         var sut = GetDockerCli(out var shellProcessMock);
         string? cmd = null;
         string? args = null;
@@ -211,10 +218,133 @@ public class DockerCliTests
         
         var action = () =>
         {
-            sut.CreateContainer(serviceConfig, networks);
+            sut.CreateContainer(serviceConfig, networks, true);
         };
         
         Assert.Throws<DockerCliException>(action);
+        Assert.Equal(CliCommand, cmd);
+        Assert.Equal(expectedArgs, args);
+    }
+    
+    [Fact]
+    public void AttachContainerToNetwork_WithAllArgs_ReturnOne()
+    {
+        const string containerName = "test-container-mock";
+        const string networkName = "other-network-mock";
+        ServiceNetworkConfig serviceNetwork = new()
+        {
+            IpV4Address = "1.2.3.4",
+            Aliases = new [] { "first-net-alias", "second-net-alias" }
+        };
+        var expectedArgs = $"network connect --ip={serviceNetwork.IpV4Address} " +
+                           $"--network-alias={serviceNetwork.Aliases[0]} " +
+                           $"--network-alias={serviceNetwork.Aliases[1]} " +
+                           $"{networkName} {containerName}";
+        var sut = GetDockerCli(out var shellProcessMock);
+        string? cmd = null;
+        string? args = null;
+        
+        sut.OnDockerCliEvent += (_, e) =>
+        {
+            if (e is { Type: DockerCliEventType.ExitCode, Data.Count: 3 })
+            {
+                cmd = e.Data.GetValueOrDefault("cmd");
+                args = e.Data.GetValueOrDefault("args");
+            }
+        };
+        
+        ShellProcessMockSendStdOutput(shellProcessMock, new[] { containerName });
+        
+        var result = sut.AttachContainerToNetwork(containerName, networkName, serviceNetwork);
+        
+        Assert.Equal(1, result);
+        Assert.Equal(CliCommand, cmd);
+        Assert.Equal(expectedArgs, args);
+    }
+    
+    [Fact]
+    public void AttachContainerToNetwork_WithExistingContainerAndNetwork_ReturnOne()
+    {
+        const string containerName = "test-container-mock";
+        const string networkName = "other-network-mock";
+        ServiceNetworkConfig? serviceNetwork = null;
+        var expectedArgs = $"network connect {networkName} {containerName}";
+        var sut = GetDockerCli(out var shellProcessMock);
+        string? cmd = null;
+        string? args = null;
+        
+        sut.OnDockerCliEvent += (_, e) =>
+        {
+            if (e is { Type: DockerCliEventType.ExitCode, Data.Count: 3 })
+            {
+                cmd = e.Data.GetValueOrDefault("cmd");
+                args = e.Data.GetValueOrDefault("args");
+            }
+        };
+        
+        ShellProcessMockSendStdOutput(shellProcessMock, new[] { containerName });
+        
+        var result = sut.AttachContainerToNetwork(containerName, networkName, serviceNetwork);
+        
+        Assert.Equal(1, result);
+        Assert.Equal(CliCommand, cmd);
+        Assert.Equal(expectedArgs, args);
+    }
+    
+    [Fact]
+    public void AttachContainerToNetwork_WithExistingContainerAndNonExistingNetwork_ReturnZero()
+    {
+        const string containerName = "test-container-mock";
+        const string networkName = "other-network-mock";
+        ServiceNetworkConfig? serviceNetwork = null;
+        var expectedArgs = $"network connect {networkName} {containerName}";
+        var sut = GetDockerCli(out var shellProcessMock);
+        string? cmd = null;
+        string? args = null;
+        
+        sut.OnDockerCliEvent += (_, e) =>
+        {
+            if (e is { Type: DockerCliEventType.ExitCode, Data.Count: 3 })
+            {
+                cmd = e.Data.GetValueOrDefault("cmd");
+                args = e.Data.GetValueOrDefault("args");
+            }
+        };
+        
+        ShellProcessMockSendStdOutput(shellProcessMock, new[] { containerName });
+        
+        var result = sut.AttachContainerToNetwork(containerName, networkName, serviceNetwork);
+        
+        Assert.Equal(0, result);
+        Assert.Equal(CliCommand, cmd);
+        Assert.Equal(expectedArgs, args);
+    }
+    
+    [Fact]
+    public void AttachContainerToNetwork_WithNonExistingContainerAndExistingNetwork_ReturnZero()
+    {
+        const string containerName = "test-container-mock";
+        const string networkName = "other-network-mock";
+        ServiceNetworkConfig? serviceNetwork = null;
+        var expectedArgs = $"network connect {networkName} {containerName}";
+        var sut = GetDockerCli(out var shellProcessMock);
+        string? cmd = null;
+        string? args = null;
+        
+        sut.OnDockerCliEvent += (_, e) =>
+        {
+            if (e is { Type: DockerCliEventType.ExitCode, Data.Count: 3 })
+            {
+                cmd = e.Data.GetValueOrDefault("cmd");
+                args = e.Data.GetValueOrDefault("args");
+            }
+        };
+        
+        ShellProcessMockSendStdOutput(shellProcessMock, new[] { containerName });
+        
+        var result = sut.AttachContainerToNetwork(containerName, networkName, serviceNetwork);
+        
+        Assert.Equal(0, result);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal(expectedArgs, args);
     }
@@ -1526,33 +1656,60 @@ public class DockerCliTests
         return new DockerCli(new DockerCliCommand(provider) { Command = CliCommand });
     }
 
-    private static string GetCreateContainerArgs(ServiceConfig config, List<NetworkConfig>? networks) =>
-        "run " +
-        (config.RunCommandOptions is not null && config.RunCommandOptions.Length > 0 ? string.Join(' ',config.RunCommandOptions).Trim() : "-d") + " " +
-        $"--name={config.CurrentName} " +
-        $"-p {config.Ports![0].HostIp}:{config.Ports[0].Published}:{config.Ports[0].Target}/{config.Ports[0].Protocol} " +
-        $"-p {(string.IsNullOrEmpty(config.Ports![1].Published) ? "" : $"{config.Ports![1].Published}:")}{config.Ports[1].Target} " +
-        $"-v {config.Volumes![0].Source}:{config.Volumes[0].Target}{(config.Volumes[0].ReadOnly ? ":ro" : "")} " +
-        $"-v {config.Volumes![1].Source}:{config.Volumes[1].Target}{(config.Volumes[1].ReadOnly ? ":ro" : "")} " +
-        $"--env-file {config.EnvFiles![0]} " +
-        $"-e {config.EnvVars!.First().Key}={config.EnvVars!.First().Value} " +
-        $"-e {config.EnvVars!.Skip(1).First().Key}={config.EnvVars!.Skip(1).First().Value} " +
-        $"--network={GetServiceNetworkName(config.Networks!.First().Key, networks)} " +
-        $"--ip={config.Networks?.First().Value?.IpV4Address} " +
-        $"--network-alias={config.Networks?.First().Value?.Aliases![0]} " +
-        $"--network={GetServiceNetworkName(config.Networks!.Skip(1).First().Key, networks)} " +
-        (config.Hostname == "" ? "" : $"--hostname={config.Hostname ?? config.CurrentName} ") +
-        $"--link {config.Links![0]} " +
-        $"--link {config.Links![1]} " +
-        $"--add-host {config.ExtraHosts!.First().Key}:{config.ExtraHosts!.First().Value} " +
-        $"--add-host {config.ExtraHosts!.Skip(1).First().Key}:{config.ExtraHosts!.Skip(1).First().Value} " +
-        $"--dns {config.Dns![0]} " +
-        $"--dns {config.Dns![1]} " +
-        $"--restart={config.Restart ?? "unless-stopped"} " +
-        $"--pull={config.PullPolicy ?? "missing"} " +
-        $"{config.Image}" +
-        (!string.IsNullOrEmpty(config.Entrypoint) ? $" --entrypoint {config.Entrypoint}" : "") +
-        (config.Command is not null && config.Command.Length > 0 ? $" {string.Join(' ',config.Command).Trim()}" : "");
+    private static string GetCreateContainerArgs(ServiceConfig config, List<NetworkConfig>? networks, bool autoStart)
+    {
+        StringBuilder sb = new();
+        var isRun = autoStart && (config.Networks?.Count ?? 0) < 2;
+        sb.Append(isRun ? "run " : "create ");
+        var dockerCommandOptions = config.DockerCommandOptions is not null && config.DockerCommandOptions.Length > 0
+            ? config.DockerCommandOptions
+            : new[] { "-d" };
+        if (!isRun)
+        {
+            dockerCommandOptions = dockerCommandOptions.Where(x => x != "-d").ToArray();
+        }
+
+        if (dockerCommandOptions.Length > 0)
+        {
+            sb.Append(string.Join(' ', dockerCommandOptions).Trim()).Append(' ');
+        }
+
+        sb.Append($"--name={config.CurrentName} ");
+        sb.AppendForEach(config.Ports, x => new StringBuilder()
+            .Append("-p ")
+            .AppendIfNotNullOrEmpty($"{x.HostIp}:", x.HostIp)
+            .AppendIfNotNullOrEmpty($"{x.Published}:", x.Published)
+            .Append($"{x.Target}")
+            .AppendIfNotNullOrEmpty($"/{x.Protocol}", x.Protocol)
+            .Append(' ')
+            .ToString());
+        sb.AppendForEach(config.Volumes, x => $"-v {x.Source}:{x.Target}{(x.ReadOnly ? ":ro" : "")} ");
+        sb.AppendForEach(config.EnvFiles, x => $"--env-file {x} ");
+        sb.AppendForEach(config.EnvVars, x => $"-e {x.Key}={x.Value} ");
+        var defaultNetwork = config.Networks?.FirstOrDefault();
+        if (defaultNetwork is not null)
+        {
+            sb.Append($"--network={GetServiceNetworkName(defaultNetwork.Value.Key, networks)} ");
+            sb.Append((config.Hostname == "" ? "" : $"--hostname={config.Hostname ?? config.CurrentName} "));
+            sb.AppendIfNotNullOrEmpty($"--ip={defaultNetwork.Value.Value?.IpV4Address} ", defaultNetwork.Value.Value?.IpV4Address);
+            sb.AppendIfNotNullOrEmpty($"--ip6={defaultNetwork.Value.Value?.IpV6Address} ", defaultNetwork.Value.Value?.IpV6Address);
+            sb.AppendForEach(defaultNetwork.Value.Value?.Aliases, x => $"--network-alias={x} ");
+        }
+        sb.AppendForEach(config.Links, x => $"--link {x} ");
+        sb.AppendForEach(config.ExtraHosts, x => $"--add-host {x.Key}:{x.Value} ");
+        sb.AppendForEach(config.Dns, x => $"--dns {x} ");
+        sb.AppendForEach(config.Expose, x => $"--expose {x} ");
+        sb.Append($"--restart={config.Restart ?? "unless-stopped"} ");
+        sb.Append($"--pull={config.PullPolicy ?? "missing"} ");
+        sb.Append($"{config.Image}");
+        sb.AppendIfNotNullOrEmpty($" --entrypoint {config.Entrypoint}", config.Entrypoint);
+        if (config.Command is not null && config.Command.Length > 0)
+        {
+            sb.Append($" {string.Join(' ', config.Command).Trim()} ");
+        }
+
+        return sb.ToString().Trim();
+    }
 
     private static string? GetServiceNetworkName(string network, List<NetworkConfig>? networks) => 
         networks?.FirstOrDefault(x => x.NetworkName == network)?.Name;

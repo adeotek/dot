@@ -63,6 +63,10 @@
         "8.8.8.8",
         "8.8.4.4"
       ],
+      "expose": [
+        "8080-8082",
+        "443"
+      ],
       "restart": "<optional-restart-mode (default: unless-stopped)>",
       "entrypoint": "<optional-override-th-image-entrypoint>",
       "command": [
@@ -70,8 +74,7 @@
         "--some-arg=123",
         "--flag-arg"
       ],
-      "attach": true,
-      "runCommandOptions": [
+      "dockerCommandOptions": [
         "-it",
         "<any-docker-run-option>"
       ]
@@ -107,8 +110,7 @@
       "extraHosts": {
         "host.docker.internal": "host-gateway"
       },
-      "restart": "<optional-restart-mode (default: unless-stopped)>",
-      "attach": true
+      "restart": "<optional-restart-mode (default: unless-stopped)>"
     }
   },
   "networks": {

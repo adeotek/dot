@@ -97,6 +97,13 @@ public class ServiceConfig
     [YamlMember(Alias = "dns")]
     public string[]? Dns { get; set; }
     /// <summary>
+    /// Defines the ports that the container exposes.
+    /// These ports must be accessible to linked services and should not be published to the host machine.
+    /// Only the internal container ports can be specified.
+    /// </summary>
+    [YamlMember(Alias = "expose")]
+    public string[]? Expose { get; set; }
+    /// <summary>
     /// Container restart policy.
     /// </summary>
     [YamlMember(Alias = "restart")]
@@ -112,24 +119,11 @@ public class ServiceConfig
     [YamlMember(Alias = "command")]
     public string[]? Command { get; set; }
     /// <summary>
-    /// Defines the ports that the container exposes.
-    /// These ports must be accessible to linked services and should not be published to the host machine.
-    /// Only the internal container ports can be specified.
-    /// </summary>
-    [YamlMember(Alias = "expose")]
-    public string[]? Expose { get; set; }
-    /// <summary>
-    /// When attach is defined and set to false service logs will not be collected,
-    /// until you explicitly request it to.
-    /// </summary>
-    [YamlMember(Alias = "attach")]
-    public bool Attach { get; set; } = true;
-    /// <summary>
-    /// Docker `run` command options.
+    /// Docker `create`/`run` command options.
     /// [NOT SUPPORTED by Docker Compose]
     /// </summary>
-    [YamlMember(Alias = "run_command_options")]
-    public string[]? RunCommandOptions { get; set; }
+    [YamlMember(Alias = "docker_command_options")]
+    public string[]? DockerCommandOptions { get; set; }
     
     // Computed
     [JsonIgnore] [YamlIgnore]

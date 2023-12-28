@@ -105,8 +105,7 @@ public static class ConfigExtensions
                         ? null
                         : (new[] { config.Command }).Union(config.CommandArgs).ToArray(),
                     Expose = null,
-                    Attach = true,
-                    RunCommandOptions = config.RunCommandOptions
+                    DockerCommandOptions = config.RunCommandOptions
                 }
             }
         };

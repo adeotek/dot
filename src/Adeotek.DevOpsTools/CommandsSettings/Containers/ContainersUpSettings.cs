@@ -33,4 +33,9 @@ internal sealed class ContainersUpSettings : ContainersSettings
     [Description("Volumes backup location (absolute/relative path)")]
     [CommandOption("-l|--backup-location")]
     public string? BackupLocation { get; init; }
+    
+    [Description("Don't start the container after creation")]
+    [CommandOption("-d|--do-not-start")]
+    [DefaultValue(false)]
+    public bool DoNotStart { get; init; }
 }

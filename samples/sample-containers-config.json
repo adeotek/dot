@@ -59,7 +59,7 @@
         "8.8.4.4"
       ],
       "restart": "unless-stopped",
-      "runCommandOptions": [
+      "dockerCommandOptions": [
         "-d",
         "--memory 256MB"
       ]
@@ -101,7 +101,7 @@
         }
       },
       "restart": "always",
-      "run_command_options": [
+      "dockerCommandOptions": [
         "-d",
         "--memory 1GB"
       ]

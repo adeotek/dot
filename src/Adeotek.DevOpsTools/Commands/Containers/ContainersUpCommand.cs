@@ -10,6 +10,7 @@ internal sealed class ContainersUpCommand : ContainersBaseCommand<ContainersUpSe
     private bool Replace => _settings?.Replace ?? false;
     private bool Force => _settings?.Force ?? false;
     private bool Backup => _settings?.Backup ?? false;
+    private bool AutoStart => _settings?.DoNotStart ?? true;
     
     protected override void ExecuteContainerCommand(ContainersConfig config)
     {
@@ -56,7 +57,8 @@ internal sealed class ContainersUpCommand : ContainersBaseCommand<ContainersUpSe
             }
         
             PrintMessage($"<{service.ServiceName}> Container not fond, creating new one.");
-            Changes += dockerManager.CheckAndCreateService(service, config.Networks.ToNetworksEnumerable().ToList(), IsDryRun);
+            Changes += dockerManager.CheckAndCreateService(
+                service, config.Networks.ToNetworksEnumerable().ToList(), AutoStart, IsDryRun);
         
             if (Changes == 0)
             {

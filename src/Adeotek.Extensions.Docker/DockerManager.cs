@@ -24,11 +24,14 @@ public class DockerManager : DockerCli
         StopContainer(currentName, dryRun)
         + RenameContainer(currentName, newName, dryRun);
     
-    public int CheckAndCreateService(ServiceConfig service, 
-        List<NetworkConfig>? networks = null, bool dryRun = false) =>
-        (networks is null ? 0 : CreateNetworksIfMissing(service, networks, dryRun))
-         + (service.Volumes?.Sum(volume => CreateVolumeIfMissing(volume, dryRun)) ?? 0)
-         + CreateContainer(service, networks, dryRun);
+    public int CheckAndCreateService(ServiceConfig service,
+        List<NetworkConfig>? networks = null, bool autoStart = true, bool dryRun = false)
+    {
+        // TODO implement autoStart & network connect
+        return (networks is null ? 0 : CreateNetworksIfMissing(service, networks, dryRun))
+               + (service.Volumes?.Sum(volume => CreateVolumeIfMissing(volume, dryRun)) ?? 0)
+               + CreateContainer(service, networks, autoStart, dryRun);
+    }
 
     public int UpgradeService(ServiceConfig service, bool replace = false, bool force = false, bool dryRun = false)
     {

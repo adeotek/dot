@@ -53,12 +53,11 @@ dot container config sample /path/to/target_file.json --format json
   - `Key` [string] **required** : The key represents the host name.
   - `Value` [string] **required** : The value is the target IP address (this supports a special `host-gateway` value that resolves to the internal IP address of the host).
 - **Dns** (YAML|JSON key: `dns`) [array(string)] *optional* : Custom DNS entries (if NULL, host's DNS will be used).
+- **Expose** (YAML|JSON key: `expose`) [array(string)] *optional* : Defines the ports that the container exposes (these ports must be accessible to linked services and should not be published to the host machine, only the internal container ports can be specified).
 - **Restart** (YAML|JSON key: `restart`) [string] *optional* : Container restart policy (`always`/`on-failure`/`unless-stopped`, defaults to `unless-stopped` if NULL/omitted).
 - **Entrypoint** (YAML|JSON key: `entrypoint`) [string] *optional* : This overrides the *ENTRYPOINT* instruction from the service's Dockerfile.
 - **Command** (YAML|JSON key: `command`) [array(string)] *optional* : Overrides the command declared by the container image, for example by Dockerfile's CMD.
-- **Expose** (YAML|JSON key: `expose`) [array(string)] *optional* : Defines the ports that the container exposes (these ports must be accessible to linked services and should not be published to the host machine, only the internal container ports can be specified).
-- **Attach** (YAML|JSON key: `attach`) [boolean] *optional* : When attach is defined and set to false service logs will not be collected until you explicitly request it to (defaults to `FALSE` if NULL/omitted).
-- (!) **RunCommandOptions** (YAML key: `run_command_options` | JSON key: `runCommandOptions`) [array(string)] *optional* : Docker `run` command options. (see [docs.docker.com](https://docs.docker.com/engine/reference/commandline/run/#options))
+- (!) **DockerCommandOptions** (YAML key: `docker_command_options` | JSON key: `dockerCommandOptions`) [array(string)] *optional* : Docker `create`/`run` command options. (see [docker create](https://docs.docker.com/engine/reference/commandline/create/#options)/[docker run](https://docs.docker.com/engine/reference/commandline/run/#options))
 
 **&ast;** One of these configuration option is required. If **ContainerName** is provided, the **BaseName**, **NamePrefix**, **CurrentSuffix** and **PreviousSuffix**, will be ignored.
 

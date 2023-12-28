@@ -68,9 +68,8 @@ internal static class AnsiConsolePrintExtensions
             .Style(ValueColor, service.Command is null ? Null : string.Join(" ", service.Command)).LineBreak()
             .Style(LabelColor, "Expose:", NameLength)
             .Style(ValueColor, service.Expose is null ? Null : string.Join("; ", service.Expose)).LineBreak()
-            .Style(LabelColor, "Attach:", NameLength).Style(ValueColor, service.Attach.ToString()).LineBreak()
-            .Style(LabelColor, "RunCommandOptions:", NameLength)
-            .Style(ValueColor, service.RunCommandOptions is null ? Null : string.Join(" ", service.RunCommandOptions)).LineBreak();
+            .Style(LabelColor, "DockerCommandOptions:", NameLength)
+            .Style(ValueColor, service.DockerCommandOptions is null ? Null : string.Join(" ", service.DockerCommandOptions)).LineBreak();
         return composer;
     }
     

@@ -52,11 +52,19 @@ public class DockerCliCommand : ShellCommand
     public DockerCliCommand AddFilterArg(string value, string? key = null) => 
         AddArg($"--filter {key ?? "name"}={value}");
 
-    public DockerCliCommand AddRunCommandOptionsArgs(string[]? runCommandOptions) =>
-        runCommandOptions is null || runCommandOptions.Length == 0 
-            ? AddArg("-d")
-            : AddArg(string.Join(' ', runCommandOptions).Trim());
-    
+    public DockerCliCommand AddDockerCommandOptionsArgs(string[]? dockerCommandOptions, bool isRun = true)
+    {
+        if (dockerCommandOptions is null || dockerCommandOptions.Length == 0)
+        {
+            return isRun ? AddArg("-d") : this;
+        }
+
+        var options = isRun
+            ? dockerCommandOptions
+            : dockerCommandOptions.Where(x => x != "-d").ToArray();
+        return options.Length > 0 ? AddArg(string.Join(' ', options).Trim()) : this;
+    }
+
     public DockerCliCommand AddStartupCommandArgs(ServiceConfig serviceConfig)
     {
         AddArgIf($"--entrypoint {serviceConfig.Entrypoint}", !string.IsNullOrEmpty(serviceConfig.Entrypoint));
@@ -97,6 +105,23 @@ public class DockerCliCommand : ShellCommand
         foreach (var port in ports)
         {
             AddPortArg(port.Published, port.Target, port.HostIp, port.Protocol);
+        }
+        return this;
+    }
+
+    public DockerCliCommand AddExposedPortArgs(string? port) =>
+        string.IsNullOrEmpty(port) ? this : AddArg($"--expose {port}");
+    
+    public DockerCliCommand AddExposedPortsArgs(string[]? ports)
+    {
+        if (ports is null || ports.Length == 0)
+        {
+            return this;
+        }
+        
+        foreach (var port in ports)
+        {
+            AddExposedPortArgs(port);
         }
         return this;
     }
@@ -148,33 +173,38 @@ public class DockerCliCommand : ShellCommand
         }
         return this;
     }
+
+    public DockerCliCommand AddServiceNetworkArgs(ServiceNetworkConfig? serviceNetworkConfig)
+    {
+        AddArgIf($"--ip={serviceNetworkConfig?.IpV4Address}", !string.IsNullOrEmpty(serviceNetworkConfig?.IpV4Address));
+        AddArgIf($"--ip6={serviceNetworkConfig?.IpV6Address}", !string.IsNullOrEmpty(serviceNetworkConfig?.IpV6Address));
+        
+        if (serviceNetworkConfig?.Aliases is null || serviceNetworkConfig.Aliases.Length <= 0)
+        {
+            return this;
+        }
+
+        foreach (var alias in serviceNetworkConfig.Aliases)
+        {
+            AddArgIf($"--network-alias={alias}", !string.IsNullOrEmpty(alias));
+        }
+        
+        return this;
+    }
     
-    public DockerCliCommand AddNetworkArgs(ServiceConfig serviceConfig, List<NetworkConfig>? networks)
+    public DockerCliCommand AddDefaultNetworkArgs(ServiceConfig serviceConfig, List<NetworkConfig>? networks)
     {
         if (serviceConfig.Networks is null || serviceConfig.Networks.Count == 0)
         {
             return this;
         }
 
-        foreach ((string name, ServiceNetworkConfig? serviceNetwork) in serviceConfig.Networks)
-        {
-            var network = networks?.FirstOrDefault(x => x.NetworkName == name);
-            DockerCliException.ThrowIfNull(network, "run", $"Undefined network: `{name}`");
-            AddArg($"--network={network.Name}");
-            AddArgIf($"--ip={serviceNetwork?.IpV4Address}", !string.IsNullOrEmpty(serviceNetwork?.IpV4Address));
-
-            if (serviceNetwork?.Aliases is null || serviceNetwork.Aliases.Length == 0)
-            {
-                continue;
-            }
-
-            foreach (var alias in serviceNetwork.Aliases)
-            {
-                AddArgIf($"--network-alias={alias}", !string.IsNullOrEmpty(alias));
-            }
-        }
-        
-        return AddArgIf($"--hostname={serviceConfig.Hostname ?? serviceConfig.CurrentName}", serviceConfig.Hostname != "");
+        var serviceNetwork = serviceConfig.Networks.First();
+        var network = networks?.FirstOrDefault(x => x.NetworkName == serviceNetwork.Key);
+        DockerCliException.ThrowIfNull(network, "run", $"Undefined network: `{serviceNetwork.Key}`");
+        AddArg($"--network={network.Name}");
+        AddArgIf($"--hostname={serviceConfig.Hostname ?? serviceConfig.CurrentName}", serviceConfig.Hostname != "");
+        return AddServiceNetworkArgs(serviceNetwork.Value);
     }
     
     public DockerCliCommand AddExtraHostArg(string name, string value) => 

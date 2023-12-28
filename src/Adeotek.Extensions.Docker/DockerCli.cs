@@ -44,26 +44,26 @@ public class DockerCli
         throw new DockerCliException("container inspect", 1, $"Unable to inspect container '{name}'!");
     }
     
-    public int CreateContainer(ServiceConfig serviceConfig, List<NetworkConfig>? networks, bool dryRun = false)
+    public int CreateContainer(ServiceConfig serviceConfig, List<NetworkConfig>? networks, bool autoStart, bool dryRun = false)
     {
+        var isRun = autoStart && (serviceConfig.Networks?.Count ?? 0) < 2;
         _dockerCli.ClearArgsAndReset()
-            .AddArg("run")
-            .AddRunCommandOptionsArgs(serviceConfig.RunCommandOptions)
+            .AddArg(isRun ? "run" : "create")
+            .AddDockerCommandOptionsArgs(serviceConfig.DockerCommandOptions, isRun)
             .AddArg($"--name={serviceConfig.CurrentName}")
             .AddPortsArgs(serviceConfig.Ports)
             .AddVolumesArgs(serviceConfig.Volumes)
             .AddEnvFilesArgs(serviceConfig.EnvFiles)
             .AddEnvVarsArgs(serviceConfig.EnvVars)
-            .AddNetworkArgs(serviceConfig, networks)
+            .AddDefaultNetworkArgs(serviceConfig, networks)
             .AddLinksArgs(serviceConfig.Links)
             .AddExtraHostsArgs(serviceConfig.ExtraHosts)
             .AddDnsArgs(serviceConfig.Dns)
+            .AddExposedPortsArgs(serviceConfig.Expose)
             .AddRestartArg(serviceConfig.Restart)
             .AddPullPolicyArg(serviceConfig.PullPolicy)
             .AddArg(serviceConfig.Image)
             .AddStartupCommandArgs(serviceConfig);
-            // Expose
-            // Attach
         
         LogCommand();
         if (dryRun)
@@ -84,6 +84,41 @@ public class DockerCli
         }
         
         throw new DockerCliException("run", 1, $"Unable to create container '{serviceConfig.CurrentName}'!");
+    }
+    
+    public int AttachContainerToNetwork(string containerName, string networkName, ServiceNetworkConfig? serviceNetworkConfig, bool dryRun = false)
+    {
+        _dockerCli.ClearArgsAndReset()
+            .AddArg("network connect")
+            .AddServiceNetworkArgs(serviceNetworkConfig)
+            .AddArg(networkName)
+            .AddArg(containerName);
+        LogCommand();
+        if (dryRun)
+        {
+            return 0;
+        }
+        _dockerCli.Execute();
+        LogExitCode();
+        // TODO: check docker output
+        if (_dockerCli.IsSuccess(containerName, true))
+        {
+            return 1;
+        }
+        
+        if (_dockerCli.IsError($"Error response from daemon: No such container: {containerName}", true))
+        {
+            LogMessage($"Container '{containerName}' not found!", "warn");
+            return 0;
+        }
+        
+        if (_dockerCli.IsError($"Error response from daemon: No such network: {networkName}", true))
+        {
+            LogMessage($"Network '{networkName}' not found!", "warn");
+            return 0;
+        }
+            
+        throw new DockerCliException("network connect", 1, $"Unable to attach container '{containerName}' to network '{networkName}'!");
     }
     
     public int StartContainer(string containerName, bool dryRun = false)

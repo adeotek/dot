@@ -145,6 +145,7 @@ public class DockerConfigManager : ConfigManager
                             { "some.other.docker.container", "172.17.0.11" }
                         },
                         Dns = new [] { "8.8.8.8", "8.8.4.4" },
+                        Expose = new [] { "8080-8082", "443" },
                         Restart = "<optional-restart-mode (default: unless-stopped)>",
                         Entrypoint = "<optional-override-th-image-entrypoint>",
                         Command = new []
@@ -153,9 +154,7 @@ public class DockerConfigManager : ConfigManager
                             "--some-arg=123",
                             "--flag-arg"
                         },
-                        // Expose = new [] { "8080", "443" },
-                        // Attach = true,
-                        RunCommandOptions = new []
+                        DockerCommandOptions = new []
                         {
                             "-it",
                             "<any-docker-run-option>"
