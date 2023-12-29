@@ -69,5 +69,8 @@ public class VolumeConfig
     public string BackupName =>
         Type == "volume"
             ? Source
-            : Source.Replace('/', '-').Replace('\\', '-');
+            : Source.Replace('/', '-')
+                .Replace('\\', '-')
+                .Replace(':', '_')
+                .TrimStart('-');
 }

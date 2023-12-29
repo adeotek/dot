@@ -10,11 +10,12 @@ internal sealed class ContainersUpCommand : ContainersBaseCommand<ContainersUpSe
     private bool Replace => _settings?.Replace ?? false;
     private bool Force => _settings?.Force ?? false;
     private bool Backup => _settings?.Backup ?? false;
-    private bool AutoStart => _settings?.DoNotStart ?? true;
+    private bool AutoStart => !(_settings?.DoNotStart ?? false);
     
     protected override void ExecuteContainerCommand(ContainersConfig config)
     {
         var dockerManager = GetDockerManager();
+        var networks = config.Networks.ToNetworksEnumerable().ToList();
         var first = true;
         foreach (var service in GetTargetServices(config, _settings?.ServiceName))
         {
@@ -52,13 +53,12 @@ internal sealed class ContainersUpCommand : ContainersBaseCommand<ContainersUpSe
                 }
         
                 PrintMessage($"<{service.ServiceName}> Container already present, updating it.", _warningColor);
-                Changes += dockerManager.UpgradeService(service, Replace, Force, IsDryRun);
+                Changes += dockerManager.UpgradeService(service, networks, Replace, Force, IsDryRun);
                 continue;
             }
         
             PrintMessage($"<{service.ServiceName}> Container not fond, creating new one.");
-            Changes += dockerManager.CheckAndCreateService(
-                service, config.Networks.ToNetworksEnumerable().ToList(), AutoStart, IsDryRun);
+            Changes += dockerManager.CheckAndCreateService(service, networks, AutoStart, IsDryRun);
         
             if (Changes == 0)
             {

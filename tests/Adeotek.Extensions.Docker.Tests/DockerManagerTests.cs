@@ -67,8 +67,9 @@ public class DockerManagerTests
 
         var result = sut.PurgeVolumes(targetServices, config, false);
         
-        Assert.Equal(2, result);
-        shellProcessMock.ReceivedWithAnyArgs(2).StartAndWaitForExit();
+        // warning: bind volumes will not be purged
+        Assert.Equal(1, result);
+        shellProcessMock.ReceivedWithAnyArgs(1).StartAndWaitForExit();
     }
     
     [Fact]

@@ -23,7 +23,7 @@
       shared-services-network:
         aliases: 
           - web-proxy
-#      private-network:
+      private-network:
     hostname: sys--nginx
     extra_hosts:
       host.docker.internal: host-gateway

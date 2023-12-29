@@ -24,16 +24,30 @@ public class DockerManager : DockerCli
         StopContainer(currentName, dryRun)
         + RenameContainer(currentName, newName, dryRun);
     
-    public int CheckAndCreateService(ServiceConfig service,
-        List<NetworkConfig>? networks = null, bool autoStart = true, bool dryRun = false)
+    public int CheckAndCreateService(ServiceConfig service, List<NetworkConfig>? networks = null, 
+        bool autoStart = true, bool dryRun = false)
     {
-        // TODO implement autoStart & network connect
-        return (networks is null ? 0 : CreateNetworksIfMissing(service, networks, dryRun))
-               + (service.Volumes?.Sum(volume => CreateVolumeIfMissing(volume, dryRun)) ?? 0)
-               + CreateContainer(service, networks, autoStart, dryRun);
+        var changes = CreateNetworksIfMissing(service, networks, dryRun)
+            + (service.Volumes?.Sum(volume => CreateVolumeIfMissing(volume, dryRun)) ?? 0);
+        
+        if (service.Networks is null || service.Networks.Count < 2)
+        {
+            return changes + CreateContainer(service, networks, autoStart, dryRun);    
+        }
+        
+        changes += CreateContainer(service, networks, autoStart, dryRun) 
+                   + AttachContainerToNetworks(service, networks, dryRun);
+        
+        if (autoStart)
+        {
+            StartContainer(service.CurrentName, dryRun);
+        }
+        
+        return changes;
     }
 
-    public int UpgradeService(ServiceConfig service, bool replace = false, bool force = false, bool dryRun = false)
+    public int UpgradeService(ServiceConfig service, List<NetworkConfig>? networks = null,
+        bool replace = false, bool force = false, bool dryRun = false)
     {
         if (!CheckIfNewVersionExists(service))
         {
@@ -49,7 +63,7 @@ public class DockerManager : DockerCli
             ? StopAndRemoveService(service.CurrentName, dryRun) 
             : DemoteService(service, dryRun);
     
-        changes += CheckAndCreateService(service, dryRun: dryRun);
+        changes += CheckAndCreateService(service, networks, dryRun: dryRun);
         if (dryRun)
         {
             LogMessage("Container create finished.", "msg");
@@ -63,8 +77,12 @@ public class DockerManager : DockerCli
     
     public int DemoteService(ServiceConfig service, bool dryRun = false)
     {
-        DockerCliException.ThrowIfNull(service.PreviousName, "demote", 
-            "Previous container name is null/empty!");
+        if (string.IsNullOrEmpty(service.PreviousName))
+        {
+            LogMessage($"<{service.ServiceName}> Demote not possible, no `BaseName`/`PreviousSuffix` defined!", "warn");
+            return StopAndRemoveService(service.CurrentName, dryRun);
+        }
+        
         return (ContainerExists(service.PreviousName)
                    ? StopAndRemoveService(service.PreviousName, dryRun)
                    : 0)
@@ -155,15 +173,16 @@ public class DockerManager : DockerCli
                 var isShared = unaffectedServices.Any(x =>
                     x.Value.Volumes?.Any(t => t.Type == volume.Type && t.Source == volume.Source) ?? false);
                 
+                //// Commented out in case we want to purge bind volumes in the future
+                // if (volume.Type == "bind" && (volume.Bind?.CreateHostPath ?? false) && !isShared)
+                // {
+                //     volumes.Add(volume);
+                //     continue;
+                // }
+                
                 if (volume.Type == "volume" && !isShared)
                 {
                     volumes.Add(volume);
-                    continue;
-                }
-                
-                if (volume.Type == "bind" && (volume.Bind?.CreateHostPath ?? false) && !isShared)
-                {
-                    volumes.Add(volume); 
                 }
             }
         }
@@ -252,11 +271,11 @@ public class DockerManager : DockerCli
         }
         
         var changes = 0;
-        foreach (var serviceNetwork in service.Networks!.ToServiceNetworkEnumerable())
+        foreach ((string networkKey, _) in service.Networks)
         {
-            var network = networks?.FirstOrDefault(x => x.NetworkName == serviceNetwork.NetworkName);
+            var network = networks?.FirstOrDefault(x => x.NetworkName == networkKey);
             DockerCliException.ThrowIfNull(network, "network create", 
-                $"Network {serviceNetwork.NetworkName} not defined, but used for service: {service.ServiceName}.");
+                $"Network {networkKey} not defined, but used for service: {service.ServiceName}.");
             changes += CreateNetworkIfMissing(network, dryRun);
         }
         return changes;
@@ -271,7 +290,26 @@ public class DockerManager : DockerCli
 
         return CreateNetwork(network, dryRun);
     }
-    
+
+    public int AttachContainerToNetworks(ServiceConfig service, List<NetworkConfig>? networks, bool dryRun = false)
+    {
+        if (service.Networks is null || service.Networks.Count < 2)
+        {
+            return 0;
+        }
+
+        var changes = 0;
+        foreach ((string networkKey, ServiceNetworkConfig? serviceNetwork) in service.Networks.Skip(1))
+        {
+            var network = networks?.FirstOrDefault(x => x.NetworkName == networkKey);
+            DockerCliException.ThrowIfNull(network, "network connect", 
+                $"Network {networkKey} not defined, but used for service: {service.ServiceName}.");
+            changes += AttachContainerToNetwork(service.CurrentName, network.Name, serviceNetwork, dryRun);
+        }
+
+        return changes;
+    }
+
     public bool CheckIfNewVersionExists(ServiceConfig service)
     {
         PullImage(service.Image);

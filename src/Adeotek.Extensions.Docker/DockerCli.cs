@@ -100,24 +100,22 @@ public class DockerCli
         }
         _dockerCli.Execute();
         LogExitCode();
-        // TODO: check docker output
-        if (_dockerCli.IsSuccess(containerName, true))
+        if (_dockerCli.IsSuccess())
         {
             return 1;
         }
-        
+
+        if (_dockerCli.IsError($"Error response from daemon: endpoint with name {containerName} already exists in network {networkName}"))
+        {
+            LogMessage($"Container '{containerName}' already attached to network '{networkName}'!", "warn");
+            return 0;    
+        }
+
         if (_dockerCli.IsError($"Error response from daemon: No such container: {containerName}", true))
         {
-            LogMessage($"Container '{containerName}' not found!", "warn");
-            return 0;
+            throw new DockerCliException("network connect", 1, $"Container '{containerName}' not found!");    
         }
-        
-        if (_dockerCli.IsError($"Error response from daemon: No such network: {networkName}", true))
-        {
-            LogMessage($"Network '{networkName}' not found!", "warn");
-            return 0;
-        }
-            
+
         throw new DockerCliException("network connect", 1, $"Unable to attach container '{containerName}' to network '{networkName}'!");
     }
     

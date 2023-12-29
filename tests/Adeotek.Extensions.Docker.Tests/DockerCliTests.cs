@@ -253,7 +253,7 @@ public class DockerCliTests
             }
         };
         
-        ShellProcessMockSendStdOutput(shellProcessMock, new[] { containerName });
+        ShellProcessMockSendStdOutput(shellProcessMock, new[] { "" });
         
         var result = sut.AttachContainerToNetwork(containerName, networkName, serviceNetwork);
         
@@ -282,7 +282,7 @@ public class DockerCliTests
             }
         };
         
-        ShellProcessMockSendStdOutput(shellProcessMock, new[] { containerName });
+        ShellProcessMockSendStdOutput(shellProcessMock, new[] { "" });
         
         var result = sut.AttachContainerToNetwork(containerName, networkName, serviceNetwork);
         
@@ -292,7 +292,7 @@ public class DockerCliTests
     }
     
     [Fact]
-    public void AttachContainerToNetwork_WithExistingContainerAndNonExistingNetwork_ReturnZero()
+    public void AttachContainerToNetwork_WhenAlreadyAttached_ReturnZero()
     {
         const string containerName = "test-container-mock";
         const string networkName = "other-network-mock";
@@ -311,7 +311,10 @@ public class DockerCliTests
             }
         };
         
-        ShellProcessMockSendStdOutput(shellProcessMock, new[] { containerName });
+        ShellProcessMockSendErrOutput(shellProcessMock, new[]
+        {
+            $"Error response from daemon: endpoint with name {containerName} already exists in network {networkName}"
+        });
         
         var result = sut.AttachContainerToNetwork(containerName, networkName, serviceNetwork);
         
@@ -321,7 +324,7 @@ public class DockerCliTests
     }
     
     [Fact]
-    public void AttachContainerToNetwork_WithNonExistingContainerAndExistingNetwork_ReturnZero()
+    public void AttachContainerToNetwork_WithNonExistingContainer_ThrowsException()
     {
         const string containerName = "test-container-mock";
         const string networkName = "other-network-mock";
@@ -340,15 +343,18 @@ public class DockerCliTests
             }
         };
         
-        ShellProcessMockSendStdOutput(shellProcessMock, new[] { containerName });
+        ShellProcessMockSendErrOutput(shellProcessMock, new[]
+        {
+            $"Error response from daemon: No such container: {containerName}"
+        });
         
-        var result = sut.AttachContainerToNetwork(containerName, networkName, serviceNetwork);
+        var action = () => { sut.AttachContainerToNetwork(containerName, networkName, serviceNetwork); };
         
-        Assert.Equal(0, result);
+        Assert.Throws<DockerCliException>(action);
         Assert.Equal(CliCommand, cmd);
         Assert.Equal(expectedArgs, args);
     }
-
+ 
     [Fact]
     public void StartContainer_WithExisting_ReturnOne()
     {
