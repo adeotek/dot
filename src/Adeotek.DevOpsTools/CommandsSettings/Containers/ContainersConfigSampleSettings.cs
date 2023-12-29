@@ -4,7 +4,7 @@ using Spectre.Console.Cli;
 
 namespace Adeotek.DevOpsTools.CommandsSettings.Containers;
 
-internal class ContainerConfigSampleSettings : GlobalSettings
+internal class ContainersConfigSampleSettings : GlobalSettings
 {
     [Description("Target can be either a new/existing file, or 'display'/'screen' for outputing the sample configuration to the console " +
                  "\nCAUTION: if the target file exists, it will be overiden!")]

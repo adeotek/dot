@@ -1,0 +1,80 @@
+﻿services:
+  web-server:
+    image: nginx:latest
+    pull_policy: missing
+    container_name: nginx-proxy
+    ports:
+      - "80"
+      - "8443:443"
+    volumes:
+      - type: bind
+        source: /opt/nginx/data
+        target: /data
+        read_only: true
+        bind:
+          create_host_path: true
+        skip_backup: true
+      - "/opt/nginx/ssl:/ssl:ro"
+      - "nginx-config:/etc/nginx"
+    environment:
+      TZ: UTC
+      APP_ENV: PROD
+    networks:
+      shared-services-network:
+        aliases: 
+          - web-proxy
+      private-network:
+    hostname: sys--nginx
+    extra_hosts:
+      host.docker.internal: host-gateway
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    restart: unless-stopped
+    docker_command_options:
+      - -d
+      - --memory 256MB
+  
+  cache:
+    image: redis/redis-stack
+    pull_policy: always
+    name_prefix: db--
+    base_name: redis-cache
+    current_suffix: -current
+    previous_suffix: -previous
+    ports:
+      - target: 6379
+        published: 6379
+        protocol: tcp
+    volumes:
+      - type: volume
+        source: redis-cache-data
+        target: /data
+        volume:
+          nocopy: true
+    environment:
+      TZ: UTC
+    networks:
+      private-network:
+        ipv4_address: 172.20.1.10
+        aliases:
+          - redis-cache
+    restart: always
+    docker_command_options:
+      - -d
+      - --memory 1GB
+
+networks:
+  shared-services-network:
+    name: shared-services-net
+    attachable: true
+    driver: bridge
+  private-network:
+    name: private-net
+    attachable: true
+    driver: bridge
+    ipam:
+      config:
+        subnet: 172.20.1.1/24
+        ip_range: 172.20.1.1/26
+    external: true

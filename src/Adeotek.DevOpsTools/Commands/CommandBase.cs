@@ -25,19 +25,21 @@ internal abstract class CommandBase<TSettings> : Command<TSettings> where TSetti
     protected string? _errOutputColor = "red";
     protected int Changes;
     protected TSettings? _settings;
+    protected string? _commandName;
     protected bool IsVerbose => _settings?.Verbose ?? false;
     protected bool IsSilent => _settings?.Silent ?? false;
     
-    protected abstract string CommandName { get; }
     protected virtual string ResultLabel => "Result";
+    protected abstract string GetCommandName();
     protected abstract int ExecuteCommand(CommandContext context, TSettings settings);
     
     public override int Execute([NotNull] CommandContext context, [NotNull] TSettings settings)
     {
         _settings = settings;
+        _commandName = context.Name;
         try
         {
-            PrintStart();
+            PrintStart(GetCommandName());
             var exitCode = ExecuteCommand(context, settings);
             PrintDone();
             return exitCode;
@@ -113,7 +115,7 @@ internal abstract class CommandBase<TSettings> : Command<TSettings> where TSetti
         AnsiConsole.Write(composer);
     }
     
-    protected virtual void PrintStart()
+    protected virtual void PrintStart(string commandName = "")
     {
         if (IsSilent)
         {
@@ -121,7 +123,10 @@ internal abstract class CommandBase<TSettings> : Command<TSettings> where TSetti
         }
         
         AnsiConsole.Write(new CustomComposer()
-            .Text("Running ").Style("purple", $"dot {CommandName} tool").Space()
+            .Text("Running ").Style("purple", string.IsNullOrEmpty(commandName)
+                ? "dot tool"
+                : $"dot {commandName} tool"
+            ).Space()
             .Style("green", $"v{_version}").LineBreak()
             .Repeat("gray", '=', _separatorLength).LineBreak());
     }

@@ -1,0 +1,26 @@
+{
+  "Image": "<image-name>",
+  "NamePrefix": "<optional-container-name-prefix>",
+  "Name": "<base-container-name>",
+  "Ports": [
+    {
+      "Host": 8080,
+      "Container": 80
+    }
+  ],
+  "Volumes": [
+    {
+      "Source": "<docker-volume-name>",
+      "Destination": "/path/in/container/data"
+    }
+  ],
+  "EnvVars": {
+    "TZ": "UTC"
+  },
+  "Network": {
+    "Name": "<docker-network-name>"
+  },
+  "ExtraHosts": {
+    "host.docker.internal": "host-gateway"
+  }
+}

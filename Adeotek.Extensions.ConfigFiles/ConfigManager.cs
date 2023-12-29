@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -8,9 +10,25 @@ using YamlDotNet.Serialization.NamingConventions;
 namespace Adeotek.Extensions.ConfigFiles;
 
 [ExcludeFromCodeCoverage]
-public static class ConfigManager
+public class ConfigManager
 {
-    public static T LoadConfig<T>(string? configFile) where T : class
+    public static readonly JsonSerializerOptions DefaultJsonSerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DictionaryKeyPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = false,
+        // Serialization
+        WriteIndented = true, 
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
+        // Deserialization
+        AllowTrailingCommas = true
+    };
+
+    public JsonSerializerOptions JsonSerializerOptions { get; set; } = DefaultJsonSerializerOptions;
+    public INamingConvention YamlNamingConvention { get; set; } = UnderscoredNamingConvention.Instance;
+    
+    public T LoadConfig<T>(string? configFile) where T : class
     {
         if (string.IsNullOrEmpty(configFile))
         {
@@ -41,13 +59,12 @@ public static class ConfigManager
         throw new ConfigFileException("The config file is not in a valid format", configFile);
     }
 
-    public static T LoadConfigFromJsonString<T>(string data) where T : class
+    protected virtual T LoadConfigFromJsonString<T>(string data) where T : class
     {
         try
         {
-            return JsonSerializer.Deserialize<T>(data, 
-                    new JsonSerializerOptions { AllowTrailingCommas = true })
-                ?? throw new ConfigFileException("Unable to deserialize JSON config data");
+            return JsonSerializer.Deserialize<T>(data, JsonSerializerOptions)
+                   ?? throw new ConfigFileException("Unable to deserialize JSON config data");
         }
         catch (ConfigFileException)
         {
@@ -59,12 +76,12 @@ public static class ConfigManager
         }
     }
     
-    public static T LoadConfigFromYamlString<T>(string data) where T : class
+    protected virtual T LoadConfigFromYamlString<T>(string data) where T : class
     {
         try
         {
             return new DeserializerBuilder()
-                .WithNamingConvention(PascalCaseNamingConvention.Instance) 
+                .WithNamingConvention(YamlNamingConvention) 
                 .Build()
                 .Deserialize<T>(data)
                    ?? throw new ConfigFileException("Unable to deserialize YAML config data");

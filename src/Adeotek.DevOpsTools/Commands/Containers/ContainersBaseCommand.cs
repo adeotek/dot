@@ -11,22 +11,30 @@ using Spectre.Console.Cli;
 
 namespace Adeotek.DevOpsTools.Commands.Containers;
 
-internal abstract class ContainerBaseCommand<TSettings> 
-    : CommandBase<TSettings> where TSettings : ContainerSettings
+internal abstract class ContainersBaseCommand<TSettings> 
+    : CommandBase<TSettings> where TSettings : ContainersSettings
 {
     protected bool IsDryRun => _settings?.DryRun ?? false;
-    protected abstract void ExecuteContainerCommand(ContainerConfig config);
+    protected abstract void ExecuteContainerCommand(ContainersConfig config);
+
+    protected override string GetCommandName() => $"containers {_commandName}";
 
     protected override int ExecuteCommand(CommandContext context, TSettings settings)
     {
         try
         {
-            var config = DockerConfigManager.LoadContainerConfig(settings.ConfigFile);
-            if (settings.Verbose)
+            var configVersion = settings.ConfigV1 ?? context.Data?.ToString() == "v1" ? "v1" : null;
+            PrintMessage($"Config Version: {configVersion ?? "v2"}", _standardColor);
+            if (!settings.ShowConfig)
+            {
+                PrintSeparator();
+            }
+            var config = DockerConfigManager.LoadContainersConfig(settings.ConfigFile, configVersion);
+            if (settings.ShowConfig)
             {
                 config.WriteToAnsiConsole();
             }
-
+            
             ExecuteContainerCommand(config);
             return 0;
         }
@@ -57,7 +65,19 @@ internal abstract class ContainerBaseCommand<TSettings>
             return e.ExitCode;
         }
     }
-    
+
+    protected virtual List<ServiceConfig> GetTargetServices(ContainersConfig config, string? service = null)
+    {
+        var targetServices = config.Services.ToServicesEnumerable();
+        if (!string.IsNullOrEmpty(service))
+        {
+            targetServices = targetServices.Where(x => x.ServiceName == service);
+        }
+        
+        return targetServices.ToList();
+    }
+
+
     protected virtual DockerManager GetDockerManager()
     {
         DockerManager dockerManager = new();

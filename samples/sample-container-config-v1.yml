@@ -22,9 +22,9 @@ EnvVars:
   TZ: Europe/Bucharest
 Network:
   Name: services-dedicated-net
-  Subnet: 172.20.1.1/24
-  IpRange: 172.20.1.1/26
-  IpAddress: 172.20.1.10
+  Subnet: 172.20.3.1/24
+  IpRange: 172.20.3.1/26
+  IpAddress: 172.20.3.10
   Hostname:
   Alias:
   IsShared: false

@@ -1,4 +1,7 @@
-﻿using Adeotek.Extensions.Docker.Config;
+﻿using System.Text;
+
+using Adeotek.Extensions.Docker.Config;
+using Adeotek.Extensions.Docker.Exceptions;
 using Adeotek.Extensions.Processes;
 
 namespace Adeotek.Extensions.Docker;
@@ -31,6 +34,8 @@ public class DockerCliCommand : ShellCommand
         (DockerCliCommand) base.AddArg(value);
     public new DockerCliCommand AddArg(IEnumerable<string> range) =>
         (DockerCliCommand) base.AddArg(range);
+    public new DockerCliCommand AddArgIf(string value, bool condition) =>
+        condition ? (DockerCliCommand) base.AddArg(value) : this;
     public new DockerCliCommand SetArgAt(int index, string value) =>
         (DockerCliCommand) base.SetArgAt(index, value);
     public new DockerCliCommand ReplaceArg(string currentValue, string newValue) =>
@@ -47,50 +52,107 @@ public class DockerCliCommand : ShellCommand
     public DockerCliCommand AddFilterArg(string value, string? key = null) => 
         AddArg($"--filter {key ?? "name"}={value}");
 
-    public DockerCliCommand AddRunCommandOptionsArgs(string[] runCommandOptions) =>
-        runCommandOptions.Length == 0 
-            ? AddArg("-d")
-            : AddArg(string.Join(' ', runCommandOptions).Trim());
-    
-    public DockerCliCommand AddStartupCommandArgs(ContainerConfig config)
+    public DockerCliCommand AddDockerCommandOptionsArgs(string[]? dockerCommandOptions, bool isRun = true)
     {
-        if (string.IsNullOrEmpty(config.Command))
+        if (dockerCommandOptions is null || dockerCommandOptions.Length == 0)
+        {
+            return isRun ? AddArg("-d") : this;
+        }
+
+        var options = isRun
+            ? dockerCommandOptions
+            : dockerCommandOptions.Where(x => x != "-d").ToArray();
+        return options.Length > 0 ? AddArg(string.Join(' ', options).Trim()) : this;
+    }
+
+    public DockerCliCommand AddStartupCommandArgs(ServiceConfig serviceConfig)
+    {
+        AddArgIf($"--entrypoint {serviceConfig.Entrypoint}", !string.IsNullOrEmpty(serviceConfig.Entrypoint));
+        
+        if (serviceConfig.Command is null || serviceConfig.Command.Length == 0)
         {
             return this;
         }
 
-        AddArg(config.Command);
-        if (config.CommandArgs.Length > 0)
-        {
-            AddArg(string.Join(' ', config.CommandArgs).Trim());
-        }
-        
+        AddArg(string.Join(' ', serviceConfig.Command).Trim());
         return this;
     }
     
     public DockerCliCommand AddRestartArg(string? restart) => 
-        restart == "" ? this : AddArg($"--restart={restart ?? "unless-stopped"}");
-
-    public DockerCliCommand AddPortArg(uint hostPort, uint containerPort) =>
-        AddArg($"-p {hostPort}:{containerPort}");
+        restart  == "" ? this : AddArg($"--restart={restart ?? "unless-stopped"}");
     
-    public DockerCliCommand AddPortsArgs(PortMapping[] ports)
+    public DockerCliCommand AddPullPolicyArg(string? pullPolicy) => 
+        pullPolicy == "" ? this : AddArg($"--pull={pullPolicy ?? "missing"}");
+    
+    public DockerCliCommand AddPortArg(string? hostPort, string containerPort, string? hostIp = null, string? protocol = null)
     {
+        StringBuilder sb = new();
+        sb.Append("-p ");
+        if (!string.IsNullOrEmpty(hostIp)) sb.Append($"{hostIp}:");
+        if (!string.IsNullOrEmpty(hostIp) || !string.IsNullOrEmpty(hostPort)) sb.Append($"{hostPort ?? containerPort}:");
+        sb.Append(containerPort);
+        if (!string.IsNullOrEmpty(protocol)) sb.Append($"/{protocol}");
+        return AddArg(sb.ToString());
+    }
+    
+    public DockerCliCommand AddPortsArgs(PortMapping[]? ports)
+    {
+        if (ports is null || ports.Length == 0)
+        {
+            return this;
+        }
+        
         foreach (var port in ports)
         {
-            AddPortArg(port.Host, port.Container);
+            AddPortArg(port.Published, port.Target, port.HostIp, port.Protocol);
+        }
+        return this;
+    }
+
+    public DockerCliCommand AddExposedPortArgs(string? port) =>
+        string.IsNullOrEmpty(port) ? this : AddArg($"--expose {port}");
+    
+    public DockerCliCommand AddExposedPortsArgs(string[]? ports)
+    {
+        if (ports is null || ports.Length == 0)
+        {
+            return this;
+        }
+        
+        foreach (var port in ports)
+        {
+            AddExposedPortArgs(port);
         }
         return this;
     }
     
-    public DockerCliCommand AddVolumeArg(string source, string destination, bool isReadonly = false) => 
-        AddArg($"-v {source}:{destination}{(isReadonly ? ":ro" : "")}");
+    public DockerCliCommand AddVolumeArg(string source, string target, bool isReadonly = false) => 
+        AddArg($"-v {source}:{target}{(isReadonly ? ":ro" : "")}");
     
-    public DockerCliCommand AddVolumesArgs(IEnumerable<VolumeConfig> volumes)
+    public DockerCliCommand AddVolumesArgs(VolumeConfig[]? volumes)
     {
+        if (volumes is null || volumes.Length == 0)
+        {
+            return this;
+        }
+        
         foreach (var volume in volumes)
         {
-            AddVolumeArg(volume.Source, volume.Destination, volume.IsReadonly);
+            AddVolumeArg(volume.Source, volume.Target, volume.ReadOnly);
+        }
+        return this;
+    }
+    
+    public DockerCliCommand AddEnvFilesArgs(string[]? envFiles)
+    {
+        if (envFiles is null || envFiles.Length == 0)
+        {
+            return this;
+        }
+        
+        foreach (var file in envFiles)
+        {
+            AddArg($"--env-file {file}");
         }
         return this;
     }
@@ -98,50 +160,94 @@ public class DockerCliCommand : ShellCommand
     public DockerCliCommand AddEnvVarArg(string name, string value) => 
         AddArg(value.Contains('=') || value.Contains(' ') ? $"-e {name}=\"{value}\"" : $"-e {name}={value}");
 
-    public DockerCliCommand AddEnvVarsArgs(Dictionary<string, string> envVars)
+    public DockerCliCommand AddEnvVarsArgs(Dictionary<string, string>? envVars)
     {
+        if (envVars is null || envVars.Count == 0)
+        {
+            return this;
+        }
+        
         foreach ((string name, string value) in envVars)
         {
             AddEnvVarArg(name, value);
         }
         return this;
     }
-    
-    public DockerCliCommand AddNetworkArgs(ContainerConfig config)
+
+    public DockerCliCommand AddServiceNetworkArgs(ServiceNetworkConfig? serviceNetworkConfig)
     {
-        if (config.Network is null)
+        AddArgIf($"--ip={serviceNetworkConfig?.IpV4Address}", !string.IsNullOrEmpty(serviceNetworkConfig?.IpV4Address));
+        AddArgIf($"--ip6={serviceNetworkConfig?.IpV6Address}", !string.IsNullOrEmpty(serviceNetworkConfig?.IpV6Address));
+        
+        if (serviceNetworkConfig?.Aliases is null || serviceNetworkConfig.Aliases.Length <= 0)
         {
             return this;
         }
+
+        foreach (var alias in serviceNetworkConfig.Aliases)
+        {
+            AddArgIf($"--network-alias={alias}", !string.IsNullOrEmpty(alias));
+        }
         
-        if (!string.IsNullOrEmpty(config.Network.Name))
+        return this;
+    }
+    
+    public DockerCliCommand AddDefaultNetworkArgs(ServiceConfig serviceConfig, List<NetworkConfig>? networks)
+    {
+        if (serviceConfig.Networks is null || serviceConfig.Networks.Count == 0)
         {
-            AddArg($"--network={config.Network.Name}");
-        }
-        if (!string.IsNullOrEmpty(config.Network.IpAddress))
-        {
-            AddArg($"--ip={config.Network.IpAddress}");
-        }
-        if (config.Network.Hostname != "")
-        {
-            AddArg($"--hostname={config.Network.Hostname ?? config.CurrentName}");
-        }
-        if (config.Network.Alias != "")
-        {
-            AddArg($"--network-alias={config.Network.Alias ?? config.Name}");
+            return this;
         }
 
-        return this;
+        var serviceNetwork = serviceConfig.Networks.First();
+        var network = networks?.FirstOrDefault(x => x.NetworkName == serviceNetwork.Key);
+        DockerCliException.ThrowIfNull(network, "run", $"Undefined network: `{serviceNetwork.Key}`");
+        AddArg($"--network={network.Name}");
+        AddArgIf($"--hostname={serviceConfig.Hostname ?? serviceConfig.CurrentName}", serviceConfig.Hostname != "");
+        return AddServiceNetworkArgs(serviceNetwork.Value);
     }
     
     public DockerCliCommand AddExtraHostArg(string name, string value) => 
         AddArg($"--add-host {name}:{value}");
     
-    public DockerCliCommand AddExtraHostsArgs(Dictionary<string, string> envVars)
+    public DockerCliCommand AddExtraHostsArgs(Dictionary<string, string>? envVars)
     {
+        if (envVars is null || envVars.Count == 0)
+        {
+            return this;
+        }
+        
         foreach ((string name, string value) in envVars)
         {
             AddExtraHostArg(name, value);
+        }
+        return this;
+    }
+    
+    public DockerCliCommand AddLinksArgs(string[]? links)
+    {
+        if (links is null || links.Length == 0)
+        {
+            return this;
+        }
+        
+        foreach (var link in links)
+        {
+            AddArg($"--link {link}");
+        }
+        return this;
+    }
+    
+    public DockerCliCommand AddDnsArgs(string[]? dns)
+    {
+        if (dns is null || dns.Length == 0)
+        {
+            return this;
+        }
+        
+        foreach (var entry in dns)
+        {
+            AddArg($"--dns {entry}");
         }
         return this;
     }
