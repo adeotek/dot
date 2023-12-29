@@ -18,16 +18,16 @@ internal sealed class ContainersActionCommand : ContainersBaseCommand<Containers
                 continue;
             }
         
-            PrintMessage($"<{service.ServiceName}> Executing {_commandName}...");
+            PrintMessage($"<{service.ServiceName}> Executing {_commandName} command...");
             Changes += _commandName switch
             {
                 "start" => dockerManager.StartContainer(service.CurrentName, IsDryRun),
                 "stop" => dockerManager.StopContainer(service.CurrentName, IsDryRun),
                 "restart" => dockerManager.RestartService(service.CurrentName, IsDryRun),
-                _ => throw new NotImplementedException($"Unknown action: {_commandName}")
+                _ => throw new NotImplementedException($"Unknown command: {_commandName}")
             };
 
-            PrintMessage($"<{service.ServiceName}> Container {_commandName} done.", _standardColor, separator: IsVerbose);
+            PrintMessage($"<{service.ServiceName}> Command {_commandName} executed successfully.", _successColor, separator: IsVerbose);
             if (IsDryRun)
             {
                 PrintMessage("Dry run: No changes were made!", _warningColor);

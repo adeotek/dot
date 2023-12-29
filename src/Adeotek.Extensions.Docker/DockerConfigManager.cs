@@ -32,7 +32,7 @@ public class DockerConfigManager : ConfigManager
         try
         {
             var builder = new DeserializerBuilder()
-                .WithNamingConvention(UnderscoredNamingConvention.Instance);
+                .WithNamingConvention(YamlNamingConvention);
             return builder
                        .WithTypeConverter(new PortMappingYamlTypeConverter(null, builder.BuildValueDeserializer()))
                        .WithTypeConverter(new VolumeConfigYamlTypeConverter(null, builder.BuildValueDeserializer()))

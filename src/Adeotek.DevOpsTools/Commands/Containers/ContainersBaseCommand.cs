@@ -25,6 +25,10 @@ internal abstract class ContainersBaseCommand<TSettings>
         {
             var configVersion = settings.ConfigV1 ?? context.Data?.ToString() == "v1" ? "v1" : null;
             PrintMessage($"Config Version: {configVersion ?? "v2"}", _standardColor);
+            if (!settings.ShowConfig)
+            {
+                PrintSeparator();
+            }
             var config = DockerConfigManager.LoadContainersConfig(settings.ConfigFile, configVersion);
             if (settings.ShowConfig)
             {
