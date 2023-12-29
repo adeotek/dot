@@ -2,6 +2,8 @@
 
 `dot` is a collection of CLI tools for developers and DevOps.
 
+Supported versions: .NET 7 and .NET 8
+
 [![.NET build](https://github.com/adeotek/dot/actions/workflows/dotnet_build.yml/badge.svg)](https://github.com/adeotek/dot/actions/workflows/dotnet_build.yml)
 
 ## Install
