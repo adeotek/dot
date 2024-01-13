@@ -100,7 +100,7 @@ dot container config sample /path/to/target_file.json --format json
   - **Driver** (YAML|JSON key: `driver`) [string] *optional* : IPAM driver (defaults to `default` if omitted).
   - **Config** (YAML|JSON key: `config`) [NetworkIpamConfig] **required** : IPAM config options. 
     - **Subnet** (YAML|JSON key: `subnet`) [string] **required** : Network subnet.
-    - **IpRange** (YAML key: `` | JSON key: `ipRange`) [string] **required** : Network IP range (CIDR).
+    - **IpRange** (YAML key: `ip_range` | JSON key: `ipRange`) [string] **required** : Network IP range (CIDR).
     - **Gateway** (YAML|JSON key: `gateway`) [string] *optional* : Network gateway address.
     - **AuxAddresses** (YAML key: `aux_addresses` | JSON key: `auxAddresses`) [dictionary(Key-Value)] *optional* : Auxiliary IPv4 or IPv6 addresses used by Network driver, as a mapping from hostname to IP.
       - `Key` [string] **required** : Hostname.
