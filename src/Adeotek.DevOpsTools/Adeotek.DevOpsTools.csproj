@@ -24,6 +24,7 @@
     <PackageVersion>0.3.0</PackageVersion>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>dot</ToolCommandName>
+    <PublishAot>true</PublishAot>
   </PropertyGroup>
 
   <ItemGroup>
