@@ -1,5 +1,5 @@
 ﻿using Adeotek.DevOpsTools.Common;
-using Adeotek.Extensions.Docker.Config;
+using Adeotek.Extensions.Containers.Config;
 using Adeotek.Extensions.Processes;
 
 using Spectre.Console;
@@ -68,8 +68,8 @@ internal static class AnsiConsolePrintExtensions
             .Style(ValueColor, service.Command is null ? Null : string.Join(" ", service.Command)).LineBreak()
             .Style(LabelColor, "Expose:", NameLength)
             .Style(ValueColor, service.Expose is null ? Null : string.Join("; ", service.Expose)).LineBreak()
-            .Style(LabelColor, "DockerCommandOptions:", NameLength)
-            .Style(ValueColor, service.DockerCommandOptions is null ? Null : string.Join(" ", service.DockerCommandOptions)).LineBreak();
+            .Style(LabelColor, "InitCliCommandOptions:", NameLength)
+            .Style(ValueColor, service.InitCliOptions is null ? Null : string.Join(" ", service.InitCliOptions)).LineBreak();
         return composer;
     }
     

@@ -13,7 +13,7 @@
     <Copyright>George Benjamin-Schonberger 2024</Copyright>
     <Version>0.3.1</Version>
     <PackageId>Adeotek.DevOpsTools</PackageId>
-    <PackageTags>cli,devops,tools,docker</PackageTags>
+    <PackageTags>cli,devops,tools,docker,podman</PackageTags>
     <PackageProjectUrl>https://adeotek.github.io/dot/</PackageProjectUrl>
     <PackageLicense>https://github.com/adeotek/dot/blob/master/LICENSE</PackageLicense>
     <RepositoryUrl>https://github.com/adeotek/dot/</RepositoryUrl>
@@ -34,7 +34,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Adeotek.DevOpsTools.Helpers\Adeotek.DevOpsTools.Helpers.csproj" />
-    <ProjectReference Include="..\Adeotek.Extensions.Docker\Adeotek.Extensions.Docker.csproj" />
+    <ProjectReference Include="..\Adeotek.Extensions.Containers\Adeotek.Extensions.Containers.csproj" />
     <ProjectReference Include="..\Adeotek.Extensions.Processes\Adeotek.Extensions.Processes.csproj" />
   </ItemGroup>
 

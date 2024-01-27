@@ -1,5 +1,5 @@
 ﻿using Adeotek.DevOpsTools.CommandsSettings.Containers;
-using Adeotek.Extensions.Docker;
+using Adeotek.Extensions.Containers;
 
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -19,7 +19,7 @@ internal class ContainersConfigSampleCommand : CommandBase<ContainersConfigSampl
             return 1;
         }
         
-        var config = DockerConfigManager.GetSerializedSampleConfig(settings.Format);
+        var config = ContainersConfigManager.GetSerializedSampleConfig(settings.Format);
         
         if (settings.Target?.ToLower() == "screen" || settings.Target?.ToLower() == "display")
         {

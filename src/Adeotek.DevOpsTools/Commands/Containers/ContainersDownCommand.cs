@@ -1,6 +1,6 @@
 ﻿using Adeotek.DevOpsTools.CommandsSettings.Containers;
-using Adeotek.Extensions.Docker;
-using Adeotek.Extensions.Docker.Config;
+using Adeotek.Extensions.Containers;
+using Adeotek.Extensions.Containers.Config;
 
 namespace Adeotek.DevOpsTools.Commands.Containers;
 
@@ -13,20 +13,20 @@ internal sealed class ContainersDownCommand : ContainersBaseCommand<ContainersDo
     
     protected override void ExecuteContainerCommand(ContainersConfig config)
     {
-        var dockerManager = GetDockerManager();
+        var containersManager = GetContainersManager();
 
         if (Downgrade)
         {
-            ExecuteDowngrade(GetTargetServices(config, _settings?.ServiceName), dockerManager);
+            ExecuteDowngrade(GetTargetServices(config, _settings?.ServiceName), containersManager);
         }
         else
         {
-            ExecuteDown(GetTargetServices(config, _settings?.ServiceName), config, dockerManager);    
+            ExecuteDown(GetTargetServices(config, _settings?.ServiceName), config, containersManager);    
         }
     }
 
     private void ExecuteDown(List<ServiceConfig> targetServices, 
-        ContainersConfig config, DockerManager dockerManager)
+        ContainersConfig config, ContainersManager containersManager)
     {
         var first = true;
         foreach (var service in targetServices)
@@ -40,7 +40,7 @@ internal sealed class ContainersDownCommand : ContainersBaseCommand<ContainersDo
                 PrintSeparator();
             }
             
-            var exists = dockerManager.ContainerExists(service.CurrentName);
+            var exists = containersManager.ContainerExists(service.CurrentName);
             if (!exists && !Purge)
             {
                 PrintMessage($"<{service.ServiceName}> Container not fond, nothing to do!", _warningColor); 
@@ -49,7 +49,7 @@ internal sealed class ContainersDownCommand : ContainersBaseCommand<ContainersDo
             
             if (Backup)
             {
-                BackupServiceVolumes(service, _settings?.BackupLocation, dockerManager);    
+                BackupServiceVolumes(service, _settings?.BackupLocation, containersManager);    
             }
 
             if (exists)
@@ -63,11 +63,11 @@ internal sealed class ContainersDownCommand : ContainersBaseCommand<ContainersDo
 
             if (targetServices.Count == 1)
             {
-                Changes += dockerManager.PurgeService(service, config, Purge, IsDryRun);
+                Changes += containersManager.PurgeService(service, config, Purge, IsDryRun);
             }
             else
             {
-                Changes += dockerManager.RemoveServiceContainers(service, Purge, IsDryRun);
+                Changes += containersManager.RemoveServiceContainers(service, Purge, IsDryRun);
             }
             
             if (IsDryRun)
@@ -87,11 +87,11 @@ internal sealed class ContainersDownCommand : ContainersBaseCommand<ContainersDo
             }
         }
 
-        ExecuteVolumesPurge(targetServices, config, dockerManager);
-        ExecuteNetworksPurge(targetServices, config, dockerManager);
+        ExecuteVolumesPurge(targetServices, config, containersManager);
+        ExecuteNetworksPurge(targetServices, config, containersManager);
     }
 
-    private void ExecuteDowngrade(List<ServiceConfig> targetServices, DockerManager dockerManager)
+    private void ExecuteDowngrade(List<ServiceConfig> targetServices, ContainersManager containersManager)
     {
         var first = true;
         foreach (var service in targetServices)
@@ -111,7 +111,7 @@ internal sealed class ContainersDownCommand : ContainersBaseCommand<ContainersDo
                 continue;
             }
             
-            if (!dockerManager.ContainerExists(service.PreviousName))
+            if (!containersManager.ContainerExists(service.PreviousName))
             {
                 PrintMessage($"<{service.ServiceName}> Previous container '{service.PreviousName}' not fond, rollback not possible!", _warningColor);
                 continue;
@@ -119,11 +119,11 @@ internal sealed class ContainersDownCommand : ContainersBaseCommand<ContainersDo
 
             if (Backup)
             {
-                BackupServiceVolumes(service, _settings?.BackupLocation, dockerManager);    
+                BackupServiceVolumes(service, _settings?.BackupLocation, containersManager);    
             }
             
             PrintMessage($"<{service.ServiceName}> Previous container found, downgrading.");
-            Changes += dockerManager.DowngradeService(service, IsDryRun);
+            Changes += containersManager.DowngradeService(service, IsDryRun);
             if (IsDryRun)
             {
                 PrintMessage($"<{service.ServiceName}> Container downgrade finished.", _standardColor, separator: IsVerbose);
@@ -137,14 +137,14 @@ internal sealed class ContainersDownCommand : ContainersBaseCommand<ContainersDo
     }
 
     private void ExecuteVolumesPurge(List<ServiceConfig> targetServices, ContainersConfig config,
-        DockerManager dockerManager)
+        ContainersManager containersManager)
     {
         if (!Purge || targetServices.Count == 1)
         {
             return;
         }
         
-        Changes += dockerManager.PurgeVolumes(targetServices, config, IsDryRun);
+        Changes += containersManager.PurgeVolumes(targetServices, config, IsDryRun);
         if (IsDryRun)
         {
             PrintMessage("Volumes purge finished.", _standardColor, separator: IsVerbose);
@@ -157,14 +157,14 @@ internal sealed class ContainersDownCommand : ContainersBaseCommand<ContainersDo
     }
     
     private void ExecuteNetworksPurge(List<ServiceConfig> targetServices, ContainersConfig config,
-        DockerManager dockerManager)
+        ContainersManager containersManager)
     {
         if (!Purge || targetServices.Count == 1)
         {
             return;
         }
         
-        Changes += dockerManager.PurgeNetworks(targetServices, config, IsDryRun);
+        Changes += containersManager.PurgeNetworks(targetServices, config, IsDryRun);
         if (IsDryRun)
         {
             PrintMessage("Networks purge finished.", _standardColor, separator: IsVerbose);

@@ -1,5 +1,5 @@
 ﻿using Adeotek.DevOpsTools.CommandsSettings.Containers;
-using Adeotek.Extensions.Docker.Config;
+using Adeotek.Extensions.Containers.Config;
 
 namespace Adeotek.DevOpsTools.Commands.Containers;
 
@@ -7,7 +7,7 @@ internal sealed class ContainersBackupCommand : ContainersBaseCommand<Containers
 {
     protected override void ExecuteContainerCommand(ContainersConfig config)
     {
-        var dockerManager = GetDockerManager();
+        var containersManager = GetContainersManager();
         
         var targetServices = GetTargetServices(config, _settings?.ServiceName);
         if (!string.IsNullOrEmpty(_settings?.TargetVolume))
@@ -21,7 +21,7 @@ internal sealed class ContainersBackupCommand : ContainersBaseCommand<Containers
                 return;
             }
             
-            Changes += dockerManager.BackupVolume(volume, _settings?.BackupLocation ?? "", out var backupFile, IsDryRun);
+            Changes += containersManager.BackupVolume(volume, _settings?.BackupLocation ?? "", out var backupFile, IsDryRun);
         
             if (IsDryRun)
             {
@@ -48,7 +48,7 @@ internal sealed class ContainersBackupCommand : ContainersBaseCommand<Containers
                 PrintSeparator();
             }
 
-            BackupServiceVolumes(service, _settings?.BackupLocation, dockerManager);
+            BackupServiceVolumes(service, _settings?.BackupLocation, containersManager);
         }
     }
 }

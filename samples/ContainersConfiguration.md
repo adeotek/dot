@@ -57,7 +57,9 @@ dot container config sample /path/to/target_file.json --format json
 - **Restart** (YAML|JSON key: `restart`) [string] *optional* : Container restart policy (`always`/`on-failure`/`unless-stopped`, defaults to `unless-stopped` if NULL/omitted).
 - **Entrypoint** (YAML|JSON key: `entrypoint`) [string] *optional* : This overrides the *ENTRYPOINT* instruction from the service's Dockerfile.
 - **Command** (YAML|JSON key: `command`) [array(string)] *optional* : Overrides the command declared by the container image, for example by Dockerfile's CMD.
-- (!) **DockerCommandOptions** (YAML key: `docker_command_options` | JSON key: `dockerCommandOptions`) [array(string)] *optional* : Docker `create`/`run` command options. (see [docker create](https://docs.docker.com/engine/reference/commandline/create/#options)/[docker run](https://docs.docker.com/engine/reference/commandline/run/#options))
+- (!) **InitCliOptions** (YAML key: `init_cli_options` | JSON key: `initCliOptions`) [array(string)] *optional* : Docker/Podman `create`/`run` command options. (options supported by both Docker and Podman)
+- (!) **DockerCliOptions** (YAML key: `docker_cli_options` | JSON key: `dockerCliOptions`) [array(string)] *optional* : Docker `create`/`run` specific options. (see [docker create](https://docs.docker.com/engine/reference/commandline/create/#options)/[docker run](https://docs.docker.com/engine/reference/commandline/run/#options))
+- (!) **PodmanCliOptions** (YAML key: `podman_cli_options` | JSON key: `podmanCliOptions`) [array(string)] *optional* : Podman `create`/`run` specific options.
 
 **&ast;** One of these configuration option is required. If **ContainerName** is provided, the **BaseName**, **NamePrefix**, **CurrentSuffix** and **PreviousSuffix**, will be ignored.
 

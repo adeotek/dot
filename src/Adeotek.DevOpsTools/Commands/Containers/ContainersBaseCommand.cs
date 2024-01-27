@@ -2,9 +2,9 @@
 using Adeotek.DevOpsTools.Extensions;
 using Adeotek.DevOpsTools.CommandsSettings.Containers;
 using Adeotek.Extensions.ConfigFiles;
-using Adeotek.Extensions.Docker;
-using Adeotek.Extensions.Docker.Config;
-using Adeotek.Extensions.Docker.Exceptions;
+using Adeotek.Extensions.Containers;
+using Adeotek.Extensions.Containers.Config;
+using Adeotek.Extensions.Containers.Exceptions;
 
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -14,6 +14,7 @@ namespace Adeotek.DevOpsTools.Commands.Containers;
 internal abstract class ContainersBaseCommand<TSettings> 
     : CommandBase<TSettings> where TSettings : ContainersSettings
 {
+    protected string CliFlavor => (_settings?.UsePodman ?? false) ? "docker" : "podman";
     protected bool IsDryRun => _settings?.DryRun ?? false;
     protected abstract void ExecuteContainerCommand(ContainersConfig config);
 
@@ -29,7 +30,7 @@ internal abstract class ContainersBaseCommand<TSettings>
             {
                 PrintSeparator();
             }
-            var config = DockerConfigManager.LoadContainersConfig(settings.ConfigFile, configVersion);
+            var config = ContainersConfigManager.LoadContainersConfig(settings.ConfigFile, configVersion);
             if (settings.ShowConfig)
             {
                 config.WriteToAnsiConsole();    
@@ -51,7 +52,7 @@ internal abstract class ContainersBaseCommand<TSettings>
 
             return 1;
         }
-        catch (DockerCliException e)
+        catch (ContainersCliException e)
         {
             if (settings.Verbose)
             {
@@ -77,7 +78,7 @@ internal abstract class ContainersBaseCommand<TSettings>
         return targetServices.ToList();
     }
 
-    protected virtual void BackupServiceVolumes(ServiceConfig? service, string? backupLocation, DockerManager dockerManager)
+    protected virtual void BackupServiceVolumes(ServiceConfig? service, string? backupLocation, ContainersManager containersManager)
     {
         if (service?.Volumes is null || service.Volumes.Length == 0)
         {
@@ -87,7 +88,7 @@ internal abstract class ContainersBaseCommand<TSettings>
         
         foreach (var volume in service.Volumes)
         {
-            var volumeChanges = dockerManager.BackupVolume(volume, backupLocation ?? "", out var backupFile, IsDryRun);
+            var volumeChanges = containersManager.BackupVolume(volume, backupLocation ?? "", out var backupFile, IsDryRun);
             Changes += volumeChanges;
             if (!IsVerbose)
             {
@@ -114,18 +115,18 @@ internal abstract class ContainersBaseCommand<TSettings>
         }
     }
 
-    protected virtual DockerManager GetDockerManager()
+    protected virtual ContainersManager GetContainersManager()
     {
-        DockerManager dockerManager = new();
-        dockerManager.OnDockerCliEvent += HandleDockerCliEvent;
-        return dockerManager;
+        ContainersManager containersManager = new(CliFlavor);
+        containersManager.OnContainersCliEvent += HandleContainersCliEvent;
+        return containersManager;
     }
 
-    private void HandleDockerCliEvent(object sender, DockerCliEventArgs e)
+    private void HandleContainersCliEvent(object sender, ContainersCliEventArgs e)
     {
         switch (e.Type)
         {
-            case DockerCliEventType.Command:
+            case ContainersCliEventType.Command:
                 if (IsSilent || (!IsVerbose && !IsDryRun))
                 {
                     break;
@@ -136,7 +137,7 @@ internal abstract class ContainersBaseCommand<TSettings>
                     .Space()
                     .Style("aqua", e.Data.GetValueOrDefault("args") ?? "?").LineBreak());
                 break;
-            case DockerCliEventType.Message:
+            case ContainersCliEventType.Message:
                 if (IsSilent)
                 {
                     break;
@@ -150,14 +151,14 @@ internal abstract class ContainersBaseCommand<TSettings>
                     .Style(GetColorFromLogLevel(level), e.Data.GetValueOrDefault("message") ?? "")
                     .LineBreak());
                 break;
-            case DockerCliEventType.StdOutput:
+            case ContainersCliEventType.StdOutput:
                 if (IsSilent || !IsVerbose)
                 {
                     break;        
                 }
                 AnsiConsole.WriteLine(e.DataToString(Environment.NewLine, "._."));
                 break;
-            case DockerCliEventType.ErrOutput:
+            case ContainersCliEventType.ErrOutput:
                 if (!IsVerbose)
                 {
                     break;        
@@ -179,7 +180,7 @@ internal abstract class ContainersBaseCommand<TSettings>
                 }
                 AnsiConsole.WriteLine(data);
                 break;
-            case DockerCliEventType.ExitCode:
+            case ContainersCliEventType.ExitCode:
                 break;
         }
     }
