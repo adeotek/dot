@@ -32,7 +32,7 @@ internal abstract class ContainersBaseCommand<TSettings>
             var config = DockerConfigManager.LoadContainersConfig(settings.ConfigFile, configVersion);
             if (settings.ShowConfig)
             {
-                config.WriteToAnsiConsole();
+                config.WriteToAnsiConsole();    
             }
             
             ExecuteContainerCommand(config);
