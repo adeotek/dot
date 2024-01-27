@@ -77,6 +77,42 @@ internal abstract class ContainersBaseCommand<TSettings>
         return targetServices.ToList();
     }
 
+    protected virtual void BackupServiceVolumes(ServiceConfig? service, string? backupLocation, DockerManager dockerManager)
+    {
+        if (service?.Volumes is null || service.Volumes.Length == 0)
+        {
+            PrintMessage($"<{service?.ServiceName}> No volumes to backup!", _warningColor, separator: IsVerbose);
+            return;
+        }
+        
+        foreach (var volume in service.Volumes)
+        {
+            var volumeChanges = dockerManager.BackupVolume(volume, backupLocation ?? "", out var backupFile, IsDryRun);
+            Changes += volumeChanges;
+            if (!IsVerbose)
+            {
+                continue;
+            }
+            if (volumeChanges > 0 || IsDryRun)
+            {
+                PrintMessage($"<{service?.ServiceName}> {volume.Source} volume backup done -> {backupFile}", _standardColor);
+            }
+            else
+            {
+                PrintMessage($"<{service?.ServiceName}> {volume.Source} volume backup failed!", _warningColor);
+            }
+        }
+        
+        if (IsDryRun)
+        {
+            PrintMessage($"<{service?.ServiceName}> Volumes backup finished.", _standardColor);
+            PrintMessage("Dry run: No changes were made!", _warningColor);
+        }
+        else
+        {
+            PrintMessage($"<{service?.ServiceName}> Volumes backup done!", _successColor);
+        }
+    }
 
     protected virtual DockerManager GetDockerManager()
     {

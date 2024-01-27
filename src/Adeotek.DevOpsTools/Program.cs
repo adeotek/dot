@@ -55,7 +55,7 @@ app.Configure(configurator =>
             .WithDescription("Create/Update Docker containers");
         containers.AddCommand<ContainersDownCommand>("down")
             .WithDescription("Remove Docker containers");
-        containers.AddCommand<ContainersDownCommand>("backup")
+        containers.AddCommand<ContainersBackupCommand>("backup")
             .WithDescription("Backup Docker container volumes");
         containers.AddCommand<ContainersActionCommand>("start")
             .WithDescription("Start Docker containers");

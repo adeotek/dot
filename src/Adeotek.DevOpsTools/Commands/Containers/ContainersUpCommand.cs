@@ -35,21 +35,10 @@ internal sealed class ContainersUpCommand : ContainersBaseCommand<ContainersUpSe
                     PrintMessage($"<{service.ServiceName}> Container already present, nothing to do!", _successColor, separator: IsVerbose);
                     continue;
                 }
-                
-                if (Backup && service.Volumes is not null && service.Volumes.Length > 0)
+
+                if (Backup)
                 {
-                    Changes += service.Volumes
-                        .Sum(x => dockerManager.BackupVolume(x, _settings?.BackupLocation ?? "", IsDryRun));
-        
-                    if (IsDryRun)
-                    {
-                        PrintMessage($"<{service.ServiceName}> Volumes backup finished.", _standardColor, separator: IsVerbose);
-                        PrintMessage("Dry run: No changes were made!", _warningColor);
-                    }
-                    else
-                    {
-                        PrintMessage($"<{service.ServiceName}> Volumes backup done!", _successColor, separator: IsVerbose);
-                    }
+                    BackupServiceVolumes(service, _settings?.BackupLocation, dockerManager);    
                 }
         
                 PrintMessage($"<{service.ServiceName}> Container already present, updating it.", _warningColor);

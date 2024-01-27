@@ -243,14 +243,15 @@ public class DockerManager : DockerCli
         }
     }
 
-    public int BackupVolume(VolumeConfig volume, string backupLocation, bool dryRun = false)
+    public int BackupVolume(VolumeConfig volume, string backupLocation, out string? archiveFile, bool dryRun = false)
     {
         if (volume.SkipBackup)
         {
+            archiveFile = null;
             return 0;
         }
 
-        var archiveFile = Path.Combine(backupLocation, $"{volume.BackupName}-{DateTime.Now:yyyyMMddHHmmss}.tar.gz");
+        archiveFile = Path.Combine(backupLocation, $"{volume.BackupName}-{DateTime.Now:yyyyMMddHHmmss}.tar.gz");
         DockerCliException.ThrowIfNull(archiveFile, "volume backup",
             $"Invalid backup destination for volume: {volume.Source}.");
         return volume.Type switch

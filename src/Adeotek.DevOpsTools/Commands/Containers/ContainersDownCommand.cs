@@ -47,7 +47,10 @@ internal sealed class ContainersDownCommand : ContainersBaseCommand<ContainersDo
                 continue;
             }
             
-            ExecuteServiceVolumesBackup(service, dockerManager);
+            if (Backup)
+            {
+                BackupServiceVolumes(service, _settings?.BackupLocation, dockerManager);    
+            }
 
             if (exists)
             {
@@ -114,7 +117,10 @@ internal sealed class ContainersDownCommand : ContainersBaseCommand<ContainersDo
                 continue;
             }
 
-            ExecuteServiceVolumesBackup(service, dockerManager);
+            if (Backup)
+            {
+                BackupServiceVolumes(service, _settings?.BackupLocation, dockerManager);    
+            }
             
             PrintMessage($"<{service.ServiceName}> Previous container found, downgrading.");
             Changes += dockerManager.DowngradeService(service, IsDryRun);
@@ -127,27 +133,6 @@ internal sealed class ContainersDownCommand : ContainersBaseCommand<ContainersDo
             {
                 PrintMessage($"<{service.ServiceName}> Container downgrading successfully!", _successColor, separator: IsVerbose);
             }
-        }
-    }
-
-    private void ExecuteServiceVolumesBackup(ServiceConfig service, DockerManager dockerManager)
-    {
-        if (!Backup || service.Volumes is null || service.Volumes.Length <= 0)
-        {
-            return;
-        }
-
-        Changes += service.Volumes
-            .Sum(x => dockerManager.BackupVolume(x, _settings?.BackupLocation ?? "", IsDryRun));
-        
-        if (IsDryRun)
-        {
-            PrintMessage($"<{service.ServiceName}> Volumes backup finished.", _standardColor, separator: IsVerbose);
-            PrintMessage("Dry run: No changes were made!", _warningColor);
-        }
-        else
-        {
-            PrintMessage($"<{service.ServiceName}> Volumes backup done!", _successColor, separator: IsVerbose);
         }
     }
 
