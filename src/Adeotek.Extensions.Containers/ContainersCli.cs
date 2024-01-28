@@ -405,13 +405,28 @@ public class ContainersCli
         LogCommand();
         _containersCli.Execute();
         LogExitCode();
-        if (_containersCli.IsSuccess($"Status: Downloaded newer image for {image}"))
+
+        if (_containersCli.IsDocker)
         {
-            return true;
+            if (_containersCli.IsSuccess($"Status: Downloaded newer image for {image}"))
+            {
+                return true;
+            }
+            if (_containersCli.IsSuccess($"Status: Image is up to date for {image}"))
+            {
+                return false;
+            }    
         }
-        if (_containersCli.IsSuccess($"Status: Image is up to date for {image}"))
+        else
         {
-            return false;
+            var imageId = _containersCli.ErrOutput
+                .FirstOrDefault(x => x.StartsWith("Copying config sha256:"))
+                ?.Replace("Copying config sha256:", "");
+            if (_containersCli.IsSuccess() && !string.IsNullOrEmpty(imageId)
+                && _containersCli.StdOutput.FirstOrDefault() == imageId)
+            {
+                return true;
+            }
         }
         
         throw new ContainersCliException("pull", _containersCli.ExitCode, $"Unable to pull image '{image}'!");
@@ -422,15 +437,27 @@ public class ContainersCli
         _containersCli.ClearArgsAndReset()
             .AddArg("container")
             .AddArg("inspect")
-            .AddArg("--format \"{{lower .Image}}\"")
+            .AddArg(_containersCli.IsDocker ? "--format \"{{lower .Image}}\"" : "--format \"{{.Image}}\"")
             .AddArg(containerName);
         LogCommand();
         _containersCli.Execute();
         LogExitCode();
-        if (_containersCli.IsSuccess() && _containersCli.StdOutput.Count == 1
-            && _containersCli.StdOutput.First().StartsWith("sha256:"))
+        if (_containersCli.IsDocker)
         {
-            return _containersCli.StdOutput.First();
+            if (_containersCli.IsSuccess() && _containersCli.StdOutput.Count == 1
+                && _containersCli.StdOutput.First().StartsWith("sha256:"))
+            {
+                return _containersCli.StdOutput.First();
+            }
+        }
+        else
+        {
+            var imageId = _containersCli.StdOutput.FirstOrDefault();
+            if (_containersCli.IsSuccess() && _containersCli.StdOutput.Count == 1
+                                           && (imageId?.Length ?? 0) == 64)
+            {
+                return $"sha256:{imageId}";
+            }
         }
     
         throw new ContainersCliException("container inspect", 1, $"Unable to inspect container '{containerName}'!");
@@ -441,15 +468,27 @@ public class ContainersCli
         _containersCli.ClearArgsAndReset()
             .AddArg("image")
             .AddArg("inspect")
-            .AddArg("--format \"{{lower .Id}}\"")
+            .AddArg(_containersCli.IsDocker ? "--format \"{{lower .Id}}\"" : "--format \"{{.Id}}\"")
             .AddArg(image);
         LogCommand();
         _containersCli.Execute();
         LogExitCode();
-        if (_containersCli.IsSuccess() && _containersCli.StdOutput.Count == 1
-                                   && _containersCli.StdOutput.First().StartsWith("sha256:"))
+        if (_containersCli.IsDocker)
         {
-            return _containersCli.StdOutput.First();
+            if (_containersCli.IsSuccess() && _containersCli.StdOutput.Count == 1
+                                           && _containersCli.StdOutput.First().StartsWith("sha256:"))
+            {
+                return _containersCli.StdOutput.First();
+            }   
+        }
+        else
+        {
+            var imageId = _containersCli.StdOutput.FirstOrDefault();
+            if (_containersCli.IsSuccess() && _containersCli.StdOutput.Count == 1
+                                           && (imageId?.Length ?? 0) == 64)
+            {
+                return $"sha256:{imageId}";
+            }
         }
         
         throw new ContainersCliException("image inspect", 1, $"Unable to inspect image '{image}'!");
