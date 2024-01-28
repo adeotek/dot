@@ -74,7 +74,7 @@
         "--some-arg=123",
         "--flag-arg"
       ],
-      "dockerCommandOptions": [
+      "initCliOptions": [
         "-it",
         "<any-docker-run-option>"
       ]

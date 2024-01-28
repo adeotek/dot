@@ -117,11 +117,12 @@ public class ContainersCliCommandTests
     [Fact]
     public void AddContainersCommandOptionsArgs_WithNoOptions_SetArgsDefaultOption()
     {
+        var service = new ServiceConfig();
         var expectedValue = "-d";
 
         var result = _sut.ClearArgs()
             .AddArg("--some-argument")
-            .AddInitCliOptionsArgs(Array.Empty<string>());
+            .AddInitCliOptionsArgs(service);
         
         Assert.Equal(typeof(ContainersCliCommand), result.GetType());
         Assert.Equal(expectedValue, _sut.Args[1]);
@@ -130,11 +131,55 @@ public class ContainersCliCommandTests
     [Fact]
     public void AddContainersCommandOptionsArgs_WithTwoOptions_SetOptionsArgs()
     {
+        var service = new ServiceConfig
+        {
+            InitCliOptions = new [] { "-it", "-m 128" }
+        };
         var expectedValue = "-it -m 128";
 
         var result = _sut.ClearArgs()
             .AddArg("--some-argument")
-            .AddInitCliOptionsArgs(new [] { "-it", "-m 128" });
+            .AddInitCliOptionsArgs(service);
+        
+        Assert.Equal(typeof(ContainersCliCommand), result.GetType());
+        Assert.Equal(expectedValue, _sut.Args[1]);
+    }
+    
+    [Fact]
+    public void AddContainersCommandOptionsArgs_WithInitAndDockerOptions_SetOptionsArgs()
+    {
+        var service = new ServiceConfig
+        {
+            InitCliOptions = new [] { "-it", "-m 128" },
+            DockerCliOptions = new [] { "--cpus 2" },
+            PodmanCliOptions = new [] { "--privileged" }
+        };
+        var expectedValue = "-it -m 128 --cpus 2";
+
+        var result = _sut.ClearArgs()
+            .AddArg("--some-argument")
+            .AddInitCliOptionsArgs(service);
+        
+        Assert.Equal(typeof(ContainersCliCommand), result.GetType());
+        Assert.Equal(expectedValue, _sut.Args[1]);
+    }
+    
+    [Fact]
+    public void AddContainersCommandOptionsArgs_WithInitAndPodmanOptions_SetOptionsArgs()
+    {
+        var service = new ServiceConfig
+        {
+            InitCliOptions = new [] { "-it", "-m 128" },
+            DockerCliOptions = new [] { "--cpus 2" },
+            PodmanCliOptions = new [] { "--privileged" }
+        };
+        var expectedValue = "-it -m 128 --privileged";
+
+        var originalCommand = _sut.Command = "podman";
+        var result = _sut.ClearArgs()
+            .AddArg("--some-argument")
+            .AddInitCliOptionsArgs(service);
+        _sut.Command = originalCommand;
         
         Assert.Equal(typeof(ContainersCliCommand), result.GetType());
         Assert.Equal(expectedValue, _sut.Args[1]);
@@ -143,9 +188,10 @@ public class ContainersCliCommandTests
     [Fact]
     public void AddContainersCommandOptionsArgs_WithNoOptionsAndNotIsRun_DoNotSetArgs()
     {
+        var service = new ServiceConfig();
         var result = _sut.ClearArgs()
             .AddArg("--some-argument")
-            .AddInitCliOptionsArgs(Array.Empty<string>(), false);
+            .AddInitCliOptionsArgs(service, false);
         
         Assert.Equal(typeof(ContainersCliCommand), result.GetType());
         Assert.Single(_sut.Args);
@@ -154,11 +200,15 @@ public class ContainersCliCommandTests
     [Fact]
     public void AddContainersCommandOptionsArgs_WithTwoOptionsAndNotIsRun_SetOptionsArgs()
     {
+        var service = new ServiceConfig
+        {
+            InitCliOptions = new [] { "-it", "-d", "-m 128" }
+        };
         var expectedValue = "-it -m 128";
 
         var result = _sut.ClearArgs()
             .AddArg("--some-argument")
-            .AddInitCliOptionsArgs(new [] { "-it", "-d", "-m 128" }, false);
+            .AddInitCliOptionsArgs(service, false);
         
         Assert.Equal(typeof(ContainersCliCommand), result.GetType());
         Assert.Equal(expectedValue, _sut.Args[1]);

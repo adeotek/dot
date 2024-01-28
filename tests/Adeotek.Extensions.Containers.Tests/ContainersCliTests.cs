@@ -1667,17 +1667,22 @@ public class ContainersCliTests
         StringBuilder sb = new();
         var isRun = autoStart && (config.Networks?.Count ?? 0) < 2;
         sb.Append(isRun ? "run " : "create ");
-        var dockerCommandOptions = config.InitCliOptions is not null && config.InitCliOptions.Length > 0
-            ? config.InitCliOptions
-            : new[] { "-d" };
+        var initCliOptions = config.InitCliOptions is not null && config.InitCliOptions.Length > 0
+            ? config.InitCliOptions.ToList()
+            : new[] { "-d" }.ToList();
         if (!isRun)
         {
-            dockerCommandOptions = dockerCommandOptions.Where(x => x != "-d").ToArray();
+            initCliOptions = initCliOptions.Where(x => x != "-d").ToList();
         }
 
-        if (dockerCommandOptions.Length > 0)
+        if (config.DockerCliOptions is not null && config.DockerCliOptions.Length > 0)
         {
-            sb.Append(string.Join(' ', dockerCommandOptions).Trim()).Append(' ');
+            initCliOptions.AddRange(config.DockerCliOptions);
+        }
+
+        if (initCliOptions.Count > 0)
+        {
+            sb.Append(string.Join(' ', initCliOptions).Trim()).Append(' ');
         }
 
         sb.Append($"--name={config.CurrentName} ");

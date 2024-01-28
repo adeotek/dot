@@ -31,7 +31,7 @@
       - 8.8.8.8
       - 8.8.4.4
     restart: unless-stopped
-    docker_command_options:
+    init_cli_options:
       - -d
       - --memory 256MB
   
@@ -60,7 +60,7 @@
         aliases:
           - redis-cache
     restart: always
-    docker_command_options:
+    init_cli_options:
       - -d
       - --memory 1GB
 

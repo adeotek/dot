@@ -68,8 +68,12 @@ internal static class AnsiConsolePrintExtensions
             .Style(ValueColor, service.Command is null ? Null : string.Join(" ", service.Command)).LineBreak()
             .Style(LabelColor, "Expose:", NameLength)
             .Style(ValueColor, service.Expose is null ? Null : string.Join("; ", service.Expose)).LineBreak()
-            .Style(LabelColor, "InitCliCommandOptions:", NameLength)
-            .Style(ValueColor, service.InitCliOptions is null ? Null : string.Join(" ", service.InitCliOptions)).LineBreak();
+            .Style(LabelColor, "InitCliOptions:", NameLength)
+            .Style(ValueColor, service.InitCliOptions is null ? Null : string.Join(" ", service.InitCliOptions)).LineBreak()
+            .Style(LabelColor, "DockerCliOptions:", NameLength)
+            .Style(ValueColor, service.DockerCliOptions is null ? Null : string.Join(" ", service.DockerCliOptions)).LineBreak()
+            .Style(LabelColor, "PodmanCliOptions:", NameLength)
+            .Style(ValueColor, service.PodmanCliOptions is null ? Null : string.Join(" ", service.PodmanCliOptions)).LineBreak();
         return composer;
     }
     
