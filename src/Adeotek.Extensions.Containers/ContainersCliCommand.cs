@@ -30,6 +30,8 @@ public class ContainersCliCommand : ShellCommand
     {
         Command = command;
     }
+
+    public bool IsDocker => Command == "docker";
     
     public new ContainersCliCommand AddArg(string value) =>
         (ContainersCliCommand) base.AddArg(value);
