@@ -10,6 +10,11 @@ internal class ContainersSettings : GlobalSettings
     [CommandArgument(0, "<config_file>")]
     public string? ConfigFile { get; init; }
     
+    [Description("Use Podman CLI instead of Docker")]
+    [CommandOption("--podman")]
+    [DefaultValue(false)]
+    public bool UsePodman { get; init; }
+    
     [Description("Don't apply any changes, just print the commands")]
     [CommandOption("--dry-run")]
     [DefaultValue(false)]

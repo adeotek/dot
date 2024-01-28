@@ -20,56 +20,56 @@ app.Configure(configurator =>
 
     configurator.AddBranch("container", containers =>
     {
-        containers.SetDescription("Manage Docker containers (deprecated)");
+        containers.SetDescription("Manage Docker/Podman containers (deprecated)");
         containers.AddCommand<ContainersUpCommand>("up")
-            .WithDescription("Create/Update Docker containers")
+            .WithDescription("Create/Update Docker/Podman containers")
             .WithData("v1");
         containers.AddCommand<ContainersDownCommand>("down")
-            .WithDescription("Remove Docker containers")
+            .WithDescription("Remove Docker/Podman containers")
             .WithData("v1");
         containers.AddCommand<ContainersActionCommand>("start")
-            .WithDescription("Start Docker containers")
+            .WithDescription("Start Docker/Podman containers")
             .WithData("v1");
         containers.AddCommand<ContainersActionCommand>("stop")
-            .WithDescription("Stop Docker containers")
+            .WithDescription("Stop Docker/Podman containers")
             .WithData("v1");
         containers.AddCommand<ContainersActionCommand>("restart")
-            .WithDescription("Restart Docker containers")
+            .WithDescription("Restart Docker/Podman containers")
             .WithData("v1");
         containers.AddBranch("config", config =>
         {
-            config.SetDescription("Validate/Generate Docker containers config files");
+            config.SetDescription("Validate/Generate Docker/Podman containers config files");
             config.AddCommand<ContainersConfigValidateCommand>("validate")
-                .WithDescription("Validate Docker container config file")
+                .WithDescription("Validate Docker/Podman container config file")
                 .WithData("v1");
             config.AddCommand<ContainersConfigSampleCommand>("sample")
-                .WithDescription("Generate Docker container config sample file")
+                .WithDescription("Generate Docker/Podman container config sample file")
                 .WithData("v1");
         });
     });
 
     configurator.AddBranch("containers", containers =>
     {
-        containers.SetDescription("Manage Docker containers");
+        containers.SetDescription("Manage Docker/Podman containers");
         containers.AddCommand<ContainersUpCommand>("up")
-            .WithDescription("Create/Update Docker containers");
+            .WithDescription("Create/Update Docker/Podman containers");
         containers.AddCommand<ContainersDownCommand>("down")
-            .WithDescription("Remove Docker containers");
-        containers.AddCommand<ContainersDownCommand>("backup")
-            .WithDescription("Backup Docker container volumes");
+            .WithDescription("Remove Docker/Podman containers");
+        containers.AddCommand<ContainersBackupCommand>("backup")
+            .WithDescription("Backup Docker/Podman container volumes");
         containers.AddCommand<ContainersActionCommand>("start")
-            .WithDescription("Start Docker containers");
+            .WithDescription("Start Docker/Podman containers");
         containers.AddCommand<ContainersActionCommand>("stop")
-            .WithDescription("Stop Docker containers");
+            .WithDescription("Stop Docker/Podman containers");
         containers.AddCommand<ContainersActionCommand>("restart")
-            .WithDescription("Restart Docker containers");
+            .WithDescription("Restart Docker/Podman containers");
         containers.AddBranch("config", config =>
         {
-            config.SetDescription("Validate/Generate Docker containers config files");
+            config.SetDescription("Validate/Generate Docker/Podman containers config files");
             config.AddCommand<ContainersConfigValidateCommand>("validate")
-                .WithDescription("Validate Docker container config file");
+                .WithDescription("Validate Docker/Podman container config file");
             config.AddCommand<ContainersConfigSampleCommand>("sample")
-                .WithDescription("Generate Docker container config sample file");
+                .WithDescription("Generate Docker/Podman container config sample file");
         });
     });
 

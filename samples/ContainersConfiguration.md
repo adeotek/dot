@@ -38,10 +38,11 @@ dot container config sample /path/to/target_file.json --format json
 - (!) **BaseName** (YAML key: `base_name` | JSON key: `baseName`) [string] *optional* * : Container base name.
 - (!) **CurrentSuffix** (YAML key: `current_suffix` | JSON key: `CurrentSuffix`) [string] *optional* : Container name suffix for current version.
 - (!) **PreviousSuffix** (YAML key: `previous_suffix` | JSON key: `PreviousSuffix`) [string] *optional* : Container name suffix for previous (backup/demoted) version.
+- **Privileged** (YAML|JSON key: `privileged`) [boolean] *optional* : Sets the container to run with elevated privileges.
 - **Ports** (YAML|JSON key: `ports`) [array(PortMapping/string)] *optional* : The list of port mappings to be set for the container (see **PortMapping** below). If the string short syntax is used, the value will be converted to a **PortMapping** (short syntax: `[[<host>:]<published_port>:]<container_port>[/<protocol>]`).
 - **Volumes** (YAML|JSON key: `volumes`) [array(VolumeConfig/string)] *optional* : The list of volumes to be mapped to the container (see **VolumeConfig** below). If the string short syntax is used, the value will be converted to a **VolumeConfig** (short syntax: `<volume_or_host_path>:<container_path>[:<access_mode>]`).
 - **EnvFiles** (YAML key: `env_file` | JSON key: `envFiles`) [array(string)] *optional* : List of Environment Variables files.
-- **EnvVars** (YAML key: `environment` | JSON key: `envVars`) [string] *optional* : [dictionary(Key-Value)] *optional* : The list of environment variable with their values to be set for the container.
+- **EnvVars** (YAML key: `environment` | JSON key: `envVars`) [dictionary(Key-Value)] *optional* : The list of environment variable with their values to be set for the container.
   - `Key` [string] **required** : The name of the environment variable.
   - `Value` [string] **required** : The value of the environment variable.
 - **Networks** (YAML|JSON key: `networks`) [dictionary(Key-Value)] *optional* : Container networks configuration.
@@ -57,7 +58,12 @@ dot container config sample /path/to/target_file.json --format json
 - **Restart** (YAML|JSON key: `restart`) [string] *optional* : Container restart policy (`always`/`on-failure`/`unless-stopped`, defaults to `unless-stopped` if NULL/omitted).
 - **Entrypoint** (YAML|JSON key: `entrypoint`) [string] *optional* : This overrides the *ENTRYPOINT* instruction from the service's Dockerfile.
 - **Command** (YAML|JSON key: `command`) [array(string)] *optional* : Overrides the command declared by the container image, for example by Dockerfile's CMD.
-- (!) **DockerCommandOptions** (YAML key: `docker_command_options` | JSON key: `dockerCommandOptions`) [array(string)] *optional* : Docker `create`/`run` command options. (see [docker create](https://docs.docker.com/engine/reference/commandline/create/#options)/[docker run](https://docs.docker.com/engine/reference/commandline/run/#options))
+- **Labels** (YAML|JSON key: `labels`) [dictionary(Key-Value)] *optional* : An optional list of labels for the container.
+  - `Key` [string] **required** : Label name (it's recommended that you use reverse-DNS notation to prevent your labels from conflicting with those used by other software).
+  - `Value` [string] **required** : Label value.
+- (!) **InitCliOptions** (YAML key: `init_cli_options` | JSON key: `initCliOptions`) [array(string)] *optional* : Docker/Podman `create`/`run` command options. (options supported by both Docker and Podman)
+- (!) **DockerCliOptions** (YAML key: `docker_cli_options` | JSON key: `dockerCliOptions`) [array(string)] *optional* : Docker `create`/`run` specific options. (see [docker create](https://docs.docker.com/engine/reference/commandline/create/#options)/[docker run](https://docs.docker.com/engine/reference/commandline/run/#options))
+- (!) **PodmanCliOptions** (YAML key: `podman_cli_options` | JSON key: `podmanCliOptions`) [array(string)] *optional* : Podman `create`/`run` specific options.
 
 **&ast;** One of these configuration option is required. If **ContainerName** is provided, the **BaseName**, **NamePrefix**, **CurrentSuffix** and **PreviousSuffix**, will be ignored.
 
@@ -100,7 +106,7 @@ dot container config sample /path/to/target_file.json --format json
   - **Driver** (YAML|JSON key: `driver`) [string] *optional* : IPAM driver (defaults to `default` if omitted).
   - **Config** (YAML|JSON key: `config`) [NetworkIpamConfig] **required** : IPAM config options. 
     - **Subnet** (YAML|JSON key: `subnet`) [string] **required** : Network subnet.
-    - **IpRange** (YAML key: `` | JSON key: `ipRange`) [string] **required** : Network IP range (CIDR).
+    - **IpRange** (YAML key: `ip_range` | JSON key: `ipRange`) [string] **required** : Network IP range (CIDR).
     - **Gateway** (YAML|JSON key: `gateway`) [string] *optional* : Network gateway address.
     - **AuxAddresses** (YAML key: `aux_addresses` | JSON key: `auxAddresses`) [dictionary(Key-Value)] *optional* : Auxiliary IPv4 or IPv6 addresses used by Network driver, as a mapping from hostname to IP.
       - `Key` [string] **required** : Hostname.

@@ -44,7 +44,7 @@ dot <command> <subcommand> --help
 
 ### `containers`
 
-Docker containers management tool. The subcommand work in a similar way to `docker-compose`, but with the ability to target individual services (containers).
+Docker/Podman containers management tool. The subcommand work in a similar way to `docker-compose`, but with the ability to target individual services (containers).
 The subcommands allows for containers manipulation based on configuration files written in YAML or JSON.
 The new `containers` command replaces the old `container` one (v1).
 
@@ -54,12 +54,12 @@ The new `containers` command replaces the old `container` one (v1).
 
 #### Subcommands
 
-- `up` - Create/Update Docker containers based on YAML/JSON configuration files
-- `down` - Remove Docker containers based on YAML/JSON configuration files
-- `backup` - Backup Docker containers volumes based on YAML/JSON configuration files
-- `start` - Start Docker containers based on YAML/JSON configuration files
-- `stop` - Stop Docker containers based on YAML/JSON configuration files
-- `restart` - Restart Docker containers based on YAML/JSON configuration files
+- `up` - Create/Update Docker/Podman containers based on YAML/JSON configuration files
+- `down` - Remove Docker/Podman containers based on YAML/JSON configuration files
+- `backup` - Backup Docker/Podman containers volumes based on YAML/JSON configuration files
+- `start` - Start Docker/Podman containers based on YAML/JSON configuration files
+- `stop` - Stop Docker/Podman containers based on YAML/JSON configuration files
+- `restart` - Restart Docker/Podman containers based on YAML/JSON configuration files
 - `config` - YAML/JSON configuration files generator/checker
    - `validate` - Validate existing YAML/JSON configuration file
    - `sample` - Generate new sample YAML/JSON configuration file

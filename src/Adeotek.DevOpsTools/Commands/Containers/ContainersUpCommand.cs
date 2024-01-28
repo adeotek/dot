@@ -1,5 +1,5 @@
 ﻿using Adeotek.DevOpsTools.CommandsSettings.Containers;
-using Adeotek.Extensions.Docker.Config;
+using Adeotek.Extensions.Containers.Config;
 
 namespace Adeotek.DevOpsTools.Commands.Containers;
 
@@ -14,7 +14,7 @@ internal sealed class ContainersUpCommand : ContainersBaseCommand<ContainersUpSe
     
     protected override void ExecuteContainerCommand(ContainersConfig config)
     {
-        var dockerManager = GetDockerManager();
+        var containersManager = GetContainersManager();
         var networks = config.Networks.ToNetworksEnumerable().ToList();
         var first = true;
         foreach (var service in GetTargetServices(config, _settings?.ServiceName))
@@ -28,37 +28,26 @@ internal sealed class ContainersUpCommand : ContainersBaseCommand<ContainersUpSe
                 PrintSeparator();
             }
             
-            if (dockerManager.ContainerExists(service.CurrentName))
+            if (containersManager.ContainerExists(service.CurrentName))
             {
                 if (!Upgrade)
                 {
                     PrintMessage($"<{service.ServiceName}> Container already present, nothing to do!", _successColor, separator: IsVerbose);
                     continue;
                 }
-                
-                if (Backup && service.Volumes is not null && service.Volumes.Length > 0)
+
+                if (Backup)
                 {
-                    Changes += service.Volumes
-                        .Sum(x => dockerManager.BackupVolume(x, _settings?.BackupLocation ?? "", IsDryRun));
-        
-                    if (IsDryRun)
-                    {
-                        PrintMessage($"<{service.ServiceName}> Volumes backup finished.", _standardColor, separator: IsVerbose);
-                        PrintMessage("Dry run: No changes were made!", _warningColor);
-                    }
-                    else
-                    {
-                        PrintMessage($"<{service.ServiceName}> Volumes backup done!", _successColor, separator: IsVerbose);
-                    }
+                    BackupServiceVolumes(service, _settings?.BackupLocation, containersManager);    
                 }
         
                 PrintMessage($"<{service.ServiceName}> Container already present, updating it.", _warningColor);
-                Changes += dockerManager.UpgradeService(service, networks, Replace, Force, IsDryRun);
+                Changes += containersManager.UpgradeService(service, networks, Replace, Force, IsDryRun);
                 continue;
             }
         
             PrintMessage($"<{service.ServiceName}> Container not fond, creating new one.");
-            Changes += dockerManager.CheckAndCreateService(service, networks, AutoStart, IsDryRun);
+            Changes += containersManager.CheckAndCreateService(service, networks, AutoStart, IsDryRun);
         
             if (Changes == 0)
             {

@@ -1,6 +1,6 @@
 ﻿using Adeotek.DevOpsTools.CommandsSettings.Containers;
-using Adeotek.Extensions.Docker;
-using Adeotek.Extensions.Docker.Config;
+using Adeotek.Extensions.Containers;
+using Adeotek.Extensions.Containers.Config;
 
 using Spectre.Console.Cli;
 
@@ -12,7 +12,7 @@ internal class ContainersConfigValidateCommand : CommandBase<ContainersConfigVal
     
     protected override int ExecuteCommand(CommandContext context, ContainersConfigValidateSettings settings)
     {
-        var config = DockerConfigManager.LoadContainersConfig(settings.ConfigFile);
+        var config = ContainersConfigManager.LoadContainersConfig(settings.ConfigFile);
         bool hasErrors = false;
 
         if (config.Services.Count == 0)

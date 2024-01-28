@@ -6,13 +6,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adeotek.Extensions.Processe
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3E60B3A3-598E-4093-9F13-BF67895AD637}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adeotek.Extensions.Docker", "src\Adeotek.Extensions.Docker\Adeotek.Extensions.Docker.csproj", "{D55E158C-817B-4B11-8859-AB9255568194}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adeotek.Extensions.Containers", "src\Adeotek.Extensions.Containers\Adeotek.Extensions.Containers.csproj", "{D55E158C-817B-4B11-8859-AB9255568194}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{64532DF7-DF7E-4CDF-8494-9C2EBF570AC1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adeotek.Extensions.Processes.Tests", "tests\Adeotek.Extensions.Processes.Tests\Adeotek.Extensions.Processes.Tests.csproj", "{E55C2AB6-77B6-4D5A-9246-FC0A6FE77532}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adeotek.Extensions.Docker.Tests", "tests\Adeotek.Extensions.Docker.Tests\Adeotek.Extensions.Docker.Tests.csproj", "{BA878BA6-EC2F-4AAC-BF0A-C3AEE96D0819}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adeotek.Extensions.Containers.Tests", "tests\Adeotek.Extensions.Containers.Tests\Adeotek.Extensions.Containers.Tests.csproj", "{BA878BA6-EC2F-4AAC-BF0A-C3AEE96D0819}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adeotek.DevOpsTools.Helpers", "src\Adeotek.DevOpsTools.Helpers\Adeotek.DevOpsTools.Helpers.csproj", "{02E2A136-3656-4450-B321-ED12C15651C0}"
 EndProject

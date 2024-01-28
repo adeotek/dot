@@ -1,59 +1,5 @@
-﻿
-
-services:
-  web-server:
-    image: nginx # [<registry>/][<project>/]<image>[:<tag>|@<digest>]
-    pull_policy: missing # always/never/missing/build* (build is not supported)
-    restart: unless-stopped # no/always/on-failure/unless-stopped
-    container_name: nginx-proxy
-    expose:
-      - "80"
-      - "443"
-    ports: # [HOST:]CONTAINER[/PROTOCOL]
-      - "80"
-      - "8443:443"
-    volumes:
-      - "/opt/nginx/data:/data:rw" # short: VOLUME:CONTAINER_PATH:ACCESS_MODE
-      - type: volume
-        source: db-data
-        target: /data
-        volume:
-          nocopy: true
-          
-    env_file: .env-file # or list
-    environment:
-      TZ: Europe/Bucharest
-      APP_ENV: PROD
-    
-    
-    attach: true
-    entrypoint: /code/entrypoint.sh
-    command: [ "bundle", "exec", "thin", "-p", "3000" ] # or: bundle exec thin -p 3000
-    dns:
-      - 8.8.8.8
-      - 8.8.4.4
-    hostname: sys--nginx
-    extra_hosts:
-      host.docker.internal: host-gateway # or - "host.docker.internal:host-gateway"
-    links: # network linked services
-      - db
-      - db:database
-      - redis
-    networks:
-      network-1:
-        ipv4_address: 172.16.238.10
-        ipv6_address: 2001:3984:3989::10
-        aliases:
-          - a1
-          - b1
-      network-2:
-        aliases:
-          - a2
-    
-    privileged: # TODO maybe
-    labels: # TODO
-      com.domain.description: container desc
-      com.domain.title: container title
+﻿services:
+  some-service:  
     healthcheck: # TODO
       test: [ "CMD", "curl", "-f", "http://localhost" ]
       interval: 1m30s
@@ -61,20 +7,9 @@ services:
       retries: 3
       start_period: 40s
       start_interval: 5s
-        
     depends_on: # TODO
       - a
       - b
-        
-networks:
-  shared-network-1:
-    name: host
-    external: true
-  private-net:
-    name: prv-net
-    attachable: true
-    driver: bridge
-    internal: false
 
 volumes: # TODO
   some-storage:

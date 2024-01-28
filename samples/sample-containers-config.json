@@ -7,6 +7,7 @@
       "baseName": "<base-container-name>",
       "currentSuffix": "<optional-container-name-suffix>",
       "previousSuffix": "<optional-demoted-container-name-suffix>",
+      "privileged": true,
       "ports": [
         {
           "target": "80"
@@ -59,7 +60,11 @@
         "8.8.4.4"
       ],
       "restart": "unless-stopped",
-      "dockerCommandOptions": [
+      "labels": {
+        "com.example.description": "Nginx web server",
+        "com.example.scope": "webserver"
+      },
+      "initCliOptions": [
         "-d",
         "--memory 256MB"
       ]
@@ -101,7 +106,11 @@
         }
       },
       "restart": "always",
-      "dockerCommandOptions": [
+      "labels": {
+        "com.example.description": "Redis cache",
+        "com.example.scope": "data storage"
+      },
+      "initCliOptions": [
         "-d",
         "--memory 1GB"
       ]
@@ -119,8 +128,8 @@
       "driver": "bridge",
       "ipam": {
         "config": {
-          "subnet": "172.20.1.1/24",
-          "ipRange": "172.20.1.1/26"
+          "subnet": "172.20.1.0/24",
+          "ipRange": "172.20.1.0/26"
         }
       },
       "external": true

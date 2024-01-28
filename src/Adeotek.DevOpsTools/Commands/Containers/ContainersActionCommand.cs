@@ -1,5 +1,5 @@
 ﻿using Adeotek.DevOpsTools.CommandsSettings.Containers;
-using Adeotek.Extensions.Docker.Config;
+using Adeotek.Extensions.Containers.Config;
 
 namespace Adeotek.DevOpsTools.Commands.Containers;
 
@@ -9,10 +9,10 @@ internal sealed class ContainersActionCommand : ContainersBaseCommand<Containers
     
     protected override void ExecuteContainerCommand(ContainersConfig config)
     {
-        var dockerManager = GetDockerManager();
+        var containersManager = GetContainersManager();
         foreach (var service in GetTargetServices(config, _settings?.ServiceName))
         {
-            if (!dockerManager.ContainerExists(service.CurrentName))
+            if (!containersManager.ContainerExists(service.CurrentName))
             {
                 PrintMessage($"<{service.ServiceName}> Container not found, unable to perform {_commandName} action!", _errorColor);
                 continue;
@@ -21,9 +21,9 @@ internal sealed class ContainersActionCommand : ContainersBaseCommand<Containers
             PrintMessage($"<{service.ServiceName}> Executing {_commandName} command...");
             Changes += _commandName switch
             {
-                "start" => dockerManager.StartContainer(service.CurrentName, IsDryRun),
-                "stop" => dockerManager.StopContainer(service.CurrentName, IsDryRun),
-                "restart" => dockerManager.RestartService(service.CurrentName, IsDryRun),
+                "start" => containersManager.StartContainer(service.CurrentName, IsDryRun),
+                "stop" => containersManager.StopContainer(service.CurrentName, IsDryRun),
+                "restart" => containersManager.RestartService(service.CurrentName, IsDryRun),
                 _ => throw new NotImplementedException($"Unknown command: {_commandName}")
             };
 
