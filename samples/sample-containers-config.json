@@ -7,6 +7,7 @@
       "baseName": "<base-container-name>",
       "currentSuffix": "<optional-container-name-suffix>",
       "previousSuffix": "<optional-demoted-container-name-suffix>",
+      "privileged": true,
       "ports": [
         {
           "target": "80"
@@ -59,6 +60,10 @@
         "8.8.4.4"
       ],
       "restart": "unless-stopped",
+      "labels": {
+        "com.example.description": "Nginx web server",
+        "com.example.scope": "webserver"
+      },
       "initCliOptions": [
         "-d",
         "--memory 256MB"
@@ -101,6 +106,10 @@
         }
       },
       "restart": "always",
+      "labels": {
+        "com.example.description": "Redis cache",
+        "com.example.scope": "data storage"
+      },
       "initCliOptions": [
         "-d",
         "--memory 1GB"

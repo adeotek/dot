@@ -50,6 +50,7 @@ internal static class AnsiConsolePrintExtensions
             .Style(LabelColor, "BaseName:", NameLength).Style(ValueColor, service.BaseName ?? Null).LineBreak()
             .Style(LabelColor, "CurrentSuffix:", NameLength).Style(ValueColor, service.CurrentSuffix ?? Null).LineBreak()
             .Style(LabelColor, "PreviousSuffix:", NameLength).Style(ValueColor, service.PreviousSuffix ?? Null).LineBreak()
+            .Style(LabelColor, "Privileged:", NameLength).Style(ValueColor, service.Privileged ? "Yes" : "No").LineBreak()
             .Style(LabelColor, "Ports:", NameLength).AddConfigPorts(service.Ports)
             .Style(LabelColor, "Volumes:", NameLength).AddConfigVolumes(service.Volumes)
             .Style(LabelColor, "EnvFiles:", NameLength)
@@ -66,6 +67,7 @@ internal static class AnsiConsolePrintExtensions
             .Style(LabelColor, "Entrypoint:", NameLength).Style(ValueColor, service.Entrypoint ?? Null).LineBreak()
             .Style(LabelColor, "Command:", NameLength)
             .Style(ValueColor, service.Command is null ? Null : string.Join(" ", service.Command)).LineBreak()
+            .Style(LabelColor, "Labels:", NameLength).AddConfigLabels(service.Labels)
             .Style(LabelColor, "Expose:", NameLength)
             .Style(ValueColor, service.Expose is null ? Null : string.Join("; ", service.Expose)).LineBreak()
             .Style(LabelColor, "InitCliOptions:", NameLength)
@@ -283,6 +285,32 @@ internal static class AnsiConsolePrintExtensions
             }
             composer.Style(SpecialValueColor, key)
                 .Text(":").Style(ValueColor, value).LineBreak();
+        }
+
+        return composer;
+    }
+    
+    internal static CustomComposer AddConfigLabels(this CustomComposer composer, Dictionary<string, string>? labels)
+    {
+        if (labels is null || labels.Count == 0)
+        {
+            return composer.Style(ValueColor, "[None]").LineBreak();
+        }
+        
+        var first = true;
+        foreach ((string key, string value) in labels)
+        {
+            if (first)
+            {
+                first = false;
+            }
+            else
+            {
+                composer.Repeat(SubValuePrefix, NameLength - 1).Space();
+            }
+            
+            composer.Style(SpecialValueColor, key)
+                .Text("=").Style(ValueColor, value).LineBreak();
         }
 
         return composer;

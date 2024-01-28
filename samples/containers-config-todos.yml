@@ -1,9 +1,5 @@
 ﻿services:
   some-service:  
-    privileged: # TODO maybe
-    labels: # TODO
-      com.domain.description: container desc
-      com.domain.title: container title
     healthcheck: # TODO
       test: [ "CMD", "curl", "-f", "http://localhost" ]
       interval: 1m30s

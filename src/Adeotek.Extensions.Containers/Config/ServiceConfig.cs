@@ -52,6 +52,11 @@ public class ServiceConfig
     [YamlMember(Alias = "previous_suffix")]
     public string? PreviousSuffix { get; set; }
     /// <summary>
+    /// Sets the container to run with elevated privileges.
+    /// </summary>
+    [YamlMember(Alias = "privileged")]
+    public bool Privileged { get; set; }
+    /// <summary>
     /// Container's ports to expose.
     /// </summary>
     [YamlMember(Alias = "ports")]
@@ -118,6 +123,11 @@ public class ServiceConfig
     /// </summary>
     [YamlMember(Alias = "command")]
     public string[]? Command { get; set; }
+    /// <summary>
+    /// Container labels.
+    /// </summary>
+    [YamlMember(Alias = "labels")]
+    public Dictionary<string, string>? Labels { get; set; }
     /// <summary>
     /// Docker/Podman `create`/`run` command options.
     /// [NOT SUPPORTED by Docker Compose]

@@ -3,6 +3,7 @@
     image: nginx:latest
     pull_policy: missing
     container_name: nginx-proxy
+    privileged: true
     ports:
       - "80"
       - "8443:443"
@@ -31,6 +32,9 @@
       - 8.8.8.8
       - 8.8.4.4
     restart: unless-stopped
+    labels:
+      "com.example.description": Nginx web server
+      "com.example.scope": webserver
     init_cli_options:
       - -d
       - --memory 256MB
@@ -60,6 +64,9 @@
         aliases:
           - redis-cache
     restart: always
+    labels: 
+      "com.example.description": Redis cache
+      "com.example.scope": data storage
     init_cli_options:
       - -d
       - --memory 1GB

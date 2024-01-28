@@ -1667,9 +1667,16 @@ public class ContainersCliTests
         StringBuilder sb = new();
         var isRun = autoStart && (config.Networks?.Count ?? 0) < 2;
         sb.Append(isRun ? "run " : "create ");
-        var initCliOptions = config.InitCliOptions is not null && config.InitCliOptions.Length > 0
-            ? config.InitCliOptions.ToList()
-            : new[] { "-d" }.ToList();
+        var initCliOptions = new List<string>();
+        if (config.Privileged)
+        {
+            initCliOptions.Add("--privileged");
+        }
+        
+        initCliOptions.AddRange(config.InitCliOptions is not null && config.InitCliOptions.Length > 0
+                ? config.InitCliOptions
+                : new[] { "-d" }); 
+        
         if (!isRun)
         {
             initCliOptions = initCliOptions.Where(x => x != "-d").ToList();
@@ -1710,6 +1717,7 @@ public class ContainersCliTests
         sb.AppendForEach(config.ExtraHosts, x => $"--add-host {x.Key}:{x.Value} ");
         sb.AppendForEach(config.Dns, x => $"--dns {x} ");
         sb.AppendForEach(config.Expose, x => $"--expose {x} ");
+        sb.AppendForEach(config.Labels, x => $"-l \"{x.Key}\"=\"{x.Value}\" ");
         sb.Append($"--restart={config.Restart ?? "unless-stopped"} ");
         sb.Append($"--pull={config.PullPolicy ?? "missing"} ");
         sb.Append($"{config.Image}");

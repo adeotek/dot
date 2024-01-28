@@ -6,6 +6,7 @@ services:
     base_name: <base-container-name>
     current_suffix: <optional-container-name-suffix>
     previous_suffix: <optional-demoted-container-name-suffix>
+    privileged: true
     ports:
     - target: "8080"
       published: "8000"
@@ -52,7 +53,10 @@ services:
     - <container-startup-command>
     - --some-arg=123
     - --flag-arg
-    init_cli_command_options:
+    labels:
+      com.example.description: Some description for the service
+      com.example.scope: backend
+    init_cli_options:
     - -it
     - <any-docker-run-option>
   second-service:
@@ -75,6 +79,9 @@ services:
     extra_hosts:
       host.docker.internal: host-gateway
     restart: '<optional-restart-mode (default: unless-stopped)>'
+    labels:
+      com.example.description: Another description for the second service
+      com.example.scope: backend
 networks:
   some-network:
     name: <some-docker-network-name>

@@ -7,6 +7,7 @@
       "baseName": "<base-container-name>",
       "currentSuffix": "<optional-container-name-suffix>",
       "previousSuffix": "<optional-demoted-container-name-suffix>",
+      "privileged": true,
       "ports": [
         {
           "target": "8080",
@@ -74,6 +75,10 @@
         "--some-arg=123",
         "--flag-arg"
       ],
+      "labels": {
+        "com.example.description": "Some description for the service",
+        "com.example.scope": "backend"
+      },
       "initCliOptions": [
         "-it",
         "<any-docker-run-option>"
@@ -110,7 +115,11 @@
       "extraHosts": {
         "host.docker.internal": "host-gateway"
       },
-      "restart": "<optional-restart-mode (default: unless-stopped)>"
+      "restart": "<optional-restart-mode (default: unless-stopped)>",
+      "labels": {
+        "com.example.description": "Another description for the second service",
+        "com.example.scope": "backend"
+      }
     }
   },
   "networks": {

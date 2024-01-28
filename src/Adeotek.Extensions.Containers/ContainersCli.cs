@@ -61,6 +61,7 @@ public class ContainersCli
             .AddExtraHostsArgs(serviceConfig.ExtraHosts)
             .AddDnsArgs(serviceConfig.Dns)
             .AddExposedPortsArgs(serviceConfig.Expose)
+            .AddLabelsArgs(serviceConfig.Labels)
             .AddRestartArg(serviceConfig.Restart)
             .AddPullPolicyArg(serviceConfig.PullPolicy)
             .AddArg(serviceConfig.Image)

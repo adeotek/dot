@@ -83,6 +83,7 @@ public class ContainersConfigManager : ConfigManager
                         BaseName = "<base-container-name>",
                         CurrentSuffix = "<optional-container-name-suffix>",
                         PreviousSuffix = "<optional-demoted-container-name-suffix>",
+                        Privileged = true,
                         Ports = new PortMapping[]
                         {
                             new() { Published = "8000", Target = "8080", HostIp = "0.0.0.0", Protocol = "tcp" },
@@ -154,6 +155,11 @@ public class ContainersConfigManager : ConfigManager
                             "--some-arg=123",
                             "--flag-arg"
                         },
+                        Labels = new Dictionary<string, string>
+                        {
+                            { "com.example.description", "Some description for the service" }, 
+                            { "com.example.scope", "backend" }
+                        },
                         InitCliOptions = new []
                         {
                             "-it",
@@ -203,7 +209,12 @@ public class ContainersConfigManager : ConfigManager
                         {
                             { "host.docker.internal", "host-gateway" }
                         },
-                        Restart = "<optional-restart-mode (default: unless-stopped)>"
+                        Restart = "<optional-restart-mode (default: unless-stopped)>",
+                        Labels = new Dictionary<string, string>
+                        {
+                            { "com.example.description", "Another description for the second service" }, 
+                            { "com.example.scope", "backend" }
+                        },
                     }
                 }
             },

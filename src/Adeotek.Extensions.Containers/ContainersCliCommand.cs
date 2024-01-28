@@ -56,6 +56,11 @@ public class ContainersCliCommand : ShellCommand
     public ContainersCliCommand AddInitCliOptionsArgs(ServiceConfig serviceConfig, bool isRun = true)
     {
         List<string> options = new();
+
+        if (serviceConfig.Privileged)
+        {
+            options.Add("--privileged");
+        }
         
         if (serviceConfig.InitCliOptions is not null && serviceConfig.InitCliOptions.Length > 0)
         {
@@ -265,6 +270,20 @@ public class ContainersCliCommand : ShellCommand
         foreach (var entry in dns)
         {
             AddArg($"--dns {entry}");
+        }
+        return this;
+    }
+    
+    public ContainersCliCommand AddLabelsArgs(Dictionary<string, string>? labels)
+    {
+        if (labels is null || labels.Count == 0)
+        {
+            return this;
+        }
+        
+        foreach ((string name, string value) in labels)
+        {
+            AddArg($"-l \"{name}\"=\"{value}\"");
         }
         return this;
     }
