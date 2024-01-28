@@ -234,8 +234,8 @@ public class ContainersConfigManager : ConfigManager
                             Driver = "default",
                             Config = new NetworkIpamConfig
                             {
-                                Subnet = "172.17.0.1/24",
-                                IpRange = "172.17.0.1/26",
+                                Subnet = "172.17.0.0/24",
+                                IpRange = "172.17.0.0/26",
                                 Gateway = "172.17.0.1"
                             }
                         }

@@ -14,7 +14,7 @@ namespace Adeotek.DevOpsTools.Commands.Containers;
 internal abstract class ContainersBaseCommand<TSettings> 
     : CommandBase<TSettings> where TSettings : ContainersSettings
 {
-    protected string CliFlavor => (_settings?.UsePodman ?? false) ? "docker" : "podman";
+    protected string CliFlavor => (_settings?.UsePodman ?? false) ? "podman" : "docker";
     protected bool IsDryRun => _settings?.DryRun ?? false;
     protected abstract void ExecuteContainerCommand(ContainersConfig config);
 
@@ -98,7 +98,7 @@ internal abstract class ContainersBaseCommand<TSettings>
             {
                 PrintMessage($"<{service?.ServiceName}> {volume.Source} volume backup done -> {backupFile}", _standardColor);
             }
-            else
+            else if (!volume.SkipBackup)
             {
                 PrintMessage($"<{service?.ServiceName}> {volume.Source} volume backup failed!", _warningColor);
             }

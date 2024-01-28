@@ -129,8 +129,8 @@
       "ipam": {
         "driver": "default",
         "config": {
-          "subnet": "172.17.0.1/24",
-          "ipRange": "172.17.0.1/26",
+          "subnet": "172.17.0.0/24",
+          "ipRange": "172.17.0.0/26",
           "gateway": "172.17.0.1"
         }
       },
