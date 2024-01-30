@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Adeotek.Extensions.ConfigFiles\Adeotek.Extensions.ConfigFiles.csproj" />
+    <ProjectReference Include="..\Adeotek.Extensions.ConfigFiles\Adeotek.Extensions.ConfigFiles.csproj" />
     <ProjectReference Include="..\Adeotek.Extensions.Processes\Adeotek.Extensions.Processes.csproj" />
   </ItemGroup>
 
