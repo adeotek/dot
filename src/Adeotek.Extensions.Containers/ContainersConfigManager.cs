@@ -3,7 +3,6 @@ using System.Text.Json;
 
 using Adeotek.Extensions.ConfigFiles;
 using Adeotek.Extensions.Containers.Config;
-using Adeotek.Extensions.Containers.Config.V1;
 using Adeotek.Extensions.Containers.Converters;
 
 using YamlDotNet.Serialization;
@@ -14,17 +13,10 @@ namespace Adeotek.Extensions.Containers;
 [ExcludeFromCodeCoverage]
 public class ContainersConfigManager : ConfigManager
 {
-    public static ContainersConfig LoadContainersConfig(string? configFile, string? version = null)
+    public static ContainersConfig LoadContainersConfig(string? configFile)
     {
         var configManager = new ContainersConfigManager();
-        if (version != "v1")
-        {
-            return configManager.LoadConfig<ContainersConfig>(configFile); 
-        }
-
-        configManager.YamlNamingConvention = PascalCaseNamingConvention.Instance;
-        var configV1 = configManager.LoadConfig<ContainerConfigV1>(configFile);
-        return configV1.ToContainersConfig();
+        return configManager.LoadConfig<ContainersConfig>(configFile);
     }
 
     protected override T LoadConfigFromYamlString<T>(string data)

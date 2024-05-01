@@ -1,8 +1,7 @@
 ﻿# Containers Configuration 
-This page contains information about the `containers` command configuration files.
-The `containers` command supports both YAML and JSON formats for the container configuration.
-
-**New**: With the new `containers` command, the configuration file structure is mostly compatible with `docker-compose` configuration files.
+This page contains information about the `containers`/`container` command configuration files.
+The `containers`/`container` command supports both YAML and JSON formats for the container configuration.
+The YAML configuration file structure is compatible with `docker-compose` configuration files, with a few small caveats.
 
 **_Warning_**: there are a few options specific to this tool that are not used/recognize by `docker-compose`.
 

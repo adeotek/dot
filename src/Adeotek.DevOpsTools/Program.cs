@@ -12,40 +12,10 @@ app.Configure(configurator =>
 {
     configurator.SetApplicationName("dot");
     configurator.SetHelpProvider(new DefaultHelpProvider(configurator.Settings));
-    configurator.SetExceptionHandler(e =>
+    configurator.SetExceptionHandler((e, _) =>
     {
         AnsiConsole.WriteException(e, ExceptionFormats.ShortenEverything);
         return 1;
-    });
-
-    configurator.AddBranch("container", containers =>
-    {
-        containers.SetDescription("Manage Docker/Podman containers (deprecated)");
-        containers.AddCommand<ContainersUpCommand>("up")
-            .WithDescription("Create/Update Docker/Podman containers")
-            .WithData("v1");
-        containers.AddCommand<ContainersDownCommand>("down")
-            .WithDescription("Remove Docker/Podman containers")
-            .WithData("v1");
-        containers.AddCommand<ContainersActionCommand>("start")
-            .WithDescription("Start Docker/Podman containers")
-            .WithData("v1");
-        containers.AddCommand<ContainersActionCommand>("stop")
-            .WithDescription("Stop Docker/Podman containers")
-            .WithData("v1");
-        containers.AddCommand<ContainersActionCommand>("restart")
-            .WithDescription("Restart Docker/Podman containers")
-            .WithData("v1");
-        containers.AddBranch("config", config =>
-        {
-            config.SetDescription("Validate/Generate Docker/Podman containers config files");
-            config.AddCommand<ContainersConfigValidateCommand>("validate")
-                .WithDescription("Validate Docker/Podman container config file")
-                .WithData("v1");
-            config.AddCommand<ContainersConfigSampleCommand>("sample")
-                .WithDescription("Generate Docker/Podman container config sample file")
-                .WithData("v1");
-        });
     });
 
     configurator.AddBranch("containers", containers =>
@@ -71,7 +41,7 @@ app.Configure(configurator =>
             config.AddCommand<ContainersConfigSampleCommand>("sample")
                 .WithDescription("Generate Docker/Podman container config sample file");
         });
-    });
+    }).WithAlias("container");
 
     configurator.AddBranch("email", email =>
     {

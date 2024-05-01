@@ -8,14 +8,11 @@ using YamlDotNet.Serialization;
 
 namespace Adeotek.Extensions.Containers.Converters;
 
-public class VolumeConfigYamlTypeConverter : CustomBaseYamlTypeConverter<VolumeConfig>
+public class VolumeConfigYamlTypeConverter(
+    IValueSerializer? valueSerializer = null,
+    IValueDeserializer? valueDeserializer = null)
+    : CustomBaseYamlTypeConverter<VolumeConfig>(valueSerializer, valueDeserializer)
 {
-    public VolumeConfigYamlTypeConverter(
-        IValueSerializer? valueSerializer = null, 
-        IValueDeserializer? valueDeserializer = null)
-        : base(valueSerializer, valueDeserializer)
-    { }
-    
     protected override bool TryCustomParse(IParser parser, out VolumeConfig? value)
     {
         if (!parser.TryConsume<Scalar>(out var scalar))

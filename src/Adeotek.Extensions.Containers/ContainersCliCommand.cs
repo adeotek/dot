@@ -64,11 +64,11 @@ public class ContainersCliCommand : ShellCommand
             options.Add("--privileged");
         }
         
-        if (serviceConfig.InitCliOptions is not null && serviceConfig.InitCliOptions.Length > 0)
+        if (serviceConfig.InitCliOptions is not null && serviceConfig.InitCliOptions.Value.Value.Length > 0)
         {
-            options.AddRange(isRun 
-                ? serviceConfig.InitCliOptions 
-                : serviceConfig.InitCliOptions.Where(x => x != "-d"));
+            options.AddRange(isRun
+                ? serviceConfig.InitCliOptions.Value.Value
+                : serviceConfig.InitCliOptions.Value.Value.Where(x => x != "-d"));
         }
         else if (isRun)
         {
@@ -76,14 +76,14 @@ public class ContainersCliCommand : ShellCommand
         }
         
         if (Command == "docker" &&
-            serviceConfig.DockerCliOptions is not null && serviceConfig.DockerCliOptions.Length > 0)
+            serviceConfig.DockerCliOptions is not null && serviceConfig.DockerCliOptions.Value.Value.Length > 0)
         {
-            options.AddRange(serviceConfig.DockerCliOptions);
+            options.AddRange(serviceConfig.DockerCliOptions.Value.Value);
         }
         else if (Command != "docker" && 
-            serviceConfig.PodmanCliOptions is not null && serviceConfig.PodmanCliOptions.Length > 0)
+            serviceConfig.PodmanCliOptions is not null && serviceConfig.PodmanCliOptions.Value.Value.Length > 0)
         {
-            options.AddRange(serviceConfig.PodmanCliOptions);
+            options.AddRange(serviceConfig.PodmanCliOptions.Value.Value);
         }
             
         return options.Count > 0 ? AddArg(string.Join(' ', options).Trim()) : this;
@@ -93,7 +93,7 @@ public class ContainersCliCommand : ShellCommand
     {
         AddArgIf($"--entrypoint {serviceConfig.Entrypoint}", !string.IsNullOrEmpty(serviceConfig.Entrypoint));
         
-        if (serviceConfig.Command is null || serviceConfig.Command.Length == 0)
+        if (serviceConfig.Command is null || serviceConfig.Command.Value.Value.Length == 0)
         {
             return this;
         }

@@ -1673,8 +1673,8 @@ public class ContainersCliTests
             initCliOptions.Add("--privileged");
         }
         
-        initCliOptions.AddRange(config.InitCliOptions is not null && config.InitCliOptions.Length > 0
-                ? config.InitCliOptions
+        initCliOptions.AddRange(config.InitCliOptions is not null && config.InitCliOptions.Value.Value.Length > 0
+                ? config.InitCliOptions.Value.Value
                 : new[] { "-d" }); 
         
         if (!isRun)
@@ -1682,9 +1682,9 @@ public class ContainersCliTests
             initCliOptions = initCliOptions.Where(x => x != "-d").ToList();
         }
 
-        if (config.DockerCliOptions is not null && config.DockerCliOptions.Length > 0)
+        if (config.DockerCliOptions is not null && config.DockerCliOptions.Value.Value.Length > 0)
         {
-            initCliOptions.AddRange(config.DockerCliOptions);
+            initCliOptions.AddRange(config.DockerCliOptions.Value.Value);
         }
 
         if (initCliOptions.Count > 0)
@@ -1702,7 +1702,7 @@ public class ContainersCliTests
             .Append(' ')
             .ToString());
         sb.AppendForEach(config.Volumes, x => $"-v {x.Source}:{x.Target}{(x.ReadOnly ? ":ro" : "")} ");
-        sb.AppendForEach(config.EnvFiles, x => $"--env-file {x} ");
+        sb.AppendForEach(config.EnvFiles?.Value, x => $"--env-file {x} ");
         sb.AppendForEach(config.EnvVars, x => $"-e {x.Key}={x.Value} ");
         var defaultNetwork = config.Networks?.FirstOrDefault();
         if (defaultNetwork is not null)
@@ -1713,16 +1713,16 @@ public class ContainersCliTests
             sb.AppendIfNotNullOrEmpty($"--ip6={defaultNetwork.Value.Value?.IpV6Address} ", defaultNetwork.Value.Value?.IpV6Address);
             sb.AppendForEach(defaultNetwork.Value.Value?.Aliases, x => $"--network-alias={x} ");
         }
-        sb.AppendForEach(config.Links, x => $"--link {x} ");
+        sb.AppendForEach(config.Links?.Value, x => $"--link {x} ");
         sb.AppendForEach(config.ExtraHosts, x => $"--add-host {x.Key}:{x.Value} ");
-        sb.AppendForEach(config.Dns, x => $"--dns {x} ");
-        sb.AppendForEach(config.Expose, x => $"--expose {x} ");
+        sb.AppendForEach(config.Dns?.Value, x => $"--dns {x} ");
+        sb.AppendForEach(config.Expose?.Value, x => $"--expose {x} ");
         sb.AppendForEach(config.Labels, x => $"-l \"{x.Key}\"=\"{x.Value}\" ");
         sb.Append($"--restart={config.Restart ?? "unless-stopped"} ");
         sb.Append($"--pull={config.PullPolicy ?? "missing"} ");
         sb.Append($"{config.Image}");
         sb.AppendIfNotNullOrEmpty($" --entrypoint {config.Entrypoint}", config.Entrypoint);
-        if (config.Command is not null && config.Command.Length > 0)
+        if (config.Command is not null && config.Command.Value.Value.Length > 0)
         {
             sb.Append($" {string.Join(' ', config.Command).Trim()} ");
         }
