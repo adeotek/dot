@@ -1,4 +1,5 @@
 ﻿using Adeotek.DevOpsTools.CommandsSettings.Containers;
+using Adeotek.DevOpsTools.Extensions;
 using Adeotek.Extensions.Containers;
 using Adeotek.Extensions.Containers.Config;
 
@@ -13,8 +14,13 @@ internal class ContainersConfigValidateCommand : CommandBase<ContainersConfigVal
     protected override int ExecuteCommand(CommandContext context, ContainersConfigValidateSettings settings)
     {
         var config = ContainersConfigManager.LoadContainersConfig(settings.ConfigFile);
-        bool hasErrors = false;
+        if (settings.Verbose)
+        {
+            config.WriteToAnsiConsole();
+            PrintSeparator();
+        }
 
+        bool hasErrors = false;
         if (config.Services.Count == 0)
         {
             hasErrors = true;
@@ -124,7 +130,7 @@ internal class ContainersConfigValidateCommand : CommandBase<ContainersConfigVal
             return 1;
         }
 
-        PrintMessage("The config file is valid!", _successColor, IsVerbose);
+        PrintMessage("The config file is valid!", _successColor);
         Changes++;
         return 0;
     }

@@ -16,7 +16,7 @@ public class ContainersConfigManager : ConfigManager
     public static ContainersConfig LoadContainersConfig(string? configFile)
     {
         var configManager = new ContainersConfigManager();
-        return configManager.LoadConfig<ContainersConfig>(configFile);
+        return ProcessConfig(configManager.LoadConfig<ContainersConfig>(configFile), configFile);
     }
 
     protected override T LoadConfigFromYamlString<T>(string data)
@@ -26,16 +26,37 @@ public class ContainersConfigManager : ConfigManager
             var builder = new DeserializerBuilder()
                 .WithNamingConvention(YamlNamingConvention);
             return builder
-                       .WithTypeConverter(new PortMappingYamlTypeConverter(null, builder.BuildValueDeserializer()))
-                       .WithTypeConverter(new VolumeConfigYamlTypeConverter(null, builder.BuildValueDeserializer()))
-                       .Build()
-                       .Deserialize<T>(data)
-                   ?? throw new ConfigFileException("Unable to deserialize YAML config data");
+                .IgnoreUnmatchedProperties()
+                .WithTypeConverter(new StringArrayYamlTypeConverter(null, builder.BuildValueDeserializer()))
+                .WithTypeConverter(new PortMappingYamlTypeConverter(null, builder.BuildValueDeserializer()))
+                .WithTypeConverter(new VolumeConfigYamlTypeConverter(null, builder.BuildValueDeserializer()))
+                .Build()
+                .Deserialize<T>(data)
+                ?? throw new ConfigFileException("Unable to deserialize YAML config data");
         }
         catch (Exception e)
         {
             throw new ConfigFileException("Config data is not in a valid YAML format", null, e);
         }
+    }
+    
+    private static ContainersConfig ProcessConfig(ContainersConfig config, string? configFile)
+    {
+        var dirName = Path.GetFileName(Path.GetDirectoryName(configFile));
+        if (string.IsNullOrEmpty(dirName))
+        {
+            return config;
+        }
+        
+        foreach ((string key, ServiceConfig value) in config.Services
+            .Where(x => string.IsNullOrEmpty(x.Value.ContainerName)
+                && string.IsNullOrEmpty(x.Value.BaseName)))
+        {
+            value.BaseName = key;
+            value.NamePrefix = $"{dirName}-";
+        }
+        
+        return config;
     }
 
     public static string GetSerializedSampleConfig(string format)

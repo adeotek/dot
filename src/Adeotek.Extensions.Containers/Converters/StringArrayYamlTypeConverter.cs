@@ -3,30 +3,35 @@
 using YamlDotNet.Core;
 using YamlDotNet.Core.Events;
 using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.Utilities;
 
 namespace Adeotek.Extensions.Containers.Converters;
 
 public class StringArrayYamlTypeConverter(
-    IValueSerializer? valueSerializer = null,
-    IValueDeserializer? valueDeserializer = null)
-    : CustomBaseYamlTypeConverter<StringArray>(valueSerializer, valueDeserializer)
+    IValueSerializer? _valueSerializer,
+    IValueDeserializer? _valueDeserializer)
+    : IYamlTypeConverter
 {
-    protected override bool TryCustomParse(IParser parser, out StringArray value)
+    public bool Accepts(Type type) => type == typeof(StringArray) || type == typeof(StringArray?);
+    
+    public object? ReadYaml(IParser parser, Type type)
     {
-        if (!parser.TryConsume<Scalar>(out var scalar))
+        ArgumentNullException.ThrowIfNull(_valueDeserializer, "No value deserializer object provided");
+        
+        if (parser.TryConsume<Scalar>(out var scalar))
         {
-            value = default;
-            return false;
+            return new StringArray(scalar.Value);
         }
 
-        var protocolParts = scalar.Value.Split('/');
-        var parts = protocolParts[0].Split(':');
-        if (parts.Length is < 1 or > 3)
-        {
-            throw new Exception("Invalid YAML format for node of type PortMapping");
-        }
-
-        value = new StringArray();
-        return true;
+        var value = _valueDeserializer.DeserializeValue(parser, typeof(string[]), new SerializerState(), _valueDeserializer);    
+        return value is string[] standardValue
+            ? new StringArray(standardValue)
+            : throw new Exception($"Invalid YAML format for node of type {nameof(StringArray)}");
+    }
+    
+    public virtual void WriteYaml(IEmitter emitter, object? value, Type type)
+    {
+        ArgumentNullException.ThrowIfNull(_valueSerializer, "No value serializer object provided");
+        _valueSerializer.SerializeValue(emitter, value, type);
     }
 }

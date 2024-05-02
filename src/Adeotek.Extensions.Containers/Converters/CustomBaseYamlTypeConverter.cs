@@ -4,17 +4,14 @@ using YamlDotNet.Serialization.Utilities;
 
 namespace Adeotek.Extensions.Containers.Converters;
 
+// Unfortunately the API does not provide these in the ReadYaml and WriteYaml methods,
+// so we are forced to set them from the constructor.
 public abstract class CustomBaseYamlTypeConverter<T>(
-    IValueSerializer? valueSerializer,
-    IValueDeserializer? valueDeserializer)
+    IValueSerializer? _valueSerializer,
+    IValueDeserializer? _valueDeserializer)
     : IYamlTypeConverter
     where T : notnull
 {
-    // Unfortunately the API does not provide these in the ReadYaml and WriteYaml methods,
-    // so we are forced to set them from the constructor.
-    protected readonly IValueSerializer? _valueSerializer = valueSerializer;
-    protected readonly IValueDeserializer? _valueDeserializer = valueDeserializer;
-
     public bool Accepts(Type type) => type == typeof(T);
     
     public virtual object? ReadYaml(IParser parser, Type type)

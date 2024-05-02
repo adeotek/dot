@@ -136,6 +136,12 @@ public class ServiceConfig
     [YamlMember(Alias = "labels")]
     public Dictionary<string, string>? Labels { get; set; }
     /// <summary>
+    /// overrides the user used to run the container process.
+    /// The default is set by the image (i.e. Dockerfile USER). If it's not set, then root.
+    /// </summary>
+    [YamlMember(Alias = "user")]
+    public string? User { get; set; }
+    /// <summary>
     /// List of services required by the current service.
     /// </summary>
     [YamlMember(Alias = "depends_on")]
