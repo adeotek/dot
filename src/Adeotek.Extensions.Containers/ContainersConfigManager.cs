@@ -2,8 +2,8 @@
 using System.Text.Json;
 
 using Adeotek.Extensions.ConfigFiles;
+using Adeotek.Extensions.ConfigFiles.Converters;
 using Adeotek.Extensions.Containers.Config;
-using Adeotek.Extensions.Containers.Config.V1;
 using Adeotek.Extensions.Containers.Converters;
 
 using YamlDotNet.Serialization;
@@ -14,17 +14,10 @@ namespace Adeotek.Extensions.Containers;
 [ExcludeFromCodeCoverage]
 public class ContainersConfigManager : ConfigManager
 {
-    public static ContainersConfig LoadContainersConfig(string? configFile, string? version = null)
+    public static ContainersConfig LoadContainersConfig(string? configFile)
     {
         var configManager = new ContainersConfigManager();
-        if (version != "v1")
-        {
-            return configManager.LoadConfig<ContainersConfig>(configFile); 
-        }
-
-        configManager.YamlNamingConvention = PascalCaseNamingConvention.Instance;
-        var configV1 = configManager.LoadConfig<ContainerConfigV1>(configFile);
-        return configV1.ToContainersConfig();
+        return ProcessConfig(configManager.LoadConfig<ContainersConfig>(configFile), configFile);
     }
 
     protected override T LoadConfigFromYamlString<T>(string data)
@@ -34,16 +27,37 @@ public class ContainersConfigManager : ConfigManager
             var builder = new DeserializerBuilder()
                 .WithNamingConvention(YamlNamingConvention);
             return builder
-                       .WithTypeConverter(new PortMappingYamlTypeConverter(null, builder.BuildValueDeserializer()))
-                       .WithTypeConverter(new VolumeConfigYamlTypeConverter(null, builder.BuildValueDeserializer()))
-                       .Build()
-                       .Deserialize<T>(data)
-                   ?? throw new ConfigFileException("Unable to deserialize YAML config data");
+                .IgnoreUnmatchedProperties()
+                .WithTypeConverter(new StringArrayYamlTypeConverter(null, builder.BuildValueDeserializer()))
+                .WithTypeConverter(new PortMappingYamlTypeConverter(null, builder.BuildValueDeserializer()))
+                .WithTypeConverter(new VolumeConfigYamlTypeConverter(null, builder.BuildValueDeserializer()))
+                .Build()
+                .Deserialize<T>(data)
+                ?? throw new ConfigFileException("Unable to deserialize YAML config data");
         }
         catch (Exception e)
         {
             throw new ConfigFileException("Config data is not in a valid YAML format", null, e);
         }
+    }
+    
+    private static ContainersConfig ProcessConfig(ContainersConfig config, string? configFile)
+    {
+        var dirName = Path.GetFileName(Path.GetDirectoryName(configFile));
+        if (string.IsNullOrEmpty(dirName))
+        {
+            return config;
+        }
+        
+        foreach ((string key, ServiceConfig value) in config.Services
+            .Where(x => string.IsNullOrEmpty(x.Value.ContainerName)
+                && string.IsNullOrEmpty(x.Value.BaseName)))
+        {
+            value.BaseName = key;
+            value.NamePrefix = $"{dirName}-";
+        }
+        
+        return config;
     }
 
     public static string GetSerializedSampleConfig(string format)
@@ -54,11 +68,13 @@ public class ContainersConfigManager : ConfigManager
             {
                 return JsonSerializer.Serialize(GetSampleConfig(), DefaultJsonSerializerOptions);
             }
-            
-            return new SerializerBuilder()
-                .WithNamingConvention(UnderscoredNamingConvention.Instance)
+
+            var builder = new SerializerBuilder()
+                .WithNamingConvention(UnderscoredNamingConvention.Instance);
+            return builder
                 .WithQuotingNecessaryStrings()
                 .ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitDefaults | DefaultValuesHandling.OmitNull | DefaultValuesHandling.OmitEmptyCollections)
+                .WithTypeConverter(new StringArrayYamlTypeConverter(builder.BuildValueSerializer(), null))
                 .EnsureRoundtrip()
                 .Build()
                 .Serialize(GetSampleConfig());
@@ -84,14 +100,14 @@ public class ContainersConfigManager : ConfigManager
                         CurrentSuffix = "<optional-container-name-suffix>",
                         PreviousSuffix = "<optional-demoted-container-name-suffix>",
                         Privileged = true,
-                        Ports = new PortMapping[]
-                        {
-                            new() { Published = "8000", Target = "8080", HostIp = "0.0.0.0", Protocol = "tcp" },
-                            new() { Target = "443" }
-                        },
-                        Volumes = new VolumeConfig[]
-                        {
-                            new()
+                        Ports =
+                        [
+                            new PortMapping { Published = "8000", Target = "8080", HostIp = "0.0.0.0", Protocol = "tcp" },
+                            new PortMapping { Target = "443" }
+                        ],
+                        Volumes =
+                        [
+                            new VolumeConfig
                             {
                                 Type = "bind",
                                 Source = "/path/on/host/data",
@@ -102,14 +118,14 @@ public class ContainersConfigManager : ConfigManager
                                     CreateHostPath = true
                                 }
                             },
-                            new()
+                            new VolumeConfig
                             {
                                 Type = "volume",
                                 Source = "<docker-volume-name>",
                                 Target = "/path/in/container/data",
                                 ReadOnly = false
                             }
-                        },
+                        ],
                         EnvFiles = new [] { "/<host-path>/<env-vars-file>" },
                         EnvVars = new Dictionary<string, string>
                         {
@@ -123,10 +139,10 @@ public class ContainersConfigManager : ConfigManager
                                 new ServiceNetworkConfig
                                 {
                                     IpV4Address = "172.17.0.10",
-                                    Aliases = new []
-                                    {
+                                    Aliases =
+                                    [
                                         "my-first-service"
-                                    }
+                                    ]
                                 }
                             },
                             {
@@ -174,18 +190,18 @@ public class ContainersConfigManager : ConfigManager
                         Image = "[<registry>/][<project>/]<image>[:<tag>|@<digest>]",
                         PullPolicy = "<optional-pull-policy (default: missing)>",
                         ContainerName = "<full-container-name>",
-                        Ports = new PortMapping[]
-                        {
-                            new() { Published = "8765", Target = "1234" } 
-                        },
-                        Volumes = new VolumeConfig[]
-                        {
-                            new()
+                        Ports =
+                        [
+                            new PortMapping { Published = "8765", Target = "1234" }
+                        ],
+                        Volumes =
+                        [
+                            new VolumeConfig
                             {
                                 Source = "<other-docker-volume-name>",
                                 Target = "/path/in/container/data"
                             }
-                        },
+                        ],
                         EnvVars = new Dictionary<string, string>
                         {
                             { "TZ", "UTC" } 
@@ -197,10 +213,10 @@ public class ContainersConfigManager : ConfigManager
                                 new ServiceNetworkConfig
                                 {
                                     IpV4Address = "172.17.0.11",
-                                    Aliases = new []
-                                    {
+                                    Aliases =
+                                    [
                                         "my-second-service"
-                                    }
+                                    ]
                                 }
                             },
                         },

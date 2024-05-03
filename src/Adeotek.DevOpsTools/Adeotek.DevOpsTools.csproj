@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net7.0;net8.0</TargetFrameworks>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AssemblyName>dot</AssemblyName>
@@ -11,7 +11,7 @@
     <Product>AdeoTEK DevOps Tools</Product>
     <Authors>George Benjamin-Schonberger</Authors>
     <Copyright>George Benjamin-Schonberger 2024</Copyright>
-    <Version>0.4.0</Version>
+    <Version>0.5.0</Version>
     <PackageId>Adeotek.DevOpsTools</PackageId>
     <PackageTags>cli,devops,tools,docker,podman</PackageTags>
     <PackageProjectUrl>https://adeotek.github.io/dot/</PackageProjectUrl>
@@ -21,15 +21,15 @@
     <PackageIcon>PackageIcon.png</PackageIcon>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageVersion>0.4.0</PackageVersion>
+    <PackageVersion>0.5.0</PackageVersion>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>dot</ToolCommandName>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Spectre.Console" Version="0.48.1-preview.0.5" />
-    <PackageReference Include="Spectre.Console.Cli" Version="0.48.1-preview.0.5" />
-    <PackageReference Include="Spectre.Console.Json" Version="0.48.1-preview.0.5" />
+    <PackageReference Include="Spectre.Console" Version="0.49.1" />
+    <PackageReference Include="Spectre.Console.Cli" Version="0.49.1" />
+    <PackageReference Include="Spectre.Console.Json" Version="0.49.1" />
   </ItemGroup>
 
   <ItemGroup>

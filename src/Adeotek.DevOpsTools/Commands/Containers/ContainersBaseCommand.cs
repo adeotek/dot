@@ -24,13 +24,11 @@ internal abstract class ContainersBaseCommand<TSettings>
     {
         try
         {
-            var configVersion = settings.ConfigV1 ?? context.Data?.ToString() == "v1" ? "v1" : null;
-            PrintMessage($"Config Version: {configVersion ?? "v2"}", _standardColor);
             if (!settings.ShowConfig)
             {
                 PrintSeparator();
             }
-            var config = ContainersConfigManager.LoadContainersConfig(settings.ConfigFile, configVersion);
+            var config = ContainersConfigManager.LoadContainersConfig(settings.ConfigFile);
             if (settings.ShowConfig)
             {
                 config.WriteToAnsiConsole();    

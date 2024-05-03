@@ -1,5 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 
+using Adeotek.Extensions.ConfigFiles;
+
 using YamlDotNet.Serialization;
 
 namespace Adeotek.Extensions.Containers.Config;
@@ -70,7 +72,7 @@ public class ServiceConfig
     /// Environment variables loaded from one or more files.
     /// </summary>
     [YamlMember(Alias = "env_file")]
-    public string[]? EnvFiles { get; set; }
+    public StringArray? EnvFiles { get; set; }
     /// <summary>
     /// Environment variables.
     /// </summary>
@@ -85,7 +87,7 @@ public class ServiceConfig
     /// Network linked services.
     /// </summary>
     [YamlMember(Alias = "links")]
-    public string[]? Links { get; set; }
+    public StringArray? Links { get; set; }
     /// <summary>
     /// Container hostname inside the virtual networks.
     /// </summary>
@@ -100,19 +102,24 @@ public class ServiceConfig
     /// Custom DNS entries. If NULL, host's DNS will be used.
     /// </summary>
     [YamlMember(Alias = "dns")]
-    public string[]? Dns { get; set; }
+    public StringArray? Dns { get; set; }
     /// <summary>
     /// Defines the ports that the container exposes.
     /// These ports must be accessible to linked services and should not be published to the host machine.
     /// Only the internal container ports can be specified.
     /// </summary>
     [YamlMember(Alias = "expose")]
-    public string[]? Expose { get; set; }
+    public StringArray? Expose { get; set; }
     /// <summary>
     /// Container restart policy.
     /// </summary>
     [YamlMember(Alias = "restart")]
     public string? Restart { get; set; }
+    /// <summary>
+    /// Set the HEALTHCHECK parameters for the container.
+    /// </summary>
+    [YamlMember(Alias = "healthcheck")]
+    public ServiceHealthCheckConfig? HealthCheck { get; set; }
     /// <summary>
     /// This overrides the ENTRYPOINT instruction from the service's Dockerfile.
     /// </summary>
@@ -122,30 +129,41 @@ public class ServiceConfig
     /// Overrides the default command declared by the container image, for example by Dockerfile's CMD.
     /// </summary>
     [YamlMember(Alias = "command")]
-    public string[]? Command { get; set; }
+    public StringArray? Command { get; set; }
     /// <summary>
     /// Container labels.
     /// </summary>
     [YamlMember(Alias = "labels")]
     public Dictionary<string, string>? Labels { get; set; }
     /// <summary>
+    /// overrides the user used to run the container process.
+    /// The default is set by the image (i.e. Dockerfile USER). If it's not set, then root.
+    /// </summary>
+    [YamlMember(Alias = "user")]
+    public string? User { get; set; }
+    /// <summary>
+    /// List of services required by the current service.
+    /// </summary>
+    [YamlMember(Alias = "depends_on")]
+    public StringArray? DependsOn { get; set; }
+    /// <summary>
     /// Docker/Podman `create`/`run` command options.
     /// [NOT SUPPORTED by Docker Compose]
     /// </summary>
     [YamlMember(Alias = "init_cli_options")]
-    public string[]? InitCliOptions { get; set; }
+    public StringArray? InitCliOptions { get; set; }
     /// <summary>
     /// Docker `create`/`run` command options.
     /// [NOT SUPPORTED by Docker Compose]
     /// </summary>
     [YamlMember(Alias = "docker_cli_options")]
-    public string[]? DockerCliOptions { get; set; }
+    public StringArray? DockerCliOptions { get; set; }
     /// <summary>
     /// Podman `create`/`run` specific options.
     /// [NOT SUPPORTED by Docker Compose]
     /// </summary>
     [YamlMember(Alias = "podman_cli_options")]
-    public string[]? PodmanCliOptions { get; set; }
+    public StringArray? PodmanCliOptions { get; set; }
     
     // Computed
     [JsonIgnore] [YamlIgnore]

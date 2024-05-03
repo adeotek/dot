@@ -2,7 +2,7 @@
 
 `dot` is a collection of CLI tools for developers and DevOps.
 
-Supported versions: .NET 7 and .NET 8
+Supported versions: .NET 8+
 
 [![.NET build](https://github.com/adeotek/dot/actions/workflows/dotnet_build.yml/badge.svg)](https://github.com/adeotek/dot/actions/workflows/dotnet_build.yml)
 
@@ -42,15 +42,11 @@ dot <command> <subcommand> --help
 
 ## Commands
 
-### `containers`
+### `containers`/`container`
 
 Docker/Podman containers management tool. The subcommand work in a similar way to `docker-compose`, but with the ability to target individual services (containers).
 The subcommands allows for containers manipulation based on configuration files written in YAML or JSON.
-The new `containers` command replaces the old `container` one (v1).
-
-**New**: The new `containers` command configuration file structure is mostly compatible with `docker-compose` configuration files (see [ContainersConfiguration.md](./samples/ContainersConfiguration.md)).
-
-**_Warning_**: The old `container` command can still be used together with the old configuration format, but it is deprecated and will be removed in future versions.  
+The configuration file structure is compatible with `docker-compose` configuration files with a few small caveats (see [ContainersConfiguration.md](./samples/ContainersConfiguration.md)).
 
 #### Subcommands
 

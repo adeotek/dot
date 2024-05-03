@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net7.0;net8.0</TargetFrameworks>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Title>AdeoTEK Containers Extensions</Title>
@@ -9,11 +9,11 @@
     <Product>AdeoTEK Extensions Containers</Product>
     <Authors>George Benjamin-Schonberger</Authors>
     <Copyright>George Benjamin-Schonberger 2024</Copyright>
-    <Version>0.4.0</Version>
+    <Version>0.5.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Adeotek.Extensions.ConfigFiles\Adeotek.Extensions.ConfigFiles.csproj" />
+    <ProjectReference Include="..\Adeotek.Extensions.ConfigFiles\Adeotek.Extensions.ConfigFiles.csproj" />
     <ProjectReference Include="..\Adeotek.Extensions.Processes\Adeotek.Extensions.Processes.csproj" />
   </ItemGroup>
 

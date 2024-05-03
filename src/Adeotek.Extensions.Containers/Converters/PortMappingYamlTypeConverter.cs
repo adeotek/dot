@@ -6,14 +6,11 @@ using YamlDotNet.Serialization;
 
 namespace Adeotek.Extensions.Containers.Converters;
 
-public class PortMappingYamlTypeConverter : CustomBaseYamlTypeConverter<PortMapping>
+public class PortMappingYamlTypeConverter(
+    IValueSerializer? valueSerializer = null,
+    IValueDeserializer? valueDeserializer = null)
+    : CustomBaseYamlTypeConverter<PortMapping>(valueSerializer, valueDeserializer)
 {
-    public PortMappingYamlTypeConverter(
-        IValueSerializer? valueSerializer = null, 
-        IValueDeserializer? valueDeserializer = null)
-        : base(valueSerializer, valueDeserializer)
-    { }
-
     protected override bool TryCustomParse(IParser parser, out PortMapping? value)
     {
         if (!parser.TryConsume<Scalar>(out var scalar))

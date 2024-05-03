@@ -16,7 +16,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adeotek.Extensions.Containe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adeotek.DevOpsTools.Helpers", "src\Adeotek.DevOpsTools.Helpers\Adeotek.DevOpsTools.Helpers.csproj", "{02E2A136-3656-4450-B321-ED12C15651C0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adeotek.Extensions.ConfigFiles", "Adeotek.Extensions.ConfigFiles\Adeotek.Extensions.ConfigFiles.csproj", "{6998590A-A865-4E61-B9B6-F2A051A6EF39}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adeotek.Extensions.ConfigFiles", "src\Adeotek.Extensions.ConfigFiles\Adeotek.Extensions.ConfigFiles.csproj", "{6998590A-A865-4E61-B9B6-F2A051A6EF39}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
