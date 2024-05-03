@@ -2,6 +2,7 @@
 using System.Text.Json;
 
 using Adeotek.Extensions.ConfigFiles;
+using Adeotek.Extensions.ConfigFiles.Converters;
 using Adeotek.Extensions.Containers.Config;
 using Adeotek.Extensions.Containers.Converters;
 
@@ -67,11 +68,13 @@ public class ContainersConfigManager : ConfigManager
             {
                 return JsonSerializer.Serialize(GetSampleConfig(), DefaultJsonSerializerOptions);
             }
-            
-            return new SerializerBuilder()
-                .WithNamingConvention(UnderscoredNamingConvention.Instance)
+
+            var builder = new SerializerBuilder()
+                .WithNamingConvention(UnderscoredNamingConvention.Instance);
+            return builder
                 .WithQuotingNecessaryStrings()
                 .ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitDefaults | DefaultValuesHandling.OmitNull | DefaultValuesHandling.OmitEmptyCollections)
+                .WithTypeConverter(new StringArrayYamlTypeConverter(builder.BuildValueSerializer(), null))
                 .EnsureRoundtrip()
                 .Build()
                 .Serialize(GetSampleConfig());
@@ -97,14 +100,14 @@ public class ContainersConfigManager : ConfigManager
                         CurrentSuffix = "<optional-container-name-suffix>",
                         PreviousSuffix = "<optional-demoted-container-name-suffix>",
                         Privileged = true,
-                        Ports = new PortMapping[]
-                        {
-                            new() { Published = "8000", Target = "8080", HostIp = "0.0.0.0", Protocol = "tcp" },
-                            new() { Target = "443" }
-                        },
-                        Volumes = new VolumeConfig[]
-                        {
-                            new()
+                        Ports =
+                        [
+                            new PortMapping { Published = "8000", Target = "8080", HostIp = "0.0.0.0", Protocol = "tcp" },
+                            new PortMapping { Target = "443" }
+                        ],
+                        Volumes =
+                        [
+                            new VolumeConfig
                             {
                                 Type = "bind",
                                 Source = "/path/on/host/data",
@@ -115,14 +118,14 @@ public class ContainersConfigManager : ConfigManager
                                     CreateHostPath = true
                                 }
                             },
-                            new()
+                            new VolumeConfig
                             {
                                 Type = "volume",
                                 Source = "<docker-volume-name>",
                                 Target = "/path/in/container/data",
                                 ReadOnly = false
                             }
-                        },
+                        ],
                         EnvFiles = new [] { "/<host-path>/<env-vars-file>" },
                         EnvVars = new Dictionary<string, string>
                         {
@@ -136,10 +139,10 @@ public class ContainersConfigManager : ConfigManager
                                 new ServiceNetworkConfig
                                 {
                                     IpV4Address = "172.17.0.10",
-                                    Aliases = new []
-                                    {
+                                    Aliases =
+                                    [
                                         "my-first-service"
-                                    }
+                                    ]
                                 }
                             },
                             {
@@ -187,18 +190,18 @@ public class ContainersConfigManager : ConfigManager
                         Image = "[<registry>/][<project>/]<image>[:<tag>|@<digest>]",
                         PullPolicy = "<optional-pull-policy (default: missing)>",
                         ContainerName = "<full-container-name>",
-                        Ports = new PortMapping[]
-                        {
-                            new() { Published = "8765", Target = "1234" } 
-                        },
-                        Volumes = new VolumeConfig[]
-                        {
-                            new()
+                        Ports =
+                        [
+                            new PortMapping { Published = "8765", Target = "1234" }
+                        ],
+                        Volumes =
+                        [
+                            new VolumeConfig
                             {
                                 Source = "<other-docker-volume-name>",
                                 Target = "/path/in/container/data"
                             }
-                        },
+                        ],
                         EnvVars = new Dictionary<string, string>
                         {
                             { "TZ", "UTC" } 
@@ -210,10 +213,10 @@ public class ContainersConfigManager : ConfigManager
                                 new ServiceNetworkConfig
                                 {
                                     IpV4Address = "172.17.0.11",
-                                    Aliases = new []
-                                    {
+                                    Aliases =
+                                    [
                                         "my-second-service"
-                                    }
+                                    ]
                                 }
                             },
                         },

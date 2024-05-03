@@ -1,5 +1,10 @@
-﻿namespace Adeotek.Extensions.ConfigFiles;
+﻿using System.Text.Json.Serialization;
 
+using Adeotek.Extensions.ConfigFiles.Converters;
+
+namespace Adeotek.Extensions.ConfigFiles;
+
+[JsonConverter(typeof(StringArrayJsonConverter))]
 public readonly struct StringArray
 {
     public string[] Value { get; }

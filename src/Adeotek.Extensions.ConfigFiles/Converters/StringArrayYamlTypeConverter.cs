@@ -1,11 +1,9 @@
-﻿using Adeotek.Extensions.ConfigFiles;
-
-using YamlDotNet.Core;
+﻿using YamlDotNet.Core;
 using YamlDotNet.Core.Events;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.Utilities;
 
-namespace Adeotek.Extensions.Containers.Converters;
+namespace Adeotek.Extensions.ConfigFiles.Converters;
 
 public class StringArrayYamlTypeConverter(
     IValueSerializer? _valueSerializer,
@@ -14,7 +12,7 @@ public class StringArrayYamlTypeConverter(
 {
     public bool Accepts(Type type) => type == typeof(StringArray) || type == typeof(StringArray?);
     
-    public object? ReadYaml(IParser parser, Type type)
+    public object ReadYaml(IParser parser, Type type)
     {
         ArgumentNullException.ThrowIfNull(_valueDeserializer, "No value deserializer object provided");
         
@@ -32,6 +30,13 @@ public class StringArrayYamlTypeConverter(
     public virtual void WriteYaml(IEmitter emitter, object? value, Type type)
     {
         ArgumentNullException.ThrowIfNull(_valueSerializer, "No value serializer object provided");
-        _valueSerializer.SerializeValue(emitter, value, type);
+        if (value is StringArray stringArray)
+        {
+            _valueSerializer.SerializeValue(emitter, stringArray.Value, typeof(string[]));
+        }
+        else
+        {
+            _valueSerializer.SerializeValue(emitter, value, type);    
+        }
     }
 }
