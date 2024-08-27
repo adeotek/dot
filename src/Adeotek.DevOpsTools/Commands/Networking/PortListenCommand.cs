@@ -74,7 +74,7 @@ internal class PortListenCommand : CommandBase<PortListenSettings>
             while (true)
             {
                 var client = listener.AcceptTcpClient();
-                PrintMessage($"{DateTime.Now:s} - Client connected!", _warningColor);
+                PrintMessage($"{DateTime.Now:s} - {client.Client.RemoteEndPoint} - Client connected!", _warningColor);
                 Changes++;
                 client.Close();
             }
