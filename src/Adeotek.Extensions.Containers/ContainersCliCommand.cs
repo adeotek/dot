@@ -98,7 +98,7 @@ public class ContainersCliCommand : ShellCommand
             return this;
         }
 
-        AddArg(string.Join(' ', serviceConfig.Command).Trim());
+        AddArg(string.Join(' ', serviceConfig.Command.Value.AsArray()).Trim());
         return this;
     }
     

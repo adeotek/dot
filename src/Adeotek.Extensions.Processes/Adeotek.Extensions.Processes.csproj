@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Title>AdeoTEK Processes Extensions</Title>
@@ -9,7 +9,7 @@
     <Product>AdeoTEK Extensions Processes</Product>
     <Authors>George Benjamin-Schonberger</Authors>
     <Copyright>George Benjamin-Schonberger 2024</Copyright>
-    <Version>0.3.1</Version>
+    <Version>0.4.0</Version>
   </PropertyGroup>
 
 </Project>

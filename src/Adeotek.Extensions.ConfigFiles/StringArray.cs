@@ -24,6 +24,7 @@ public readonly struct StringArray
         Value = value;
     }
 
+    public string[] AsArray() => Value;
     public override string ToString() => string.Join(' ', Value);
     public static implicit operator StringArray(string value) => new(value);
     public static implicit operator StringArray(string[] value) => new(value);
