@@ -9,7 +9,6 @@ internal static class AnsiConsoleExtensions
     public static IAnsiConsole WriteJson(this IAnsiConsole console, JsonElement node, JsonStyle? jsonStyle = null)
    {
       ArgumentNullException.ThrowIfNull(console);
-      ArgumentNullException.ThrowIfNull(node);
 
       console.WriteJson(node, jsonStyle ?? JsonStyle.Default, 0);
       return console;

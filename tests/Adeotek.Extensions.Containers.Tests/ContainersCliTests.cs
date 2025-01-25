@@ -1724,7 +1724,7 @@ public class ContainersCliTests
         sb.AppendIfNotNullOrEmpty($" --entrypoint {config.Entrypoint}", config.Entrypoint);
         if (config.Command is not null && config.Command.Value.Value.Length > 0)
         {
-            sb.Append($" {string.Join(' ', config.Command).Trim()} ");
+            sb.Append($" {string.Join(' ', config.Command.Value.AsArray()).Trim()} ");
         }
 
         return sb.ToString().Trim();
