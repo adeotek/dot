@@ -262,14 +262,7 @@ public class ContainersCli
 
     public int CreateBindVolume(VolumeConfig volume, bool dryRun = false)
     {
-        var changes = 0;
-        LogCommand("mkdir", volume.Source);
-        if (!dryRun)
-        {
-            Directory.CreateDirectory(volume.Source);
-            changes++;
-        }
-        
+        var changes = CreateVolumeDirectory(volume.Source, dryRun);
         if (ShellCommand.IsWindowsPlatform)
         {
             return changes;
@@ -549,6 +542,27 @@ public class ContainersCli
         }
 
         throw new ContainersCliException("run", 1, $"Unable to archive volume '{volumeName}' into '{archiveFile}'!");
+    }
+    
+    protected int CreateVolumeDirectory(string volumeSource, bool dryRun = false)
+    {
+        var missingPath = volumeSource.EndsWith(Path.DirectorySeparatorChar) 
+            ? volumeSource[..^1] 
+            : Path.GetDirectoryName(volumeSource);
+        
+        if (string.IsNullOrEmpty(missingPath) || Directory.Exists(missingPath))
+        {
+            return 0;
+        }
+        
+        LogCommand("mkdir", missingPath);
+        if (dryRun)
+        {
+            return 0;
+        }
+        
+        Directory.CreateDirectory(missingPath);
+        return 1;
     }
     
     protected void LogMessage(string message, string level = "info")
